@@ -1,0 +1,22 @@
+#+TITLE:  pile-android
+
+Android app for working with [[https://github.com/lepisma/pile][pile]]. There are two primary goals for this project:
+
+1. Make [[https://www.orgroam.com/][Org-roam]] workflows work well on the go. Orgzly doesn't work here and I
+   don't want to use unstable hacks using say logseq for doing this. This last
+   point might be weak, in that case I would fall on the next point to justify
+   why I am building this.
+2. Learn Android development. It's been a long time since I learnt something new
+   in programming.
+
+Here is the planned development path roughly in the order things might happen:
+
++ Listing of org-roam nodes
++ Search on nodes at title level
++ Connection with Dropbox based repository for the above
++ Ability to capture and save a /normal/ node
++ Ability to link and refer to other nodes
++ Ability to capture /literature/ node
++ Ability to capture /daily/ node
++ ... This should be okay as the daily driver. Then I can add more support for
+  adding other modalities, showing graphs, links, etc.
