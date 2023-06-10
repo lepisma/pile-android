@@ -32,7 +32,11 @@ class MainActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Bottom
                     ) {
-                        OrgNodeList(nodes = listOf(OrgNode("Test", ""), OrgNode("Test B", "")))
+                        OrgNodeList(nodes = listOf(
+                            mockOrgNode(),
+                            mockOrgNode(),
+                            mockOrgNode()
+                        ))
                         SearchCreateField()
                     }
                 }
