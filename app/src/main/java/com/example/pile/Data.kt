@@ -1,6 +1,7 @@
 package com.example.pile
 
 import java.time.LocalDateTime
+import io.github.serpro69.kfaker.Faker
 
 data class OrgNode(
     val title: String,
@@ -11,9 +12,10 @@ data class OrgNode(
 )
 
 fun mockOrgNode(): OrgNode {
-    return OrgNode("test", LocalDateTime.now(), "", "")
+    val faker = Faker()
+    return OrgNode(faker.name.nameWithMiddle(), LocalDateTime.now(), "/path/to/file", faker.random.nextUUID())
 }
 
 fun readFilesFromRepository(): List<OrgNode> {
-    return listOf()
+    return (1..10).map({ it -> mockOrgNode() })
 }
