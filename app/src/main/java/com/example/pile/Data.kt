@@ -17,5 +17,5 @@ fun mockOrgNode(): OrgNode {
 }
 
 fun readFilesFromRepository(): List<OrgNode> {
-    return (1..10).map({ it -> mockOrgNode() })
+    return (1..10).map { _ -> mockOrgNode() }
 }
