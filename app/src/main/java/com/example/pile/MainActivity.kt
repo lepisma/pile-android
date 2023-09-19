@@ -89,7 +89,7 @@ fun OrgNodeList(nodes: List<OrgNode>, searchString: String) {
             searchString.lowercase() in it.title.lowercase()
         }.sortedBy {
             searchString.length / it.title.length
-        }) {
+        }.take(10)) {
             node -> OrgNodeItem(node)
         }
     }
