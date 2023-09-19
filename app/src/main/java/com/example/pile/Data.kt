@@ -3,6 +3,7 @@ package com.example.pile
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.compose.ui.res.stringArrayResource
 import androidx.documentfile.provider.DocumentFile
 import java.time.LocalDateTime
 import io.github.serpro69.kfaker.Faker
@@ -73,8 +74,24 @@ fun parseFileTitle(context: Context, file: DocumentFile): String {
 
     return "<NA>"
 }
+
+fun readOrgContent(context: Context, file: DocumentFile): String {
+    val contentResolver = context.contentResolver
+    val inputStream = contentResolver.openInputStream(file.uri)
+    val stringBuilder = StringBuilder()
+    inputStream?.use { stream ->
+        BufferedReader(InputStreamReader(stream)).use { reader ->
+            var line: String?
+            while (reader.readLine().also { line = it } != null) {
+                stringBuilder.append(line).append("\n")
+            }
+        }
+    }
+
+    return stringBuilder.toString()
+}
+
 fun parseFileOrgNode(context: Context, file: DocumentFile): OrgNode {
-    val content = ""
     val title = parseFileTitle(context, file)
     val nodeId = ""
 
