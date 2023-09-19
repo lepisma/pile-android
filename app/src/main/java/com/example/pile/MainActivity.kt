@@ -6,7 +6,10 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -17,10 +20,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.example.pile.ui.theme.PileTheme
 
 class MainActivity : ComponentActivity() {
@@ -84,13 +89,34 @@ fun SearchView(nodes: List<OrgNode>) {
 /* Clickable list of nodes that open edit/read view */
 @Composable
 fun OrgNodeList(nodes: List<OrgNode>, searchString: String) {
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedNode by remember { mutableStateOf<OrgNode?>(null) }
+
     LazyColumn {
         items(nodes.filter {
             searchString.lowercase() in it.title.lowercase()
         }.sortedBy {
             searchString.length / it.title.length
-        }.take(10)) {
-            node -> OrgNodeItem(node)
+        }.take(10)) {node ->
+            OrgNodeItem(node) {
+                selectedNode = it
+                showDialog = true
+            }
+        }
+    }
+
+    if (showDialog && selectedNode != null) {
+        NodeDialog(node = selectedNode!!, onClose = { showDialog = false })
+    }
+}
+
+@Composable
+fun NodeDialog(node: OrgNode, onClose: () -> Unit) {
+    Dialog(onDismissRequest = onClose) {
+        val context = LocalContext.current
+        val fileContent = readOrgContent(context, node.file)
+        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+            Text(text = fileContent)
         }
     }
 }
@@ -109,8 +135,11 @@ fun SearchCreateField(text: String, onTextEntry: (String) -> Unit) {
 
 /* View for one node */
 @Composable
-fun OrgNodeItem(node: OrgNode) {
-    Column( modifier = Modifier.padding(5.dp)) {
+fun OrgNodeItem(node: OrgNode, onClick: (OrgNode) -> Unit) {
+    Column( modifier = Modifier
+        .padding(5.dp)
+        .clickable { onClick(node) }
+    ) {
         Text(node.title)
         Text(node.datetime.toString(), fontSize = 10.sp, color = Color.Gray)
     }
