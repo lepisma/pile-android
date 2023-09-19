@@ -20,7 +20,7 @@ import java.util.stream.Collectors
 data class OrgNode(
     val title: String,
     val datetime: LocalDateTime,
-    val path: String,
+    val file: DocumentFile,
     val id: String,
     val ref: String? = null
 )
@@ -78,7 +78,7 @@ fun parseFileOrgNode(context: Context, file: DocumentFile): OrgNode {
     val title = parseFileTitle(context, file)
     val nodeId = ""
 
-    return OrgNode(title, parseFileDatetime(file), file.uri.toString(), nodeId)
+    return OrgNode(title, parseFileDatetime(file), file, nodeId)
 }
 
 fun readFilesFromDirectory(context: Context, uri: Uri): List<OrgNode> {
