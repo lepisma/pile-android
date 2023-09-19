@@ -1,5 +1,7 @@
 package com.example.pile
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.os.CountDownTimer
 import androidx.activity.ComponentActivity
@@ -22,23 +24,46 @@ import androidx.compose.ui.unit.sp
 import com.example.pile.ui.theme.PileTheme
 
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        const val REQUEST_CODE_OPEN_FOLDER = 1234
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            PileTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Column (
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Bottom
+
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+        startActivityForResult(intent, REQUEST_CODE_OPEN_FOLDER)
+
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Deprecated("?")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        val context = this
+        if (requestCode == REQUEST_CODE_OPEN_FOLDER && resultCode == Activity.RESULT_OK) {
+            setContent {
+                PileTheme {
+                    // A surface container using the 'background' color from the theme
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
                     ) {
-                        SearchView(readFilesFromRepository())
+                        Column (
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Bottom
+                        ) {
+                            data?.data?.also {
+                                it -> SearchView(readFilesFromDirectory(context, it))
+                            }
+                        }
                     }
                 }
+            }
+            data?.data?.also {
+                uri -> println(uri)
             }
         }
     }
