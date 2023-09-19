@@ -65,8 +65,10 @@ fun parseFileTitle(context: Context, file: DocumentFile): String {
         BufferedReader(InputStreamReader(stream)).use { reader ->
             var line: String?
             while (reader.readLine().also { line = it } != null) {
-                if (line!!.startsWith("#+TITLE:")) {
-                    return line!!.substringAfter("#+TITLE:").trim()
+                if (line!!.startsWith("#+TITLE:", ignoreCase = true)) {
+                    return Regex("#\\+TITLE:", RegexOption.IGNORE_CASE).find(line!!)?.let {
+                        line!!.substring(it.range.last + 1).trim()
+                    } ?: ""
                 }
             }
         }
