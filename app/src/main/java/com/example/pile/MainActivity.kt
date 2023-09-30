@@ -7,6 +7,7 @@ import android.net.InetAddresses
 import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.renderscript.RSRuntimeException
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -19,12 +20,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.node.modifierElementOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
@@ -33,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.pile.ui.theme.PileTheme
+import kotlinx.coroutines.*
 
 class MainActivity : ComponentActivity() {
 
@@ -40,22 +44,41 @@ class MainActivity : ComponentActivity() {
         const val REQUEST_CODE_OPEN_FOLDER = 1234
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     private fun setupContent(uri: Uri) {
         val context = this
+
         setContent {
+            var isLoading by remember { mutableStateOf(true) }
+            var nodeList by remember { mutableStateOf(listOf<OrgNode>()) }
+
             PileTheme {
-                Surface (
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Column (
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Bottom
-                    ) {
-                        SearchView(readFilesFromDirectory(context, uri))
+                Box(modifier = Modifier.fillMaxSize()) {
+                    if (!isLoading) {
+                        Surface (
+                            modifier = Modifier.fillMaxSize(),
+                            color = MaterialTheme.colorScheme.background
+                        ) {
+                            Column (
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Bottom
+                            ) {
+                                SearchView(nodeList)
+                            }
+                        }
+                    } else {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center)
+                        )
                     }
                 }
+            }
+
+            LaunchedEffect(uri) {
+                nodeList = withContext(Dispatchers.IO) {
+                    readFilesFromDirectory(context, uri)
+                }
+                isLoading = false
             }
         }
     }

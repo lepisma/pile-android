@@ -100,7 +100,7 @@ fun parseFileOrgNode(context: Context, file: DocumentFile): OrgNode {
     return OrgNode(title, parseFileDatetime(file), file, nodeId)
 }
 
-fun readFilesFromDirectory(context: Context, uri: Uri): List<OrgNode> {
+suspend fun readFilesFromDirectory(context: Context, uri: Uri): List<OrgNode> {
     println(uri.toString())
 
     val fileList: MutableList<DocumentFile> = mutableListOf()
