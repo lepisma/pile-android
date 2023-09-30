@@ -1,7 +1,10 @@
 package com.example.pile
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.net.InetAddresses
+import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
 import androidx.activity.ComponentActivity
@@ -22,6 +25,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.node.modifierElementOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,12 +41,38 @@ class MainActivity : ComponentActivity() {
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
+    private fun setupContent(uri: Uri) {
+        val context = this
+        setContent {
+            PileTheme {
+                Surface (
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    Column (
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Bottom
+                    ) {
+                        SearchView(readFilesFromDirectory(context, uri))
+                    }
+                }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-        startActivityForResult(intent, REQUEST_CODE_OPEN_FOLDER)
+        val uri = loadRootPath(this)
 
+        if (uri != null) {
+            println(":: Found path in shared preference: ${uri.toString()}")
+            setupContent(uri)
+        } else {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+            startActivityForResult(intent, REQUEST_CODE_OPEN_FOLDER)
+        }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -51,26 +81,9 @@ class MainActivity : ComponentActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         val context = this
         if (requestCode == REQUEST_CODE_OPEN_FOLDER && resultCode == Activity.RESULT_OK) {
-            setContent {
-                PileTheme {
-                    // A surface container using the 'background' color from the theme
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.background
-                    ) {
-                        Column (
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Bottom
-                        ) {
-                            data?.data?.also {
-                                it -> SearchView(readFilesFromDirectory(context, it))
-                            }
-                        }
-                    }
-                }
-            }
-            data?.data?.also {
-                uri -> println(uri)
+            data?.data?.also { uri ->
+                saveRootPath(this, uri)
+                setupContent(uri)
             }
         }
     }
@@ -155,5 +168,31 @@ fun OrgNodeItem(node: OrgNode, onClick: (OrgNode) -> Unit) {
     ) {
         Text(node.title)
         Text(node.datetime.toString(), fontSize = 10.sp, color = Color.Gray)
+    }
+}
+
+fun saveRootPath(context: Context, uri: Uri) {
+    val sharedPref = context.getSharedPreferences("pile", Context.MODE_PRIVATE)
+    with (sharedPref.edit()) {
+        putString("root-path", uri.toString())
+        apply()
+    }
+
+    /* Also take persistent permissions */
+    val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+    context.contentResolver.takePersistableUriPermission(uri, takeFlags)
+}
+
+/* Return the saved root path if any */
+fun loadRootPath(context: Context): Uri? {
+    val saved = context.getSharedPreferences("pile", Context.MODE_PRIVATE).getString("root-path", null)
+
+    return if (saved != null) {
+        val uri = Uri.parse(saved)
+        val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        context.contentResolver.takePersistableUriPermission(uri, takeFlags)
+        uri
+    } else {
+        null
     }
 }
