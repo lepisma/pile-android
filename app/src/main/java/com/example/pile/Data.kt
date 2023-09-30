@@ -101,8 +101,6 @@ fun parseFileOrgNode(context: Context, file: DocumentFile): OrgNode {
 }
 
 suspend fun readFilesFromDirectory(context: Context, uri: Uri): List<OrgNode> {
-    println(uri.toString())
-
     val fileList: MutableList<DocumentFile> = mutableListOf()
     val root = DocumentFile.fromTreeUri(context, uri)
     if (root != null) {
