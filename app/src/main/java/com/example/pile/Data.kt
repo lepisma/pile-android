@@ -95,7 +95,9 @@ fun readOrgContent(context: Context, file: DocumentFile): String {
 
 fun parseFileOrgNode(context: Context, file: DocumentFile): OrgNode {
     val title = parseFileTitle(context, file)
-    val nodeId = ""
+
+    // HACK: to make things work for now
+    val nodeId = title
 
     return OrgNode(title, parseFileDatetime(file), file, nodeId)
 }

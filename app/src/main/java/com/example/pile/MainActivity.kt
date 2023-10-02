@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.renderscript.RSRuntimeException
+import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -25,20 +26,25 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorMatrix
-import androidx.compose.ui.node.modifierElementOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.pile.ui.theme.PileTheme
 import kotlinx.coroutines.*
 
@@ -53,60 +59,75 @@ class MainActivity : ComponentActivity() {
         val context = this
 
         setContent {
+            val navController = rememberNavController()
+
             var isLoading by remember { mutableStateOf(true) }
             var nodeList by remember { mutableStateOf(listOf<OrgNode>()) }
 
-            PileTheme {
-                Scaffold (
-                    topBar = {
-                        TopAppBar (
-                            colors = TopAppBarDefaults.smallTopAppBarColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                titleContentColor = MaterialTheme.colorScheme.primary,
-                            ),
-                            title = {
-                                Text("pile-android")
-                            },
-                            actions = {
-                                IconButton(onClick = { println("clicked") }, enabled = !isLoading) {
-                                    Icon (
-                                        imageVector = Icons.Filled.Refresh,
-                                        contentDescription = "Sync database"
+            NavHost(navController = navController, startDestination = "main-screen") {
+                composable("main-screen") {
+
+                    PileTheme {
+                        Scaffold (
+                            topBar = {
+                                TopAppBar (
+                                    colors = TopAppBarDefaults.smallTopAppBarColors(
+                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        titleContentColor = MaterialTheme.colorScheme.primary,
+                                    ),
+                                    title = {
+                                        Text("pile-android")
+                                    },
+                                    actions = {
+                                        IconButton(onClick = { println("clicked") }, enabled = !isLoading) {
+                                            Icon (
+                                                imageVector = Icons.Filled.Refresh,
+                                                contentDescription = "Sync database"
+                                            )
+                                        }
+                                    },
+                                    scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
+                                        rememberTopAppBarState()
+                                    )
+                                )
+                            }
+                        ) { innerPadding ->
+                            Column (
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(top = innerPadding.calculateTopPadding())
+                            ) {
+                                if (isLoading) {
+                                    LinearProgressIndicator (
+                                        modifier = Modifier.fillMaxWidth()
                                     )
                                 }
-                            },
-                            scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
-                                rememberTopAppBarState()
-                            )
-                        )
-                    }
-                ) { innerPadding ->
-                    Column (
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = innerPadding.calculateTopPadding())
-                    ) {
-                        if (isLoading) {
-                            LinearProgressIndicator (
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-                        Surface (
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 20.dp, vertical = 20.dp),
-                            color = MaterialTheme.colorScheme.background
-                        ) {
-                            Column (
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Bottom
-                            ) {
-                                SearchView(nodeList)
+                                Surface (
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 20.dp, vertical = 20.dp),
+                                    color = MaterialTheme.colorScheme.background
+                                ) {
+                                    Column (
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Bottom
+                                    ) {
+                                        SearchView(nodeList, navController)
+                                    }
+                                }
                             }
                         }
                     }
                 }
+                composable("nodeScreen/{nodeId}") { navBackStackEntry ->
+                    val nodeId = navBackStackEntry.arguments?.getString("nodeId")
+                    val node = nodeList.find { it.id == nodeId }
+                    if (node != null) {
+                        NodeScreen(node)
+                    }
+                }
             }
+
 
             LaunchedEffect(uri) {
                 nodeList = withContext(Dispatchers.IO) {
@@ -149,21 +170,18 @@ class MainActivity : ComponentActivity() {
 /* Main search view that comes up as the first page */
 @ExperimentalMaterial3Api
 @Composable
-fun SearchView(nodes: List<OrgNode>) {
+fun SearchView(nodes: List<OrgNode>, navController: NavController) {
     var text by remember { mutableStateOf("") }
 
     Column {
-        OrgNodeList(nodes, text)
+        OrgNodeList(nodes, text, navController)
         SearchCreateField(text = text, onTextEntry = { text = it })
     }
 }
 
 /* Clickable list of nodes that open edit/read view */
 @Composable
-fun OrgNodeList(nodes: List<OrgNode>, searchString: String) {
-    var showDialog by remember { mutableStateOf(false) }
-    var selectedNode by remember { mutableStateOf<OrgNode?>(null) }
-
+fun OrgNodeList(nodes: List<OrgNode>, searchString: String, navController: NavController) {
     LazyColumn {
         items(nodes.filter {
             searchString.lowercase() in it.title.lowercase()
@@ -171,34 +189,53 @@ fun OrgNodeList(nodes: List<OrgNode>, searchString: String) {
             searchString.length / it.title.length
         }.take(10)) {node ->
             OrgNodeItem(node) {
-                selectedNode = it
-                showDialog = true
+                navController.navigate("nodeScreen/${node.id}")
             }
         }
     }
-
-    if (showDialog && selectedNode != null) {
-        NodeDialog(node = selectedNode!!, onClose = { showDialog = false })
-    }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NodeDialog(node: OrgNode, onClose: () -> Unit) {
+fun NodeScreen(node: OrgNode) {
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    val fileContent = readOrgContent(context, node.file)
 
-    Dialog(onDismissRequest = onClose) {
-        val context = LocalContext.current
-        val fileContent = readOrgContent(context, node.file)
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(scrollState)
-            .padding(5.dp)) {
-            Text(
-                node.title,
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(vertical = 20.dp)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                colors = TopAppBarDefaults.smallTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                ),
+                title = {
+                    Text(node.title)
+                },
+                actions = {
+                    IconButton(onClick = { println("clicked") }) {
+                        Icon (
+                            imageVector = Icons.Filled.Share,
+                            contentDescription = "Share"
+                        )
+                    }
+                },
+                scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(
+                    rememberTopAppBarState()
+                )
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { println("pressed save") } ) {
+                Icon(Icons.Filled.CheckCircle, contentDescription = "Save")
+            }
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
             Text(text = fileContent)
         }
     }
@@ -213,7 +250,9 @@ fun SearchCreateField(text: String, onTextEntry: (String) -> Unit) {
         onValueChange = onTextEntry,
         label = { Text(text = "Search or Create") },
         placeholder = { Text(text = "Node name") },
-        modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 20.dp),
         shape = RoundedCornerShape(60.dp)
     )
 }
