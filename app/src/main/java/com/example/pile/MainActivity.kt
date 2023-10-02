@@ -16,11 +16,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
@@ -78,24 +80,29 @@ class MainActivity : ComponentActivity() {
                             )
                         )
                     }
-                ) { _ ->
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        if (!isLoading) {
-                            Surface (
-                                modifier = Modifier.fillMaxSize(),
-                                color = MaterialTheme.colorScheme.background
-                            ) {
-                                Column (
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Bottom
-                                ) {
-                                    SearchView(nodeList)
-                                }
-                            }
-                        } else {
-                            CircularProgressIndicator(
-                                modifier = Modifier.align(Alignment.Center)
+                ) { innerPadding ->
+                    Column (
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = innerPadding.calculateTopPadding())
+                    ) {
+                        if (isLoading) {
+                            LinearProgressIndicator (
+                                modifier = Modifier.fillMaxWidth()
                             )
+                        }
+                        Surface (
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 20.dp, vertical = 20.dp),
+                            color = MaterialTheme.colorScheme.background
+                        ) {
+                            Column (
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Bottom
+                            ) {
+                                SearchView(nodeList)
+                            }
                         }
                     }
                 }
@@ -205,7 +212,9 @@ fun SearchCreateField(text: String, onTextEntry: (String) -> Unit) {
         value = text,
         onValueChange = onTextEntry,
         label = { Text(text = "Search or Create") },
-        placeholder = { Text(text = "Node name") }
+        placeholder = { Text(text = "Node name") },
+        modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+        shape = RoundedCornerShape(60.dp)
     )
 }
 
