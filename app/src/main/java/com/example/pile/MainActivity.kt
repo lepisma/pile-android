@@ -22,6 +22,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -53,23 +55,48 @@ class MainActivity : ComponentActivity() {
             var nodeList by remember { mutableStateOf(listOf<OrgNode>()) }
 
             PileTheme {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    if (!isLoading) {
-                        Surface (
-                            modifier = Modifier.fillMaxSize(),
-                            color = MaterialTheme.colorScheme.background
-                        ) {
-                            Column (
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Bottom
-                            ) {
-                                SearchView(nodeList)
-                            }
-                        }
-                    } else {
-                        CircularProgressIndicator(
-                            modifier = Modifier.align(Alignment.Center)
+                Scaffold (
+                    topBar = {
+                        TopAppBar (
+                            colors = TopAppBarDefaults.smallTopAppBarColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                titleContentColor = MaterialTheme.colorScheme.primary,
+                            ),
+                            title = {
+                                Text("pile-android")
+                            },
+                            actions = {
+                                IconButton(onClick = { println("clicked") }) {
+                                    Icon (
+                                        imageVector = Icons.Filled.Refresh,
+                                        contentDescription = "Sync database"
+                                    )
+                                }
+                            },
+                            scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
+                                rememberTopAppBarState()
+                            )
                         )
+                    }
+                ) { _ ->
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        if (!isLoading) {
+                            Surface (
+                                modifier = Modifier.fillMaxSize(),
+                                color = MaterialTheme.colorScheme.background
+                            ) {
+                                Column (
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Bottom
+                                ) {
+                                    SearchView(nodeList)
+                                }
+                            }
+                        } else {
+                            CircularProgressIndicator(
+                                modifier = Modifier.align(Alignment.Center)
+                            )
+                        }
                     }
                 }
             }
