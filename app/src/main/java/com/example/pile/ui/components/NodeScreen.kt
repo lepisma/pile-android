@@ -10,13 +10,12 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -44,10 +43,7 @@ fun NodeScreen(node: OrgNode, navController: NavController) {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    colors = TopAppBarDefaults.smallTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.primary,
-                    ),
+                    colors = TopAppBarDefaults.smallTopAppBarColors(),
                     title = {
                         Text(node.title)
                     },
@@ -73,8 +69,8 @@ fun NodeScreen(node: OrgNode, navController: NavController) {
                 )
             },
             floatingActionButton = {
-                FloatingActionButton(onClick = { println("pressed save") }) {
-                    Icon(Icons.Filled.CheckCircle, contentDescription = "Save")
+                FloatingActionButton(onClick = { println("pressed") }) {
+                    Icon(Icons.Filled.List, contentDescription = "Related Nodes")
                 }
             }
         ) { innerPadding ->

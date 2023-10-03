@@ -26,7 +26,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val navController = rememberNavController()
-
             var isLoading by remember { mutableStateOf(true) }
             var nodeList by remember { mutableStateOf(listOf<OrgNode>()) }
 
