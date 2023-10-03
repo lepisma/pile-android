@@ -2,21 +2,17 @@ package com.example.pile
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
-import androidx.compose.ui.res.stringArrayResource
 import androidx.documentfile.provider.DocumentFile
 import java.time.LocalDateTime
-import io.github.serpro69.kfaker.Faker
 import java.io.BufferedReader
-import java.io.File
 import java.io.InputStreamReader
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.stream.Collectors
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 
 data class OrgNode(
     val title: String,
@@ -102,14 +98,16 @@ fun parseFileOrgNode(context: Context, file: DocumentFile): OrgNode {
     return OrgNode(title, parseFileDatetime(file), file, nodeId)
 }
 
-suspend fun readFilesFromDirectory(context: Context, uri: Uri): List<OrgNode> {
+suspend fun readFilesFromDirectory(context: Context, uri: Uri): List<OrgNode> = coroutineScope {
     val fileList: MutableList<DocumentFile> = mutableListOf()
     val root = DocumentFile.fromTreeUri(context, uri)
     if (root != null) {
         traverseOrgFiles(root, fileList)
     }
 
-    return fileList.map { parseFileOrgNode(context, it) }
+    return@coroutineScope fileList.map { file ->
+        async { parseFileOrgNode(context, file) }
+    }.awaitAll()
 }
 
 fun traverseOrgFiles(dir: DocumentFile, fileList: MutableList<DocumentFile>) {
