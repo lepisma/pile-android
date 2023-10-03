@@ -202,41 +202,43 @@ fun NodeScreen(node: OrgNode) {
     val context = LocalContext.current
     val fileContent = readOrgContent(context, node.file)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.smallTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
-                ),
-                title = {
-                    Text(node.title)
-                },
-                actions = {
-                    IconButton(onClick = { println("clicked") }) {
-                        Icon (
-                            imageVector = Icons.Filled.Share,
-                            contentDescription = "Share"
-                        )
-                    }
-                },
-                scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(
-                    rememberTopAppBarState()
+    PileTheme {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    colors = TopAppBarDefaults.smallTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.primary,
+                    ),
+                    title = {
+                        Text(node.title)
+                    },
+                    actions = {
+                        IconButton(onClick = { println("clicked") }) {
+                            Icon(
+                                imageVector = Icons.Filled.Share,
+                                contentDescription = "Share"
+                            )
+                        }
+                    },
+                    scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(
+                        rememberTopAppBarState()
+                    )
                 )
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { println("pressed save") } ) {
-                Icon(Icons.Filled.CheckCircle, contentDescription = "Save")
+            },
+            floatingActionButton = {
+                FloatingActionButton(onClick = { println("pressed save") }) {
+                    Icon(Icons.Filled.CheckCircle, contentDescription = "Save")
+                }
             }
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Text(text = fileContent)
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(text = fileContent)
+            }
         }
     }
 }
