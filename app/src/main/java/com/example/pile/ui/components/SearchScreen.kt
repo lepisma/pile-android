@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -127,6 +126,7 @@ fun RecentNodeList(nodes: List<OrgNode>, navController: NavController) {
             .padding(16.dp)) {
             Text(
                 "Recent",
+                color = Color.Gray,
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.padding(bottom = 20.dp)
             )
@@ -144,7 +144,7 @@ fun RecentNodeList(nodes: List<OrgNode>, navController: NavController) {
 /* Clickable list of nodes that open edit/read view */
 @Composable
 fun SearchNodeList(nodes: List<OrgNode>, searchString: String, navController: NavController) {
-    LazyColumn {
+    LazyColumn(modifier = Modifier.padding(16.dp)) {
         items(nodes.filter {
             searchString.lowercase() in it.title.lowercase()
         }.sortedBy {
@@ -177,7 +177,8 @@ fun SearchCreateField(text: String, onTextEntry: (String) -> Unit) {
 @Composable
 fun OrgNodeItem(node: OrgNode, onClick: (OrgNode) -> Unit) {
     Column(modifier = Modifier
-        .padding(5.dp)
+        .padding(vertical = 5.dp)
+        .fillMaxWidth()
         .clickable { onClick(node) }
     ) {
         Text(node.title)
