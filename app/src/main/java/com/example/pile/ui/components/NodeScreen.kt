@@ -23,7 +23,9 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.pile.OrgNode
 import com.example.pile.readOrgContent
 import com.example.pile.ui.theme.PileTheme
@@ -76,7 +78,7 @@ fun NodeScreen(node: OrgNode) {
                         .verticalScroll(scrollState)
                         .padding(horizontal = 20.dp, vertical = 20.dp)
                 ) {
-                    Text(text = fileContent)
+                    Text(text = fileContent, fontFamily = FontFamily.Monospace, fontSize = 13.sp)
                 }
             }
         }
