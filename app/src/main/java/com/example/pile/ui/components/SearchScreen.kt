@@ -79,8 +79,7 @@ fun SearchScreen(nodeList: List<OrgNode>, isLoading: Boolean, navController: Nav
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 20.dp, vertical = 20.dp),
-                    color = MaterialTheme.colorScheme.background
+                        .padding(horizontal = 20.dp, vertical = 20.dp)
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,

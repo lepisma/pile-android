@@ -21,7 +21,6 @@ class MainActivity : ComponentActivity() {
         const val REQUEST_CODE_OPEN_FOLDER = 1234
     }
 
-    @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
     private fun setupContent(uri: Uri) {
         val context = this
 
@@ -44,7 +43,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-
             LaunchedEffect(uri) {
                 nodeList = withContext(Dispatchers.IO) {
                     readFilesFromDirectory(context, uri)
@@ -54,7 +52,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -68,7 +65,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
     @Deprecated("?")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
