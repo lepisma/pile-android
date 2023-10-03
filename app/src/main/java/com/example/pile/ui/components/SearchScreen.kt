@@ -6,12 +6,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -99,14 +102,48 @@ fun SearchView(nodes: List<OrgNode>, navController: NavController) {
     var text by remember { mutableStateOf("") }
 
     Column {
-        OrgNodeList(nodes, text, navController)
+        if (nodes.isNotEmpty()) {
+            if (text == "") {
+                RecentNodeList(nodes, navController)
+            } else {
+                SearchNodeList(nodes, text, navController)
+            }
+        }
         SearchCreateField(text = text, onTextEntry = { text = it })
+    }
+}
+
+@Composable
+fun RecentNodeList(nodes: List<OrgNode>, navController: NavController) {
+    ElevatedCard(
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp
+        ),
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp)
+    ) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)) {
+            Text(
+                "Recent",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(bottom = 20.dp)
+            )
+            LazyColumn {
+                items(nodes.sortedByDescending { it.datetime }.take(5)) { node ->
+                    OrgNodeItem(node) {
+                        navController.navigate("nodeScreen/${node.id}")
+                    }
+                }
+            }
+        }
     }
 }
 
 /* Clickable list of nodes that open edit/read view */
 @Composable
-fun OrgNodeList(nodes: List<OrgNode>, searchString: String, navController: NavController) {
+fun SearchNodeList(nodes: List<OrgNode>, searchString: String, navController: NavController) {
     LazyColumn {
         items(nodes.filter {
             searchString.lowercase() in it.title.lowercase()
