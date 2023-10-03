@@ -9,13 +9,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Refresh
@@ -184,6 +187,7 @@ fun OrgNodeList(nodes: List<OrgNode>, searchString: String, navController: NavCo
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NodeScreen(node: OrgNode) {
+    val scrollState = rememberScrollState()
     val context = LocalContext.current
     val fileContent = readOrgContent(context, node.file)
 
@@ -222,7 +226,11 @@ fun NodeScreen(node: OrgNode) {
                     .padding(innerPadding),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Text(text = fileContent)
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)) {
+                    Text(text = fileContent)
+                }
             }
         }
     }
