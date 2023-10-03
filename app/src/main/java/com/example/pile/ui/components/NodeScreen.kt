@@ -74,6 +74,7 @@ fun NodeScreen(node: OrgNode) {
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(scrollState)
+                        .padding(horizontal = 20.dp, vertical = 20.dp)
                 ) {
                     Text(text = fileContent)
                 }
