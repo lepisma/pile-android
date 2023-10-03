@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
                     val nodeId = navBackStackEntry.arguments?.getString("nodeId")
                     val node = nodeList.find { it.id == nodeId }
                     if (node != null) {
-                        NodeScreen(node)
+                        NodeScreen(node, navController)
                     }
                 }
             }
