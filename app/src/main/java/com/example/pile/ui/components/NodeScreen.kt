@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -88,7 +89,9 @@ fun NodeScreen(node: OrgNode, navController: NavController) {
                         .verticalScroll(scrollState)
                         .padding(horizontal = 20.dp, vertical = 20.dp)
                 ) {
-                    Text(text = fileContent, fontFamily = FontFamily.Monospace, fontSize = 13.sp)
+                    SelectionContainer {
+                        Text(text = fileContent, fontFamily = FontFamily.Monospace, fontSize = 13.sp)
+                    }
                 }
             }
         }
