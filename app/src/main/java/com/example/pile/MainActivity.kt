@@ -6,6 +6,8 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.navigation.compose.NavHost
@@ -33,7 +35,21 @@ class MainActivity : ComponentActivity() {
                 composable("main-screen") {
                     SearchScreen(nodeList, isLoading, navController)
                 }
-                composable("nodeScreen/{nodeId}") { navBackStackEntry ->
+                composable(
+                    "nodeScreen/{nodeId}",
+                    enterTransition = {
+                        slideIntoContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
+                            animationSpec = tween(200)
+                        )
+                    },
+                    exitTransition = {
+                        slideOutOfContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+                            animationSpec = tween(200)
+                        )
+                    }
+                ) { navBackStackEntry ->
                     val nodeId = navBackStackEntry.arguments?.getString("nodeId")
                     val node = nodeList.find { it.id == nodeId }
                     if (node != null) {
