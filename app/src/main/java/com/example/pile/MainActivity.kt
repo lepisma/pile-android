@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
 
             NavHost(navController = navController, startDestination = "main-screen") {
                 composable("main-screen") {
-                    SearchScreen(nodeList, isLoading, navController)
+                    SearchScreen(nodeList, isLoading) { navController.navigate("nodeScreen/${it}") }
                 }
                 composable(
                     "nodeScreen/{nodeId}",
@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
                     val nodeId = navBackStackEntry.arguments?.getString("nodeId")
                     val node = nodeList.find { it.id == nodeId }
                     if (node != null) {
-                        NodeScreen(node, navController)
+                        NodeScreen(node) { navController.popBackStack() }
                     }
                 }
             }

@@ -9,14 +9,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -35,14 +31,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.example.pile.OrgNode
 import com.example.pile.ui.theme.PileTheme
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchScreen(nodeList: List<OrgNode>, isLoading: Boolean, navController: NavController) {
+fun SearchScreen(nodeList: List<OrgNode>, isLoading: Boolean, openNode: (String) -> Unit) {
     PileTheme {
         Scaffold(
             topBar = {
@@ -78,7 +73,7 @@ fun SearchScreen(nodeList: List<OrgNode>, isLoading: Boolean, navController: Nav
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Bottom
                     ) {
-                        SearchView(nodeList, navController)
+                        SearchView(nodeList, openNode)
                     }
                 }
             }
@@ -89,15 +84,15 @@ fun SearchScreen(nodeList: List<OrgNode>, isLoading: Boolean, navController: Nav
 /* Main search view that comes up as the first page */
 @ExperimentalMaterial3Api
 @Composable
-fun SearchView(nodes: List<OrgNode>, navController: NavController) {
+fun SearchView(nodes: List<OrgNode>, openNode: (String) -> Unit) {
     var text by remember { mutableStateOf("") }
 
     Column {
         if (nodes.isNotEmpty()) {
             if (text == "") {
-                RecentNodeList(nodes, navController)
+                RecentNodeList(nodes, openNode)
             } else {
-                SearchNodeList(nodes, text, navController)
+                SearchNodeList(nodes, text, openNode)
             }
         }
         SearchCreateField(text = text, onTextEntry = { text = it })
@@ -105,7 +100,7 @@ fun SearchView(nodes: List<OrgNode>, navController: NavController) {
 }
 
 @Composable
-fun RecentNodeList(nodes: List<OrgNode>, navController: NavController) {
+fun RecentNodeList(nodes: List<OrgNode>, openNode: (String) -> Unit) {
     ElevatedCard(
         elevation = CardDefaults.cardElevation(
             defaultElevation = 2.dp
@@ -124,9 +119,7 @@ fun RecentNodeList(nodes: List<OrgNode>, navController: NavController) {
             )
             LazyColumn {
                 items(nodes.sortedByDescending { it.datetime }.take(5)) { node ->
-                    OrgNodeItem(node) {
-                        navController.navigate("nodeScreen/${node.id}")
-                    }
+                    OrgNodeItem(node) { openNode(node.id) }
                 }
             }
         }
@@ -135,16 +128,14 @@ fun RecentNodeList(nodes: List<OrgNode>, navController: NavController) {
 
 /* Clickable list of nodes that open edit/read view */
 @Composable
-fun SearchNodeList(nodes: List<OrgNode>, searchString: String, navController: NavController) {
+fun SearchNodeList(nodes: List<OrgNode>, searchString: String, openNode: (String) -> Unit) {
     LazyColumn(modifier = Modifier.padding(16.dp)) {
         items(nodes.filter {
             searchString.lowercase() in it.title.lowercase()
         }.sortedBy {
             searchString.length / it.title.length
         }.take(10)) { node ->
-            OrgNodeItem(node) {
-                navController.navigate("nodeScreen/${node.id}")
-            }
+            OrgNodeItem(node) { openNode(node.id) }
         }
     }
 }
