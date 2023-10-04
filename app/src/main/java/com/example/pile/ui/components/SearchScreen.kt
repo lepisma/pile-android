@@ -1,5 +1,6 @@
 package com.example.pile.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -90,12 +92,38 @@ fun SearchView(nodes: List<OrgNode>, openNode: (String) -> Unit) {
     Column {
         if (nodes.isNotEmpty()) {
             if (text == "") {
+                RandomNodeList(nodes, openNode)
                 RecentNodeList(nodes, openNode)
             } else {
                 SearchNodeList(nodes, text, openNode)
             }
         }
         SearchCreateField(text = text, onTextEntry = { text = it })
+    }
+}
+
+@Composable
+fun RandomNodeList(nodes: List<OrgNode>, openNode: (String) -> Unit) {
+    OutlinedCard(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
+        border = BorderStroke(1.dp, Color.LightGray),
+        shape = RoundedCornerShape(10.dp)
+    ) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)) {
+            Text(
+                "Random",
+                color = Color.Gray,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(bottom = 20.dp)
+            )
+            LazyColumn {
+                items(nodes.shuffled().take(5)) { node ->
+                    OrgNodeItem(node) { openNode(node.id) }
+                }
+            }
+        }
     }
 }
 
