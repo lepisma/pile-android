@@ -47,14 +47,6 @@ fun NodeScreen(node: OrgNode, navController: NavController) {
                     title = {
                         Text(node.title)
                     },
-                    actions = {
-                        IconButton(onClick = { println("clicked") }) {
-                            Icon(
-                                imageVector = Icons.Filled.Share,
-                                contentDescription = "Share"
-                            )
-                        }
-                    },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(

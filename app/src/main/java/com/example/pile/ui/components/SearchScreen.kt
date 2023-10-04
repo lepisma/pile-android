@@ -53,14 +53,6 @@ fun SearchScreen(nodeList: List<OrgNode>, isLoading: Boolean, navController: Nav
                     title = {
                         Text("pile-android")
                     },
-                    actions = {
-                        IconButton(onClick = { println("clicked") }, enabled = !isLoading) {
-                            Icon(
-                                imageVector = Icons.Filled.Refresh,
-                                contentDescription = "Sync database"
-                            )
-                        }
-                    },
                     scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
                         rememberTopAppBarState()
                     )
