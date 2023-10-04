@@ -106,7 +106,7 @@ fun SearchView(nodes: List<OrgNode>, openNode: (String) -> Unit) {
 fun RandomNodeList(nodes: List<OrgNode>, openNode: (String) -> Unit) {
     OutlinedCard(
         modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
-        border = BorderStroke(1.dp, Color.LightGray),
+        border = BorderStroke(0.dp, Color.Transparent),
         shape = RoundedCornerShape(10.dp)
     ) {
         Column(modifier = Modifier
