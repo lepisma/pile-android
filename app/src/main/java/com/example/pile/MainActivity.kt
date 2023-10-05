@@ -32,7 +32,21 @@ class MainActivity : ComponentActivity() {
             var nodeList by remember { mutableStateOf(listOf<OrgNode>()) }
 
             NavHost(navController = navController, startDestination = "main-screen") {
-                composable("main-screen") {
+                composable(
+                    "main-screen",
+                    exitTransition = {
+                        slideOutOfContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
+                            animationSpec = tween(200)
+                        )
+                    },
+                    enterTransition = {
+                        slideIntoContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+                            animationSpec = tween(200)
+                        )
+                    }
+                ) {
                     SearchScreen(nodeList, isLoading) { navController.navigate("nodeScreen/${it}") }
                 }
                 composable(
