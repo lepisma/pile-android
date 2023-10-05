@@ -66,8 +66,7 @@ fun NodeScreen(node: OrgNode, goBack: () -> Unit) {
             }
         ) { innerPadding ->
             Column(
-                modifier = Modifier
-                    .padding(innerPadding),
+                modifier = Modifier.padding(innerPadding),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Box(

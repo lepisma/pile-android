@@ -3,8 +3,9 @@ package com.example.pile.ui.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,7 +18,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,23 +38,23 @@ import com.example.pile.ui.theme.PileTheme
 @Composable
 fun SearchScreen(nodeList: List<OrgNode>, isLoading: Boolean, openNode: (String) -> Unit) {
     PileTheme {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
+        Scaffold () { innerPadding ->
             if (isLoading) {
                 LinearProgressIndicator (
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            Surface(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp, vertical = 20.dp)
+            Column(
+                modifier = Modifier.padding(innerPadding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Bottom
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Bottom
+                Spacer(Modifier.weight(1f))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 20.dp)
                 ) {
                     SearchView(nodeList, openNode)
                 }
@@ -84,7 +85,9 @@ fun SearchView(nodes: List<OrgNode>, openNode: (String) -> Unit) {
 @Composable
 fun RandomNodeList(nodes: List<OrgNode>, openNode: (String) -> Unit) {
     OutlinedCard(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 20.dp),
         border = BorderStroke(0.dp, Color.Transparent),
         shape = RoundedCornerShape(10.dp)
     ) {
