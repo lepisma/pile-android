@@ -11,18 +11,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,42 +37,25 @@ import com.example.pile.ui.theme.PileTheme
 @Composable
 fun SearchScreen(nodeList: List<OrgNode>, isLoading: Boolean, openNode: (String) -> Unit) {
     PileTheme {
-        Scaffold(
-            topBar = {
-                CenterAlignedTopAppBar(
-                    colors = TopAppBarDefaults.smallTopAppBarColors(
-                        titleContentColor = MaterialTheme.colorScheme.primary
-                    ),
-                    title = {
-                        Text("pile-android")
-                    },
-                    scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
-                        rememberTopAppBarState()
-                    )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            if (isLoading) {
+                LinearProgressIndicator (
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
-        ) { innerPadding ->
-            Column(
+            Surface(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = innerPadding.calculateTopPadding())
+                    .padding(horizontal = 20.dp, vertical = 20.dp)
             ) {
-                if (isLoading) {
-                    LinearProgressIndicator (
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-                Surface(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 20.dp, vertical = 20.dp)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Bottom
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Bottom
-                    ) {
-                        SearchView(nodeList, openNode)
-                    }
+                    SearchView(nodeList, openNode)
                 }
             }
         }
