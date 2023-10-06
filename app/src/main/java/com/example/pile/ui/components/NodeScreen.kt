@@ -36,7 +36,7 @@ import com.example.pile.ui.theme.PileTheme
 fun NodeScreen(node: OrgNode, goBack: () -> Unit) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
-    val fileContent = readOrgContent(context, node.file)
+    val fileContent = node.file?.let { readOrgContent(context, it) } ?: "NA"
 
     PileTheme {
         Scaffold(

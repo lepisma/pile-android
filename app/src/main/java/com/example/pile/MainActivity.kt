@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.room.Room
 import com.example.pile.ui.components.NodeScreen
 import com.example.pile.ui.components.SearchScreen
 import kotlinx.coroutines.*
@@ -85,6 +86,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val uri = loadRootPath(this)
+
+        val db = Room.databaseBuilder(
+            applicationContext,
+            PileDatabase::class.java, "pile-database"
+        ).build()
+        val nodeDao = db.nodeDao()
 
         if (uri != null) {
             setupContent(uri)

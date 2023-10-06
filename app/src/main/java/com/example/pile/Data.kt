@@ -4,24 +4,81 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
-import java.time.LocalDateTime
+import androidx.room.Dao
+import androidx.room.Database
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.PrimaryKey
+import androidx.room.Query
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverter
+import androidx.room.TypeConverters
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 
+@Entity(tableName = "nodes")
 data class OrgNode(
+    @PrimaryKey
+    val id: String,
     val title: String,
     val datetime: LocalDateTime,
-    val file: DocumentFile,
-    val id: String,
-    val ref: String? = null
+    val fileString: String,
+    val file: DocumentFile? = null
 )
+
+object LocalDateTimeConverter {
+    @TypeConverter
+    @JvmStatic
+    fun toLocalDateTime(value: String?): LocalDateTime? {
+        return value?.let { LocalDateTime.parse(it) }
+    }
+
+    @TypeConverter
+    @JvmStatic
+    fun fromLocalDateTime(date: LocalDateTime?): String? {
+        return date?.toString()
+    }
+}
+
+object DocumentFileConverter {
+    @TypeConverter
+    @JvmStatic
+    fun toDocumentFile(value: String?): DocumentFile? {
+        return null
+    }
+
+    @TypeConverter
+    @JvmStatic
+    fun fromDocumentFile(value: DocumentFile?): String? {
+        return value?.toString()
+    }
+}
+
+@Dao
+interface NodeDao {
+    @Insert
+    fun insertAll(vararg nodes: OrgNode)
+
+    @Query("SELECT * FROM nodes")
+    fun getAllNodes(): List<OrgNode>
+
+    @Query("DELETE FROM nodes")
+    fun deleteAll()
+}
+
+@Database(entities = [OrgNode::class], version = 1)
+@TypeConverters(LocalDateTimeConverter::class, DocumentFileConverter::class)
+abstract class PileDatabase : RoomDatabase() {
+    abstract fun nodeDao(): NodeDao
+}
 
 /*
  We assume a certain structure of node entries where each file's name has datetime information. And
@@ -96,7 +153,7 @@ fun parseFileOrgNode(context: Context, file: DocumentFile): OrgNode {
     // HACK: to make things work for now
     val nodeId = title
 
-    return OrgNode(title, parseFileDatetime(file), file, nodeId)
+    return OrgNode(nodeId, title, parseFileDatetime(file), file.uri.toString(), file)
 }
 
 suspend fun readFilesFromDirectory(context: Context, uri: Uri): List<OrgNode> = coroutineScope {
