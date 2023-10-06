@@ -77,7 +77,8 @@ class MainActivity : ComponentActivity() {
 
             LaunchedEffect(uri) {
                 nodeList = withContext(Dispatchers.IO) {
-                    loadNodes(context, uri, nodeDao)
+                    refreshDatabase(context, uri, nodeDao)
+                    loadNodes(context, nodeDao)
                 }
                 isLoading = false
             }

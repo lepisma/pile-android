@@ -175,12 +175,9 @@ suspend fun refreshDatabase(context: Context, uri: Uri, nodeDao: NodeDao) {
     nodeDao.insertAll(*nodes.toTypedArray())
 }
 
-suspend fun loadNodes(context: Context, uri: Uri, nodeDao: NodeDao): List<OrgNode> = coroutineScope {
-    refreshDatabase(context, uri, nodeDao)
-
-    // `file` field has to be recovered
+suspend fun loadNodes(context: Context, nodeDao: NodeDao): List<OrgNode> = coroutineScope {
     val nodes = nodeDao.getAllNodes()
-
+    // `file` field has to be recovered
     return@coroutineScope nodes.map { node ->
         node.copy(file = DocumentFile.fromTreeUri(context, Uri.parse(node.fileString)))
     }
