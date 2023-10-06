@@ -24,6 +24,8 @@ class MainActivity : ComponentActivity() {
         const val REQUEST_CODE_OPEN_FOLDER = 1234
     }
 
+    private lateinit var nodeDao: NodeDao
+
     private fun setupContent(uri: Uri) {
         val context = this
 
@@ -75,7 +77,7 @@ class MainActivity : ComponentActivity() {
 
             LaunchedEffect(uri) {
                 nodeList = withContext(Dispatchers.IO) {
-                    readFilesFromDirectory(context, uri)
+                    loadNodes(context, uri, nodeDao)
                 }
                 isLoading = false
             }
@@ -91,7 +93,7 @@ class MainActivity : ComponentActivity() {
             applicationContext,
             PileDatabase::class.java, "pile-database"
         ).build()
-        val nodeDao = db.nodeDao()
+        nodeDao = db.nodeDao()
 
         if (uri != null) {
             setupContent(uri)

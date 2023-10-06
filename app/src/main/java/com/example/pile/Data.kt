@@ -23,6 +23,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 @Entity(tableName = "nodes")
 data class OrgNode(
@@ -151,7 +152,7 @@ fun parseFileOrgNode(context: Context, file: DocumentFile): OrgNode {
     val title = parseFileTitle(context, file)
 
     // HACK: to make things work for now
-    val nodeId = title
+    val nodeId = UUID.randomUUID().toString()
 
     return OrgNode(nodeId, title, parseFileDatetime(file), file.uri.toString(), file)
 }
@@ -166,6 +167,23 @@ suspend fun readFilesFromDirectory(context: Context, uri: Uri): List<OrgNode> = 
     return@coroutineScope fileList.map { file ->
         async { parseFileOrgNode(context, file) }
     }.awaitAll()
+}
+
+suspend fun refreshDatabase(context: Context, uri: Uri, nodeDao: NodeDao) {
+    val nodes = readFilesFromDirectory(context, uri)
+    nodeDao.deleteAll()
+    nodeDao.insertAll(*nodes.toTypedArray())
+}
+
+suspend fun loadNodes(context: Context, uri: Uri, nodeDao: NodeDao): List<OrgNode> = coroutineScope {
+    refreshDatabase(context, uri, nodeDao)
+
+    // `file` field has to be recovered
+    val nodes = nodeDao.getAllNodes()
+
+    return@coroutineScope nodes.map { node ->
+        node.copy(file = DocumentFile.fromTreeUri(context, Uri.parse(node.fileString)))
+    }
 }
 
 fun traverseOrgFiles(dir: DocumentFile, fileList: MutableList<DocumentFile>) {
