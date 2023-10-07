@@ -18,11 +18,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 @Entity(tableName = "nodes")
@@ -81,58 +77,7 @@ abstract class PileDatabase : RoomDatabase() {
     abstract fun nodeDao(): NodeDao
 }
 
-/*
- We assume a certain structure of node entries where each file's name has datetime information. And
- we are not considering the nodes that could be found within a file right now.
-
- Here is an example filename structure:
- 20200516002256-studio-vs-war-room.org
- */
-fun parseFileDatetime(file: DocumentFile): LocalDateTime {
-    // We will search for 3 types of datetime patterns
-    // First for daily notes
-    val dailyRegex = """(\d{4}-\d{2}-\d{2})\.org""".toRegex()
-    val dailyMatch = dailyRegex.find(file.name ?: "")
-
-    if (dailyMatch != null) {
-        return LocalDate.parse(dailyMatch.groups[1]!!.value).atStartOfDay()
-    }
-
-    // These are regular notes created using org-roam
-    val normalRegex = """(\d{14})-.*\.org""".toRegex()
-    val normalMatch = normalRegex.find(file.name ?: "")
-
-    if (normalMatch != null) {
-        return LocalDateTime.parse(normalMatch.groups[1]!!.value, DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
-    }
-
-    // Else fallback to using last modified time
-    val lastModifiedMillis = file.lastModified()
-    return Instant.ofEpochMilli(lastModifiedMillis)
-        .atZone(ZoneId.systemDefault())
-        .toLocalDateTime()
-}
-
-fun parseFileTitle(context: Context, file: DocumentFile): String {
-    val contentResolver = context.contentResolver
-    val inputStream = contentResolver.openInputStream(file.uri)
-    inputStream?.use { stream ->
-        BufferedReader(InputStreamReader(stream)).use { reader ->
-            var line: String?
-            while (reader.readLine().also { line = it } != null) {
-                if (line!!.startsWith("#+TITLE:", ignoreCase = true)) {
-                    return Regex("#\\+TITLE:", RegexOption.IGNORE_CASE).find(line!!)?.let {
-                        line!!.substring(it.range.last + 1).trim()
-                    } ?: ""
-                }
-            }
-        }
-    }
-
-    return "<NA>"
-}
-
-fun readOrgContent(context: Context, file: DocumentFile): String {
+fun readFile(context: Context, file: DocumentFile): String {
     val contentResolver = context.contentResolver
     val inputStream = contentResolver.openInputStream(file.uri)
     val stringBuilder = StringBuilder()
@@ -149,10 +94,10 @@ fun readOrgContent(context: Context, file: DocumentFile): String {
 }
 
 fun parseFileOrgNode(context: Context, file: DocumentFile): OrgNode {
-    val title = parseFileTitle(context, file)
-
-    // HACK: to make things work for now
-    val nodeId = UUID.randomUUID().toString()
+    val preamble = readOrgPreamble(context, file)
+    val title = parseTitle(preamble)
+    // This is not correct since UUID is probably not the way org-id works
+    val nodeId = parseId(preamble) ?: UUID.randomUUID().toString()
 
     return OrgNode(nodeId, title, parseFileDatetime(file), file.uri.toString(), file)
 }

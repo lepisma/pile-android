@@ -41,7 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pile.OrgNode
-import com.example.pile.readOrgContent
+import com.example.pile.readFile
 import com.example.pile.ui.theme.PileTheme
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
@@ -79,7 +79,7 @@ fun NodeScreen(node: OrgNode, goBack: () -> Unit) {
     var isEditMode by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    val fileContent = node.file?.let { readOrgContent(context, it) } ?: "NA"
+    val fileContent = node.file?.let { readFile(context, it) } ?: "NA"
     var currentText by remember { mutableStateOf(fileContent) }
 
     PileTheme {
