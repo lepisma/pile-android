@@ -18,7 +18,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -33,10 +33,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,21 +55,12 @@ fun NodeEdit(text: String, onValueChange: (String) -> Unit) {
         onValueChange = { onValueChange(it) },
         modifier = Modifier.padding(5.dp),
         textStyle = TextStyle(
+            color = LocalContentColor.current,
             fontFamily = FontFamily.Monospace,
             fontSize = 13.sp
-        )
+        ),
+        cursorBrush = SolidColor(LocalContentColor.current)
     )
-}
-
-@Composable
-fun NodePreview(title: String, content: String) {
-    Text(
-        text = title,
-        fontWeight = FontWeight.Bold,
-        style = MaterialTheme.typography.headlineLarge,
-        modifier = Modifier.padding(bottom = 20.dp)
-    )
-    Text(text = content)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -146,7 +137,7 @@ fun NodeScreen(node: OrgNode, goBack: () -> Unit) {
                             if (isEditMode) {
                                 NodeEdit(text = currentText) { currentText = it }
                             } else {
-                                NodePreview(node.title, content = currentText)
+                                OrgPreview(currentText)
                             }
                         }
                     }
