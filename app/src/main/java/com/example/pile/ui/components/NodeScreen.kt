@@ -15,6 +15,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -25,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -77,7 +79,15 @@ fun NodeScreen(node: OrgNode, goBack: () -> Unit) {
                         .padding(horizontal = 20.dp, vertical = 20.dp)
                 ) {
                     SelectionContainer {
-                        Text(text = fileContent, fontFamily = FontFamily.Monospace, fontSize = 13.sp)
+                        Column {
+                            Text(
+                                text = node.title,
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.headlineLarge,
+                                modifier = Modifier.padding(bottom = 20.dp)
+                            )
+                            Text(text = fileContent, fontFamily = FontFamily.Monospace, fontSize = 13.sp)
+                        }
                     }
                 }
             }
