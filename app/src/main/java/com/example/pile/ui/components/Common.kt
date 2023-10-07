@@ -48,7 +48,10 @@ fun OrgRoamRef(text: String) {
     val context = LocalContext.current
 
     parseRoamRef(text)?.let {
-        OutlinedButton(onClick = { println(it) }) {
+        OutlinedButton(
+            onClick = { println(it) },
+            modifier = Modifier.padding(bottom = 20.dp)
+        ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
