@@ -69,6 +69,14 @@ fun parseId(preamble: String): String? {
     }
 }
 
+fun parseOrgBody(text: String): String {
+    val lines = text.lines().dropWhile {
+        it.startsWith(" ") || it.startsWith( ":") || it.startsWith("#")
+    }
+
+    return lines.joinToString("\n").trim()
+}
+
 fun readOrgPreamble(context: Context, file: DocumentFile): String {
     val contentResolver = context.contentResolver
     val inputStream = contentResolver.openInputStream(file.uri)
@@ -77,7 +85,7 @@ fun readOrgPreamble(context: Context, file: DocumentFile): String {
         BufferedReader(InputStreamReader(stream)).use { reader ->
             var line: String?
             while (reader.readLine().also { line = it } != null) {
-                if (line!!.startsWith(' ') || line!!.startsWith(':') || line!!.startsWith('#')) {
+                if (line!!.startsWith(" ") || line!!.startsWith(":") || line!!.startsWith("#")) {
                     stringBuilder.append(line).append("\n")
                 } else {
                     break

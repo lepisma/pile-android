@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.pile.parseOrgBody
 import com.example.pile.parseTitle
 
 @Composable
@@ -27,5 +28,5 @@ fun OrgTitle(title: String) {
 
 @Composable
 fun OrgBody(text: String) {
-    Text(text = text)
+    Text(text = parseOrgBody(text))
 }
