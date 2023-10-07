@@ -53,4 +53,18 @@ class OrgModeTest {
         val input = ""
         assertEquals(parseTitle(input), "<NA>")
     }
+
+    @Test
+    fun testParseRoamRef_URLRef() {
+        val input = """
+:PROPERTIES:
+:ID:       465b0a81-b472-4889-bcf6-5368ce97f08a
+:ROAM_REFS: http://arxiv.org/abs/2212.09689
+:END:
+#+TITLE: Unnatural Instructions: Tuning Language Models with (Almost) No Human Labor
+        """
+
+        val expected = "http://arxiv.org/abs/2212.09689"
+        assertEquals(expected, parseRoamRef(input))
+    }
 }

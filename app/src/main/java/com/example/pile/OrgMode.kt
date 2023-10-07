@@ -46,27 +46,24 @@ fun parseFileDatetime(file: DocumentFile): LocalDateTime {
 }
 
 fun parseTitle(preamble: String): String {
-    val lines = preamble.lines()
+    val titlePattern = Regex("^#\\+TITLE:\\s*(.*)", setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
+    val match = titlePattern.find(preamble)
 
-    val titleLine = lines.firstOrNull {
-        it.startsWith("#+TITLE:", ignoreCase = true)
-    } ?: return "<NA>"
-
-    return Regex("#\\+TITLE:", RegexOption.IGNORE_CASE).find(titleLine)?.let {
-        titleLine.substring(it.range.last + 1).trim()
-    } ?: "<NA>"
+    return match?.groups?.get(1)?.value?.trim() ?: "<NA>"
 }
 
 fun parseId(preamble: String): String? {
-    val lines = preamble.lines()
+    val idPattern = Regex("^:ID:\\s*(.*)", setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
+    val match = idPattern.find(preamble)
 
-    val idLine = lines.firstOrNull {
-        it.startsWith(":ID:", ignoreCase = true)
-    } ?: return null
+    return match?.groups?.get(1)?.value?.trim()
+}
 
-    return Regex(":ID:", RegexOption.IGNORE_CASE).find(idLine)?.let {
-        idLine.substring(it.range.last + 1).trim()
-    }
+fun parseRoamRef(preamble: String): String? {
+    val idPattern = Regex("^:ROAM_REFS:\\s*(.*)", setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
+    val match = idPattern.find(preamble)
+
+    return match?.groups?.get(1)?.value?.trim()
 }
 
 fun parseOrgBody(text: String): String {
