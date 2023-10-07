@@ -63,7 +63,7 @@ fun NodeEdit(text: String, onValueChange: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NodeScreen(node: OrgNode, goBack: () -> Unit) {
+fun NodeScreen(node: OrgNode, goBack: () -> Unit, openNode: (String) -> Unit) {
     val scrollState = rememberScrollState()
     var isEditMode by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -135,7 +135,7 @@ fun NodeScreen(node: OrgNode, goBack: () -> Unit) {
                             if (isEditMode) {
                                 NodeEdit(text = currentText) { currentText = it }
                             } else {
-                                OrgPreview(currentText)
+                                OrgPreview(currentText, openNode)
                             }
                         }
                     }
