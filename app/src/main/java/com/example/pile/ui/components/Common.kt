@@ -20,6 +20,7 @@ import com.example.pile.dropPreamble
 import com.example.pile.parseOrg
 import com.example.pile.parseRoamRef
 import com.example.pile.parseTitle
+import com.example.pile.unfillText
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Bookmark
@@ -72,7 +73,7 @@ fun OrgBody(text: String) {
     val parsed = parseOrg(dropPreamble(text))
 
     Column {
-        Text(parsed.file.preface)
+        Text(unfillText(parsed.file.preface))
 
         parsed.headsInList.forEach {
             val style = when (it.level) {
@@ -86,9 +87,7 @@ fun OrgBody(text: String) {
                 style = style,
                 modifier = Modifier.padding(top = 20.dp, bottom = 10.dp)
             )
-            Text(
-                text = it.head.content
-            )
+            Text(unfillText(it.head.content))
         }
     }
 }
