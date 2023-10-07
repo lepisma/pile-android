@@ -39,7 +39,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.pile.OrgNode
 import com.example.pile.readFile
 import com.example.pile.ui.theme.PileTheme
@@ -56,8 +55,7 @@ fun NodeEdit(text: String, onValueChange: (String) -> Unit) {
         modifier = Modifier.padding(5.dp),
         textStyle = TextStyle(
             color = LocalContentColor.current,
-            fontFamily = FontFamily.Monospace,
-            fontSize = 13.sp
+            fontFamily = FontFamily.Monospace
         ),
         cursorBrush = SolidColor(LocalContentColor.current)
     )

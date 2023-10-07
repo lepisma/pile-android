@@ -16,7 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.pile.parseOrgBody
+import com.example.pile.dropPreamble
+import com.example.pile.parseOrg
 import com.example.pile.parseRoamRef
 import com.example.pile.parseTitle
 import compose.icons.FontAwesomeIcons
@@ -65,5 +66,26 @@ fun OrgRoamRef(text: String) {
 
 @Composable
 fun OrgBody(text: String) {
-    Text(text = parseOrgBody(text))
+    val parsed = parseOrg(dropPreamble(text))
+
+    Column {
+        Text(parsed.file.preface)
+
+        parsed.headsInList.forEach {
+            val style = when (it.level) {
+                1 -> MaterialTheme.typography.headlineLarge
+                2 -> MaterialTheme.typography.headlineMedium
+                else -> MaterialTheme.typography.headlineSmall
+            }
+
+            Text(
+                text = it.head.title,
+                style = style,
+                modifier = Modifier.padding(top = 20.dp, bottom = 10.dp)
+            )
+            Text(
+                text = it.head.content
+            )
+        }
+    }
 }

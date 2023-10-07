@@ -2,6 +2,8 @@ package com.example.pile
 
 import android.content.Context
 import androidx.documentfile.provider.DocumentFile
+import com.orgzly.org.parser.OrgParsedFile
+import com.orgzly.org.parser.OrgParser
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.time.Instant
@@ -66,12 +68,17 @@ fun parseRoamRef(preamble: String): String? {
     return match?.groups?.get(1)?.value?.trim()
 }
 
-fun parseOrgBody(text: String): String {
-    val lines = text.lines().dropWhile {
-        it.startsWith(" ") || it.startsWith( ":") || it.startsWith("#")
-    }
+fun parseOrg(text: String): OrgParsedFile {
+    val orgParser = OrgParser.Builder()
+    return orgParser.setInput(text).build().parse()
+}
 
-    return lines.joinToString("\n").trim()
+fun dropPreamble(text: String): String {
+    val lines = text.lines()
+
+    return lines.dropWhile {
+        it.startsWith(" ") || it.startsWith(":") || it.startsWith("#")
+    }.joinToString("\n")
 }
 
 fun readOrgPreamble(context: Context, file: DocumentFile): String {
