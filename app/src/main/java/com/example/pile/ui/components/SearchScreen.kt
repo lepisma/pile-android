@@ -49,7 +49,7 @@ fun SearchScreen(nodeList: List<OrgNode>, isLoading: Boolean, openNode: (String)
                     TopAppBar(
                         title = { Text("") },
                         actions = {
-                            IconButton(onClick = { refreshDatabase() }) {
+                            IconButton(onClick = { refreshDatabase() }, enabled = !isLoading) {
                                 Icon(
                                     imageVector = Icons.Filled.Refresh,
                                     contentDescription = "Refresh Database"
