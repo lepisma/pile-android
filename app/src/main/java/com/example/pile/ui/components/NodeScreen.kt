@@ -49,12 +49,10 @@ import compose.icons.fontawesomeicons.solid.Glasses
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NodeEdit(text: String) {
-    var value by remember { mutableStateOf(text) }
-
+fun NodeEdit(text: String, onValueChange: (String) -> Unit) {
     BasicTextField(
-        value = value,
-        onValueChange = { value = it },
+        value = text,
+        onValueChange = { onValueChange(it) },
         modifier = Modifier.padding(5.dp),
         textStyle = TextStyle(
             fontFamily = FontFamily.Monospace,
@@ -64,8 +62,14 @@ fun NodeEdit(text: String) {
 }
 
 @Composable
-fun NodePreview(text: String) {
-    Text(text = text)
+fun NodePreview(title: String, content: String) {
+    Text(
+        text = title,
+        fontWeight = FontWeight.Bold,
+        style = MaterialTheme.typography.headlineLarge,
+        modifier = Modifier.padding(bottom = 20.dp)
+    )
+    Text(text = content)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,7 +78,9 @@ fun NodeScreen(node: OrgNode, goBack: () -> Unit) {
     val scrollState = rememberScrollState()
     var isEditMode by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
     val fileContent = node.file?.let { readOrgContent(context, it) } ?: "NA"
+    var currentText by remember { mutableStateOf(fileContent) }
 
     PileTheme {
         Scaffold(
@@ -138,15 +144,9 @@ fun NodeScreen(node: OrgNode, goBack: () -> Unit) {
                     SelectionContainer {
                         Column {
                             if (isEditMode) {
-                                NodeEdit(text = fileContent)
+                                NodeEdit(text = currentText) { currentText = it }
                             } else {
-                                Text(
-                                    text = node.title,
-                                    fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.headlineLarge,
-                                    modifier = Modifier.padding(bottom = 20.dp)
-                                )
-                                NodePreview(text = fileContent)
+                                NodePreview(node.title, content = currentText)
                             }
                         }
                     }
