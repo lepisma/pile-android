@@ -50,7 +50,19 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 ) {
-                    SearchScreen(nodeList, isLoading) { navController.navigate("nodeScreen/${it}") }
+                    SearchScreen(
+                        nodeList,
+                        isLoading,
+                        { navController.navigate("nodeScreen/${it}") },
+                        {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                isLoading = true
+                                refreshDatabase(context, uri, nodeDao)
+                                nodeList = loadNodes(context, nodeDao)
+                                isLoading = false
+                            }
+                        }
+                    )
                 }
                 composable(
                     "nodeScreen/{nodeId}",
@@ -77,7 +89,6 @@ class MainActivity : ComponentActivity() {
 
             LaunchedEffect(uri) {
                 nodeList = withContext(Dispatchers.IO) {
-                    refreshDatabase(context, uri, nodeDao)
                     loadNodes(context, nodeDao)
                 }
                 isLoading = false
