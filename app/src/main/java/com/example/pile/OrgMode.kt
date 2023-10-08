@@ -13,37 +13,49 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 sealed class OrgParagraph {
-    data class OrgList(val text: String) : OrgParagraph()
-    data class OrgPlainParagraph(val text: String) : OrgParagraph()
+    abstract var text: String
 
-    data class OrgQuote(val text: String) : OrgParagraph()
+    data class OrgList(override var text: String) : OrgParagraph()
+    data class OrgPlainParagraph(override var text: String) : OrgParagraph()
 
-    data class OrgBlock(val text: String) : OrgParagraph()
+    data class OrgQuote(override var text: String) : OrgParagraph()
 
-    data class OrgTable(val text: String) : OrgParagraph()
+    data class OrgBlock(override var text: String) : OrgParagraph()
 
-    data class OrgHorizontalLine(val text: String): OrgParagraph()
+    data class OrgTable(override var text: String) : OrgParagraph()
+
+    data class OrgHorizontalLine(override var text: String): OrgParagraph()
 }
 
 fun parseOrgParagraphs(text: String): List<OrgParagraph> {
-    val components = breakHeadingContent(text)
-    val orgParagraphs = mutableListOf<OrgParagraph>()
-
-    components.forEach {
-        orgParagraphs.add(OrgParagraph.OrgPlainParagraph(it))
+    val brokenTexts = breakHeadingContent(text)
+    val brokenOrgParagraphs = brokenTexts.map {
+        if (it.matches(Regex("-----"))) {
+            OrgParagraph.OrgHorizontalLine(it)
+        } else if (it.matches(Regex("^\\|.*"))) {
+            OrgParagraph.OrgTable(it)
+        } else if (it.matches(Regex("(?s)^(\\+|-|\\d+\\.) .*"))) {
+            OrgParagraph.OrgList(it)
+        } else if (it.matches(Regex("(?is)(#\\+begin_quote).*"))) {
+            OrgParagraph.OrgQuote(it.replace(Regex("(?i)#\\+begin_quote|#\\+end_quote"), "").trim())
+        } else if (it.matches(Regex("(?is)(#\\+begin).*"))) {
+            OrgParagraph.OrgBlock(it)
+        } else {
+            OrgParagraph.OrgPlainParagraph(it)
+        }
     }
 
-    return orgParagraphs
-}
-
-fun formatOrgParagraph(item: OrgParagraph): String {
-    return when(item) {
-        is OrgParagraph.OrgList -> item.text
-        is OrgParagraph.OrgPlainParagraph -> unfillText(item.text)
-        is OrgParagraph.OrgQuote -> item.text
-        is OrgParagraph.OrgBlock -> item.text
-        is OrgParagraph.OrgTable -> item.text
-        is OrgParagraph.OrgHorizontalLine -> item.text
+    return brokenOrgParagraphs.fold(mutableListOf<OrgParagraph>()) { acc, it ->
+        if (acc.isEmpty()) {
+            acc.add(it)
+        } else {
+            if (acc.last()::class == it::class) {
+                acc[acc.lastIndex].text += "\n" + it.text
+            } else {
+                acc.add(it)
+            }
+        }
+        acc
     }
 }
 
@@ -102,7 +114,7 @@ fun parseId(preamble: String): String? {
     return match?.groups?.get(1)?.value?.trim()
 }
 
-fun parseRoamRef(preamble: String): String? {
+fun parseOrgRef(preamble: String): String? {
     val idPattern = Regex("^:ROAM_REFS:\\s*(.*)", setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
     val match = idPattern.find(preamble)
 

@@ -14,18 +14,24 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.example.pile.OrgParagraph
 import com.example.pile.dropPreamble
-import com.example.pile.formatOrgParagraph
 import com.example.pile.parseOrg
 import com.example.pile.parseOrgParagraphs
-import com.example.pile.parseRoamRef
+import com.example.pile.parseOrgRef
 import com.example.pile.parseTitle
+import com.example.pile.unfillText
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Bookmark
@@ -33,14 +39,14 @@ import compose.icons.fontawesomeicons.solid.Bookmark
 @Composable
 fun OrgPreview(text: String, openNode: (String) -> Unit) {
     Column {
-        OrgTitle(title = parseTitle(text))
-        OrgRoamRef(text = text)
-        OrgBody(text, openNode)
+        OrgTitleText(title = parseTitle(text))
+        OrgRefText(text = text)
+        OrgBodyText(text, openNode)
     }
 }
 
 @Composable
-fun OrgTitle(title: String) {
+fun OrgTitleText(title: String) {
     Text(
         text = title,
         fontWeight = FontWeight.Bold,
@@ -50,8 +56,8 @@ fun OrgTitle(title: String) {
 }
 
 @Composable
-fun OrgRoamRef(text: String) {
-    parseRoamRef(text)?.let {
+fun OrgRefText(text: String) {
+    parseOrgRef(text)?.let {
         OutlinedButton(
             onClick = { println(it) },
             modifier = Modifier.padding(bottom = 20.dp)
@@ -72,13 +78,43 @@ fun OrgRoamRef(text: String) {
 }
 
 @Composable
-fun OrgBody(text: String, openNode: (String) -> Unit) {
+fun OrgQuoteText(orgQuote: OrgParagraph.OrgQuote) {
+    Text(
+        unfillText(orgQuote.text),
+        fontStyle = FontStyle.Italic,
+        modifier = Modifier
+            .padding(start = 10.dp, top = 20.dp, bottom = 20.dp)
+            .drawBehind {
+                drawLine(
+                    color = Color.Gray,
+                    start = Offset(-10.dp.toPx(), 0F),
+                    end = Offset(-10.dp.toPx(), size.height),
+                    strokeWidth = 2.dp.toPx()
+                )
+            }
+    )
+}
+
+@Composable
+fun OrgParagraphText(orgParagraph: OrgParagraph, openNode: (String) -> Unit) {
+    when(orgParagraph) {
+        is OrgParagraph.OrgHorizontalLine -> Text("-----")
+        is OrgParagraph.OrgTable -> Text(orgParagraph.text, fontFamily = FontFamily.Monospace)
+        is OrgParagraph.OrgList -> Text(orgParagraph.text, fontFamily = FontFamily.Monospace)
+        is OrgParagraph.OrgQuote -> OrgQuoteText(orgParagraph)
+        is OrgParagraph.OrgBlock -> Text(orgParagraph.text, fontFamily = FontFamily.Monospace)
+        else -> ClickableBodyText(unfillText(orgParagraph.text), openNode)
+    }
+}
+
+@Composable
+fun OrgBodyText(text: String, openNode: (String) -> Unit) {
     val parsed = parseOrg(dropPreamble(text))
 
     Column {
-        ClickableBodyText(parseOrgParagraphs(parsed.file.preface).joinToString("\n\n") {
-            formatOrgParagraph(it)
-        }, openNode)
+        parseOrgParagraphs(parsed.file.preface).forEach {
+            OrgParagraphText(it, openNode)
+        }
 
         parsed.headsInList.forEach {
             val style = when (it.level) {
@@ -92,9 +128,9 @@ fun OrgBody(text: String, openNode: (String) -> Unit) {
                 style = style,
                 modifier = Modifier.padding(top = 20.dp, bottom = 10.dp)
             )
-            ClickableBodyText(parseOrgParagraphs(it.head.content).joinToString("\n\n") { oPara ->
-                formatOrgParagraph(oPara)
-            }, openNode)
+            parseOrgParagraphs(it.head.content).forEach { para ->
+                OrgParagraphText(para, openNode)
+            }
         }
     }
 }
@@ -127,6 +163,7 @@ fun ClickableBodyText(text: String, openNode: (String) -> Unit) {
             annotatedString.getStringAnnotations("NodeID", offset, offset).firstOrNull()?.let {
                 openNode(it.item)
             }
-        }
+        },
+        modifier = Modifier.padding(bottom = 10.dp)
     )
 }

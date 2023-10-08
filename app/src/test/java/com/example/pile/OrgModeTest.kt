@@ -55,7 +55,7 @@ class OrgModeTest {
     }
 
     @Test
-    fun testParseRoamRef_URLRef() {
+    fun testParseOrgRef_URLRef() {
         val input = """
 :PROPERTIES:
 :ID:       465b0a81-b472-4889-bcf6-5368ce97f08a
@@ -65,6 +65,6 @@ class OrgModeTest {
         """
 
         val expected = "http://arxiv.org/abs/2212.09689"
-        assertEquals(expected, parseRoamRef(input))
+        assertEquals(expected, parseOrgRef(input))
     }
 }
