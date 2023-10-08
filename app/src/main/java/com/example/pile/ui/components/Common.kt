@@ -21,10 +21,11 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.example.pile.dropPreamble
+import com.example.pile.formatOrgParagraph
 import com.example.pile.parseOrg
+import com.example.pile.parseOrgParagraphs
 import com.example.pile.parseRoamRef
 import com.example.pile.parseTitle
-import com.example.pile.unfillText
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Bookmark
@@ -75,7 +76,9 @@ fun OrgBody(text: String, openNode: (String) -> Unit) {
     val parsed = parseOrg(dropPreamble(text))
 
     Column {
-        ClickableBodyText(unfillText(parsed.file.preface), openNode)
+        ClickableBodyText(parseOrgParagraphs(parsed.file.preface).joinToString("\n\n") {
+            formatOrgParagraph(it)
+        }, openNode)
 
         parsed.headsInList.forEach {
             val style = when (it.level) {
@@ -89,7 +92,9 @@ fun OrgBody(text: String, openNode: (String) -> Unit) {
                 style = style,
                 modifier = Modifier.padding(top = 20.dp, bottom = 10.dp)
             )
-            ClickableBodyText(unfillText(it.head.content), openNode)
+            ClickableBodyText(parseOrgParagraphs(it.head.content).joinToString("\n\n") { oPara ->
+                formatOrgParagraph(oPara)
+            }, openNode)
         }
     }
 }

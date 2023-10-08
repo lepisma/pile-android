@@ -12,6 +12,47 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+sealed class OrgParagraph {
+    data class OrgList(val text: String) : OrgParagraph()
+    data class OrgPlainParagraph(val text: String) : OrgParagraph()
+
+    data class OrgQuote(val text: String) : OrgParagraph()
+
+    data class OrgBlock(val text: String) : OrgParagraph()
+
+    data class OrgTable(val text: String) : OrgParagraph()
+
+    data class OrgHorizontalLine(val text: String): OrgParagraph()
+}
+
+fun parseOrgParagraphs(text: String): List<OrgParagraph> {
+    val components = breakHeadingContent(text)
+    val orgParagraphs = mutableListOf<OrgParagraph>()
+
+    components.forEach {
+        orgParagraphs.add(OrgParagraph.OrgPlainParagraph(it))
+    }
+
+    return orgParagraphs
+}
+
+fun formatOrgParagraph(item: OrgParagraph): String {
+    return when(item) {
+        is OrgParagraph.OrgList -> item.text
+        is OrgParagraph.OrgPlainParagraph -> unfillText(item.text)
+        is OrgParagraph.OrgQuote -> item.text
+        is OrgParagraph.OrgBlock -> item.text
+        is OrgParagraph.OrgTable -> item.text
+        is OrgParagraph.OrgHorizontalLine -> item.text
+    }
+}
+
+fun breakHeadingContent(text: String): List<String> {
+    return text.split(Regex("(?i)(\\n\\n|\n(?=(\\+|-|\\d+\\.) )|\\n(?=#\\+begin|\\|))"))
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+}
+
 /*
  We assume a certain structure of node entries where each file's name has datetime information. And
  we are not considering the nodes that could be found within a file right now.
@@ -107,7 +148,6 @@ fun unfillText(text: String): String {
 
     return processedLines.joinToString("\n")
 }
-
 
 fun readOrgPreamble(context: Context, file: DocumentFile): String {
     val contentResolver = context.contentResolver
