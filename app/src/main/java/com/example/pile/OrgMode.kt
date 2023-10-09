@@ -61,8 +61,29 @@ fun parseOrgParagraphs(text: String): List<OrgParagraph> {
     }
 }
 
+/*
+ Break text based on begin and end blocks
+ */
+fun breakBlocks(text: String): List<String> {
+    return text.split(Regex("(?i)(\\n(?=#\\+begin)|(?<=#\\+end_[a-z]{1,20})\\n)"))
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+}
+
+/*
+ Tokenizer for texts below a heading. High level heading parsing happens via Org-Java, but this
+ takes care of the parsing for body text within a heading (also used in org file preface).
+ */
 fun breakHeadingContent(text: String): List<String> {
-    return text.split(Regex("(?i)(\\n\\n|\n(?=(\\+|-|\\d+\\.) )|\\n(?=#\\+begin|\\|))"))
+    val blocks = breakBlocks(text)
+
+    return blocks.fold(listOf<String>()) { acc, it ->
+        if (it.startsWith("#+")) {
+            acc + it
+        } else {
+            acc + it.split(Regex("\\n((?=\\|)|\\n|(?=(\\+|-|\\d+\\.) ))"))
+        }
+    }
         .map { it.trim() }
         .filter { it.isNotEmpty() }
 }
