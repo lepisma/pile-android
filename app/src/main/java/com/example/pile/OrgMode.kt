@@ -45,11 +45,13 @@ fun parseOrgParagraphs(text: String): List<OrgParagraph> {
         }
     }
 
+    val classesToMerge = listOf(OrgParagraph.OrgList::class, OrgParagraph.OrgTable::class)
+
     return brokenOrgParagraphs.fold(mutableListOf<OrgParagraph>()) { acc, it ->
         if (acc.isEmpty()) {
             acc.add(it)
         } else {
-            if (acc.last()::class == it::class) {
+            if (acc.last()::class == it::class && it::class in classesToMerge) {
                 acc[acc.lastIndex].text += "\n" + it.text
             } else {
                 acc.add(it)
