@@ -7,7 +7,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.core.tween
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.navigation.compose.NavHost
@@ -39,14 +38,12 @@ class MainActivity : ComponentActivity() {
                     "main-screen",
                     exitTransition = {
                         slideOutOfContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
-                            animationSpec = tween(200)
+                            towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left
                         )
                     },
                     enterTransition = {
                         slideIntoContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
-                            animationSpec = tween(200)
+                            towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right
                         )
                     }
                 ) {
@@ -68,14 +65,12 @@ class MainActivity : ComponentActivity() {
                     "nodeScreen/{nodeId}",
                     enterTransition = {
                         slideIntoContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
-                            animationSpec = tween(200)
+                            towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left
                         )
                     },
                     exitTransition = {
                         slideOutOfContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
-                            animationSpec = tween(200)
+                            towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right
                         )
                     }
                 ) { navBackStackEntry ->
