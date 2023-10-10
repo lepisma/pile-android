@@ -50,7 +50,7 @@ fun OrgParagraphText(orgParagraph: OrgParagraph, openNode: (String) -> Unit) {
     when(orgParagraph) {
         is OrgParagraph.OrgHorizontalLine -> OrgHorizontalLine()
         is OrgParagraph.OrgTable -> Text(orgParagraph.text, fontFamily = FontFamily.Monospace)
-        is OrgParagraph.OrgList -> OrgListText(orgParagraph)
+        is OrgParagraph.OrgList -> OrgListText(orgParagraph, openNode)
         is OrgParagraph.OrgQuote -> OrgQuoteText(orgParagraph)
         is OrgParagraph.OrgBlock -> Text(orgParagraph.text, fontFamily = FontFamily.Monospace)
         else -> OrgText(orgParagraph.text, openNode)

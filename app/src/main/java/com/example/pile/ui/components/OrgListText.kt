@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.example.pile.OrgParagraph
 
 @Composable
-fun OrgListText(orgList: OrgParagraph.OrgList) {
+fun OrgListText(orgList: OrgParagraph.OrgList, openNode: (String) -> Unit) {
     var layoutWidth by remember { mutableFloatStateOf(0f) }
 
     Text(
@@ -46,7 +46,7 @@ fun OrgListText(orgList: OrgParagraph.OrgList) {
                     color = Color.Gray,
                     textAlign = TextAlign.End,
                 )
-                Text(text = item.text)
+                OrgText(item.text, openNode)
             }
         }
     }
