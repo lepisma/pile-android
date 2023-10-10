@@ -67,6 +67,30 @@ class OrgModeTest {
         val expected = "http://arxiv.org/abs/2212.09689"
         assertEquals(expected, parseOrgRef(input))
     }
+
+    @Test
+    fun testUnfill() {
+        val input = """
+            The Alberta Plan characterizes the problem of AI as the online maximization of
+            reward via continual sensing and acting, with limited computation, and
+            potentially in the presence of other agents. This characterization might seem
+            natural, even obvious, but it is also contrary to current practice, which is
+
+            often focused on offline learning, prepared training sets, human assistance, and
+            unlimited computation. The Alberta Plan research vision is both classical and
+            contrarian, and radical in the sense of going to the root.
+        """.trimIndent()
+        val expected = "The Alberta Plan characterizes the problem of AI as the online maximization of " +
+                "reward via continual sensing and acting, with limited computation, and " +
+                "potentially in the presence of other agents. This characterization might seem " +
+                "natural, even obvious, but it is also contrary to current practice, which is" +
+                "\n\n" +
+                "often focused on offline learning, prepared training sets, human assistance, and " +
+                "unlimited computation. The Alberta Plan research vision is both classical and " +
+                "contrarian, and radical in the sense of going to the root."
+        assertEquals(unfillText(input), expected)
+    }
+
     @Test
     fun testBreakBlocks() {
         val input = """
@@ -179,5 +203,74 @@ class OrgModeTest {
             """.trimIndent()
         )
         assertEquals(expected, breakHeadingContent(input))
+    }
+
+    @Test
+    fun testParseOrgList_Unordered() {
+        val input = """
+            - I think I have identified problems with my writing in a formal way and can
+              write simple functions to let me know things like:
+            - There can be other assists that go with Emacs, like a cached thesaurus.
+            """.trimIndent()
+        val expected = OrgParagraph.OrgList(input, OrgListType.UNORDERED, listOf(
+            OrgParagraph.OrgPlainParagraph("I think I have identified problems with my writing in a formal way and can\n  write simple functions to let me know things like:"),
+            OrgParagraph.OrgPlainParagraph("There can be other assists that go with Emacs, like a cached thesaurus.")
+        ))
+        assertEquals(expected, parseOrgList(input))
+    }
+
+    @Test
+    fun testParseOrgList_Ordered() {
+        val input = """
+            1. I think I have identified problems with my writing in a formal way and can
+               write simple functions to let me know things like:
+            2. There can be other assists that go with Emacs, like a cached thesaurus.
+            """.trimIndent()
+        val expected = OrgParagraph.OrgList(input, OrgListType.ORDERED, listOf(
+            OrgParagraph.OrgPlainParagraph("I think I have identified problems with my writing in a formal way and can\n   write simple functions to let me know things like:"),
+            OrgParagraph.OrgPlainParagraph("There can be other assists that go with Emacs, like a cached thesaurus.")
+        ))
+        assertEquals(expected, parseOrgList(input))
+    }
+
+    @Test
+    fun testParseOrgList_Multiline() {
+        val input = """
+            1. I think I have identified problems with my writing in a formal way and can
+               write simple functions to let me know things like:
+               
+               Hello world.
+            2. There can be other assists that go with Emacs, like a cached thesaurus.
+            """.trimIndent()
+/*        val expected = OrgParagraph.OrgList(input, OrgListType.ORDERED, listOf(
+            OrgParagraph.OrgPlainParagraph("""I think I have identified problems with my writing in a formal way and can write simple functions to let me know things like:
+                |
+                |Hello world.
+            """.trimMargin()),
+            OrgParagraph.OrgPlainParagraph("There can be other assists that go with Emacs, like a cached thesaurus.")
+        ))
+        assertEquals(expected, parseOrgList(input))*/
+    }
+
+    @Test
+    fun testParseOrgList_Nested() {
+        val input = """
+            1. I think I have identified problems with my writing in a formal way and can
+               write simple functions to let me know things like:
+               + Hello world.
+               + hi
+            2. There can be other assists that go with Emacs, like a cached thesaurus.
+            """.trimIndent()
+    }
+
+    @Test
+    fun testParseOrgList_Linebreaks() {
+        val input = """
+            1. I think I have identified problems with my writing in a formal way and can
+               write simple functions to let me know things like:
+
+            2. There can be other assists that go with Emacs, like a cached thesaurus.
+            3. Hello
+            """.trimIndent()
     }
 }

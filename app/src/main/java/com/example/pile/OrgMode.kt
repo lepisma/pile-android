@@ -12,18 +12,20 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+
+enum class OrgListType {
+    ORDERED,
+    UNORDERED
+}
+
 sealed class OrgParagraph {
     abstract var text: String
 
-    data class OrgList(override var text: String) : OrgParagraph()
+    data class OrgList(override var text: String, val type: OrgListType, val items: List<OrgParagraph>) : OrgParagraph()
     data class OrgPlainParagraph(override var text: String) : OrgParagraph()
-
     data class OrgQuote(override var text: String) : OrgParagraph()
-
     data class OrgBlock(override var text: String) : OrgParagraph()
-
     data class OrgTable(override var text: String) : OrgParagraph()
-
     data class OrgHorizontalLine(override var text: String): OrgParagraph()
 }
 
@@ -35,9 +37,9 @@ fun parseOrgParagraphs(text: String): List<OrgParagraph> {
         } else if (it.matches(Regex("^\\|.*"))) {
             OrgParagraph.OrgTable(it)
         } else if (it.matches(Regex("(?s)^(\\+|-|\\d+\\.) .*"))) {
-            OrgParagraph.OrgList(it)
+            parseOrgList(it)
         } else if (it.matches(Regex("(?is)(#\\+begin_quote).*"))) {
-            OrgParagraph.OrgQuote(it.replace(Regex("(?i)#\\+begin_quote|#\\+end_quote"), "").trim())
+            parseOrgQuote(it)
         } else if (it.matches(Regex("(?is)(#\\+begin).*"))) {
             OrgParagraph.OrgBlock(it)
         } else {
@@ -45,14 +47,26 @@ fun parseOrgParagraphs(text: String): List<OrgParagraph> {
         }
     }
 
-    val classesToMerge = listOf(OrgParagraph.OrgList::class, OrgParagraph.OrgTable::class)
-
     return brokenOrgParagraphs.fold(mutableListOf<OrgParagraph>()) { acc, it ->
         if (acc.isEmpty()) {
             acc.add(it)
         } else {
-            if (acc.last()::class == it::class && it::class in classesToMerge) {
-                acc[acc.lastIndex].text += "\n" + it.text
+            if (acc.last()::class == it::class) {
+                when (it::class) {
+                    OrgParagraph.OrgList::class -> {
+                        val a = acc.last() as OrgParagraph.OrgList
+                        val b = it as OrgParagraph.OrgList
+                        acc[acc.lastIndex] = OrgParagraph.OrgList(
+                            a.text + "\n" + b.text, a.type, a.items + b.items
+                        )
+                    }
+                    OrgParagraph.OrgTable::class -> {
+                        val a = acc.last() as OrgParagraph.OrgTable
+                        val b = it as OrgParagraph.OrgList
+                        acc[acc.lastIndex] = OrgParagraph.OrgTable(a.text + "\n" + b.text)
+                    }
+                    else -> { acc.add(it) }
+                }
             } else {
                 acc.add(it)
             }
@@ -60,6 +74,22 @@ fun parseOrgParagraphs(text: String): List<OrgParagraph> {
         acc
     }
 }
+
+fun parseOrgList(text: String): OrgParagraph.OrgList {
+    val type = if (text.matches(Regex("(?s)^\\d.*"))) OrgListType.ORDERED else OrgListType.UNORDERED
+
+    val items = ("\n" + text).split(Regex("\\n(\\d+\\.|\\+|-) "))
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .map {
+            OrgParagraph.OrgPlainParagraph(it)
+        }
+
+    return OrgParagraph.OrgList(text, type = type, items = items)
+}
+
+fun parseOrgQuote(text: String) =
+    OrgParagraph.OrgQuote(text.replace(Regex("(?i)#\\+begin_quote|#\\+end_quote"), "").trim())
 
 /*
  Break text based on begin and end blocks
