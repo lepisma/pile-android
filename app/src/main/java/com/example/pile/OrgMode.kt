@@ -64,7 +64,7 @@ fun parseOrgParagraphs(text: String): List<OrgParagraph> {
                     }
                     OrgParagraph.OrgTable::class -> {
                         val a = acc.last() as OrgParagraph.OrgTable
-                        val b = it as OrgParagraph.OrgList
+                        val b = it as OrgParagraph.OrgTable
                         acc[acc.lastIndex] = OrgParagraph.OrgTable(a.text + "\n" + b.text)
                     }
                     else -> { acc.add(it) }
