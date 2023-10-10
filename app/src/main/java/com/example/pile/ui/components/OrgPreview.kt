@@ -53,6 +53,7 @@ fun OrgParagraphText(orgParagraph: OrgParagraph, openNode: (String) -> Unit) {
         is OrgParagraph.OrgList -> OrgListText(orgParagraph, openNode)
         is OrgParagraph.OrgQuote -> OrgQuoteText(orgParagraph)
         is OrgParagraph.OrgBlock -> Text(orgParagraph.text, fontFamily = FontFamily.Monospace)
+        is OrgParagraph.OrgLogBook -> Text("")
         else -> OrgText(orgParagraph.text, openNode)
     }
 }

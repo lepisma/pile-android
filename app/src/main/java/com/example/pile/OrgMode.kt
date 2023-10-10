@@ -27,7 +27,8 @@ sealed class OrgParagraph {
     data class OrgQuote(override var text: String) : OrgParagraph()
     data class OrgBlock(override var text: String) : OrgParagraph()
     data class OrgTable(override var text: String) : OrgParagraph()
-    data class OrgHorizontalLine(override var text: String): OrgParagraph()
+    data class OrgHorizontalLine(override var text: String) : OrgParagraph()
+    data class OrgLogBook(override var text: String) : OrgParagraph()
 }
 
 fun parseOrgParagraphs(text: String): List<OrgParagraph> {
@@ -44,6 +45,8 @@ fun parseOrgParagraphs(text: String): List<OrgParagraph> {
             parseOrgQuote(it)
         } else if (it.matches(Regex("(?is)(#\\+begin).*"))) {
             OrgParagraph.OrgBlock(it)
+        } else if (it.matches(Regex("(?is):LOGBOOK:.*"))) {
+            OrgParagraph.OrgLogBook(it)
         } else {
             OrgParagraph.OrgPlainParagraph(it)
         }
