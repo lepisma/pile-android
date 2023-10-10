@@ -331,4 +331,20 @@ class OrgModeTest {
         ))
         assertEquals(expected, parseOrgList(input))
     }
+
+    @Test
+    fun dropPreamble() {
+        val input = """
+            :PROPERTIES:
+            :ID:       e1be8ebc-a4d4-4c00-82c8-a2bf21315bc7
+            :ROAM_REFS: http://arxiv.org/abs/2010.11982
+            :END:
+
+            #+TITLE: The Turking Test
+            This is a relatively old paper from 2020.
+        """.trimIndent()
+
+        val expected = "This is a relatively old paper from 2020."
+        assertEquals(expected, dropPreamble(input))
+    }
 }

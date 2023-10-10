@@ -189,9 +189,7 @@ fun parseOrg(text: String): OrgParsedFile {
 fun dropPreamble(text: String): String {
     val lines = text.lines()
 
-    return lines.dropWhile {
-        it.startsWith(" ") || it.startsWith(":") || it.startsWith("#")
-    }.joinToString("\n")
+    return lines.dropWhile { it.matches(Regex("^([:#].*)?$")) }.joinToString("\n")
 }
 
 fun unfillText(text: String): String {
@@ -229,7 +227,7 @@ fun readOrgPreamble(context: Context, file: DocumentFile): String {
         BufferedReader(InputStreamReader(stream)).use { reader ->
             var line: String?
             while (reader.readLine().also { line = it } != null) {
-                if (line!!.startsWith(" ") || line!!.startsWith(":") || line!!.startsWith("#")) {
+                if (line!!.matches(Regex("^([:#].*)?$"))) {
                     stringBuilder.append(line).append("\n")
                 } else {
                     break
