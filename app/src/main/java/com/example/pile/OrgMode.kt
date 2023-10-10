@@ -21,7 +21,8 @@ enum class OrgListType {
 sealed class OrgParagraph {
     abstract var text: String
 
-    data class OrgList(override var text: String, val type: OrgListType, val items: List<OrgParagraph>) : OrgParagraph()
+    data class OrgList(override var text: String, val type: OrgListType, val items: List<OrgListItem>) : OrgParagraph()
+    data class OrgListItem(override var text: String, val items: List<OrgParagraph>) : OrgParagraph()
     data class OrgPlainParagraph(override var text: String) : OrgParagraph()
     data class OrgQuote(override var text: String) : OrgParagraph()
     data class OrgBlock(override var text: String) : OrgParagraph()
@@ -31,6 +32,7 @@ sealed class OrgParagraph {
 
 fun parseOrgParagraphs(text: String): List<OrgParagraph> {
     val brokenTexts = breakHeadingContent(text)
+
     val brokenOrgParagraphs = brokenTexts.map {
         if (it.matches(Regex("-----"))) {
             OrgParagraph.OrgHorizontalLine(it)
@@ -78,11 +80,13 @@ fun parseOrgParagraphs(text: String): List<OrgParagraph> {
 fun parseOrgList(text: String): OrgParagraph.OrgList {
     val type = if (text.matches(Regex("(?s)^\\d.*"))) OrgListType.ORDERED else OrgListType.UNORDERED
 
-    val items = ("\n" + text).split(Regex("\\n(\\d+\\.|\\+|-) "))
+    val items = ("\n" + text).split(Regex("\\n(?=(\\+|-|\\d+\\.) )"))
         .map { it.trim() }
         .filter { it.isNotEmpty() }
         .map {
-            OrgParagraph.OrgPlainParagraph(it)
+            val nIndent = (Regex("\n +").find(it)?.value?.length ?: 1) - 1
+            val processedText = it.replace(Regex("^(\\d+\\.|\\+|-) "), " ".repeat(nIndent)).trimIndent()
+            OrgParagraph.OrgListItem(processedText, items=parseOrgParagraphs(processedText))
         }
 
     return OrgParagraph.OrgList(text, type = type, items = items)

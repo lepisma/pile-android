@@ -213,8 +213,14 @@ class OrgModeTest {
             - There can be other assists that go with Emacs, like a cached thesaurus.
             """.trimIndent()
         val expected = OrgParagraph.OrgList(input, OrgListType.UNORDERED, listOf(
-            OrgParagraph.OrgPlainParagraph("I think I have identified problems with my writing in a formal way and can\n  write simple functions to let me know things like:"),
-            OrgParagraph.OrgPlainParagraph("There can be other assists that go with Emacs, like a cached thesaurus.")
+            OrgParagraph.OrgListItem(
+                "I think I have identified problems with my writing in a formal way and can\nwrite simple functions to let me know things like:",
+                listOf(OrgParagraph.OrgPlainParagraph("I think I have identified problems with my writing in a formal way and can\nwrite simple functions to let me know things like:"))
+            ),
+            OrgParagraph.OrgListItem(
+                "There can be other assists that go with Emacs, like a cached thesaurus.",
+                listOf(OrgParagraph.OrgPlainParagraph("There can be other assists that go with Emacs, like a cached thesaurus."))
+            )
         ))
         assertEquals(expected, parseOrgList(input))
     }
@@ -227,8 +233,14 @@ class OrgModeTest {
             2. There can be other assists that go with Emacs, like a cached thesaurus.
             """.trimIndent()
         val expected = OrgParagraph.OrgList(input, OrgListType.ORDERED, listOf(
-            OrgParagraph.OrgPlainParagraph("I think I have identified problems with my writing in a formal way and can\n   write simple functions to let me know things like:"),
-            OrgParagraph.OrgPlainParagraph("There can be other assists that go with Emacs, like a cached thesaurus.")
+            OrgParagraph.OrgListItem(
+                "I think I have identified problems with my writing in a formal way and can\nwrite simple functions to let me know things like:",
+                listOf(OrgParagraph.OrgPlainParagraph("I think I have identified problems with my writing in a formal way and can\nwrite simple functions to let me know things like:"))
+            ),
+            OrgParagraph.OrgListItem(
+                "There can be other assists that go with Emacs, like a cached thesaurus.",
+                listOf(OrgParagraph.OrgPlainParagraph("There can be other assists that go with Emacs, like a cached thesaurus."))
+            )
         ))
         assertEquals(expected, parseOrgList(input))
     }
@@ -242,14 +254,20 @@ class OrgModeTest {
                Hello world.
             2. There can be other assists that go with Emacs, like a cached thesaurus.
             """.trimIndent()
-/*        val expected = OrgParagraph.OrgList(input, OrgListType.ORDERED, listOf(
-            OrgParagraph.OrgPlainParagraph("""I think I have identified problems with my writing in a formal way and can write simple functions to let me know things like:
-                |
-                |Hello world.
-            """.trimMargin()),
-            OrgParagraph.OrgPlainParagraph("There can be other assists that go with Emacs, like a cached thesaurus.")
+        val expected = OrgParagraph.OrgList(input, OrgListType.ORDERED, listOf(
+            OrgParagraph.OrgListItem(
+                "I think I have identified problems with my writing in a formal way and can\nwrite simple functions to let me know things like:\n\nHello world.",
+                listOf(
+                    OrgParagraph.OrgPlainParagraph("I think I have identified problems with my writing in a formal way and can\nwrite simple functions to let me know things like:"),
+                    OrgParagraph.OrgPlainParagraph("Hello world.")
+                )
+            ),
+            OrgParagraph.OrgListItem(
+                "There can be other assists that go with Emacs, like a cached thesaurus.",
+                listOf(OrgParagraph.OrgPlainParagraph("There can be other assists that go with Emacs, like a cached thesaurus."))
+            )
         ))
-        assertEquals(expected, parseOrgList(input))*/
+        assertEquals(expected, parseOrgList(input))
     }
 
     @Test
@@ -261,6 +279,29 @@ class OrgModeTest {
                + hi
             2. There can be other assists that go with Emacs, like a cached thesaurus.
             """.trimIndent()
+        val expected = OrgParagraph.OrgList(input, OrgListType.ORDERED, listOf(
+            OrgParagraph.OrgListItem(
+                "I think I have identified problems with my writing in a formal way and can\nwrite simple functions to let me know things like:\n+ Hello world.\n+ hi",
+                listOf(
+                    OrgParagraph.OrgPlainParagraph("I think I have identified problems with my writing in a formal way and can\nwrite simple functions to let me know things like:"),
+                    OrgParagraph.OrgList("+ Hello world.\n+ hi", OrgListType.UNORDERED, listOf(
+                        OrgParagraph.OrgListItem(
+                            "Hello world.",
+                            listOf(OrgParagraph.OrgPlainParagraph("Hello world."))
+                        ),
+                        OrgParagraph.OrgListItem(
+                            "hi",
+                            listOf(OrgParagraph.OrgPlainParagraph("hi"))
+                        )
+                    ))
+                )
+            ),
+            OrgParagraph.OrgListItem(
+                "There can be other assists that go with Emacs, like a cached thesaurus.",
+                listOf(OrgParagraph.OrgPlainParagraph("There can be other assists that go with Emacs, like a cached thesaurus."))
+            )
+        ))
+        assertEquals(expected, parseOrgList(input))
     }
 
     @Test
@@ -272,5 +313,22 @@ class OrgModeTest {
             2. There can be other assists that go with Emacs, like a cached thesaurus.
             3. Hello
             """.trimIndent()
+        val expected = OrgParagraph.OrgList(input, OrgListType.ORDERED, listOf(
+            OrgParagraph.OrgListItem(
+                "I think I have identified problems with my writing in a formal way and can\nwrite simple functions to let me know things like:",
+                listOf(
+                    OrgParagraph.OrgPlainParagraph("I think I have identified problems with my writing in a formal way and can\nwrite simple functions to let me know things like:"),
+                )
+            ),
+            OrgParagraph.OrgListItem(
+                "There can be other assists that go with Emacs, like a cached thesaurus.",
+                listOf(OrgParagraph.OrgPlainParagraph("There can be other assists that go with Emacs, like a cached thesaurus."))
+            ),
+            OrgParagraph.OrgListItem(
+                "Hello",
+                listOf(OrgParagraph.OrgPlainParagraph("Hello"))
+            )
+        ))
+        assertEquals(expected, parseOrgList(input))
     }
 }
