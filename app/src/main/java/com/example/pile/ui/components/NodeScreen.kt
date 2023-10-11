@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -20,6 +21,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -30,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,9 +46,11 @@ import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
 import com.example.pile.readFile
 import com.example.pile.ui.theme.PileTheme
+import com.example.pile.writeFile
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Glasses
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,8 +77,14 @@ fun NodeScreen(node: OrgNode, goBack: () -> Unit, openNode: (String) -> Unit) {
     val fileContent = node.file?.let { readFile(context, it) } ?: "NA"
     var currentText by remember { mutableStateOf(fileContent) }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     PileTheme {
         Scaffold(
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState)
+            },
             topBar = {
                 TopAppBar(
                     colors = TopAppBarDefaults.smallTopAppBarColors(),
@@ -115,8 +127,19 @@ fun NodeScreen(node: OrgNode, goBack: () -> Unit, openNode: (String) -> Unit) {
                 )
             },
             floatingActionButton = {
-                FloatingActionButton(onClick = { println("pressed") }) {
-                    Icon(Icons.Filled.List, contentDescription = "Related Nodes")
+                FloatingActionButton(onClick = {
+                    if (isEditMode) {
+                        node.file?.let {
+                            writeFile(context, it, currentText)
+                            scope.launch { snackbarHostState.showSnackbar("Note saved") }
+                        }
+                    }
+                }) {
+                    if (isEditMode) {
+                        Icon(Icons.Filled.CheckCircle, contentDescription = "Save Node")
+                    } else {
+                        Icon(Icons.Filled.List, contentDescription = "Related Nodes")
+                    }
                 }
             }
         ) { innerPadding ->

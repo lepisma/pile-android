@@ -17,7 +17,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import java.io.BufferedReader
+import java.io.BufferedWriter
 import java.io.InputStreamReader
+import java.io.OutputStreamWriter
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -91,6 +93,16 @@ fun readFile(context: Context, file: DocumentFile): String {
     }
 
     return stringBuilder.toString()
+}
+
+fun writeFile(context: Context, file: DocumentFile, text: String) {
+    val contentResolver = context.contentResolver
+    val outputStream = contentResolver.openOutputStream(file.uri)
+    outputStream?.use { stream ->
+        BufferedWriter(OutputStreamWriter(stream)).use { writer ->
+            writer.write(text)
+        }
+    }
 }
 
 fun parseFileOrgNode(context: Context, file: DocumentFile): OrgNode {
