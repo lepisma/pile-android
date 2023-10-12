@@ -94,7 +94,7 @@ fun readFile(context: Context, file: DocumentFile): String {
 }
 
 fun writeFile(context: Context, file: DocumentFile, text: String) {
-    context.contentResolver.openOutputStream(file.uri, "w")?.use { outputStream ->
+    context.contentResolver.openOutputStream(file.uri, "wt")?.use { outputStream ->
         outputStream.write(text.toByteArray(Charsets.UTF_8))
     }
 }

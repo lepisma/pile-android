@@ -107,13 +107,10 @@ class MainActivity : ComponentActivity() {
         ).build()
         nodeDao = db.nodeDao()
 
-        viewModel.fileToSave.observe(this, { (file, text) ->
-            val currentContent = readFile(this, file)
-            // HACK: Since the file is getting overwritten, or so I think
-            writeFile(this, file, " ".repeat(currentContent.length))
+        viewModel.fileToSave.observe(this) { (file, text) ->
             writeFile(this, file, text)
             Toast.makeText(this, "File Saved", Toast.LENGTH_SHORT).show()
-        })
+        }
 
         if (uri != null) {
             setupContent(uri)
