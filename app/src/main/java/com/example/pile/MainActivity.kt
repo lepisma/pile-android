@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -15,6 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
 import com.example.pile.ui.components.NodeScreen
 import com.example.pile.ui.components.SearchScreen
+import com.example.pile.viewmodel.SharedViewModel
 import kotlinx.coroutines.*
 
 class MainActivity : ComponentActivity() {
@@ -24,6 +26,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private lateinit var nodeDao: NodeDao
+    private val viewModel = SharedViewModel()
 
     private fun setupContent(uri: Uri) {
         val context = this
@@ -77,7 +80,7 @@ class MainActivity : ComponentActivity() {
                     val nodeId = navBackStackEntry.arguments?.getString("nodeId")
                     val node = nodeList.find { it.id == nodeId }
                     if (node != null) {
-                        NodeScreen(node, { navController.popBackStack() }) {
+                        NodeScreen(node, viewModel, { navController.popBackStack() }) {
                             navController.navigate("nodeScreen/${it}")
                         }
                     }
@@ -103,6 +106,14 @@ class MainActivity : ComponentActivity() {
             PileDatabase::class.java, "pile-database"
         ).build()
         nodeDao = db.nodeDao()
+
+        viewModel.fileToSave.observe(this, { (file, text) ->
+            val currentContent = readFile(this, file)
+            // HACK: Since the file is getting overwritten, or so I think
+            writeFile(this, file, " ".repeat(currentContent.length))
+            writeFile(this, file, text)
+            Toast.makeText(this, "File Saved", Toast.LENGTH_SHORT).show()
+        })
 
         if (uri != null) {
             setupContent(uri)

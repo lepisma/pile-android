@@ -1,6 +1,5 @@
 package com.example.pile.ui.components
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,7 +43,7 @@ import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
 import com.example.pile.readFile
 import com.example.pile.ui.theme.PileTheme
-import com.example.pile.writeFile
+import com.example.pile.viewmodel.SharedViewModel
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Glasses
@@ -66,7 +65,7 @@ fun NodeEdit(text: String, onValueChange: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NodeScreen(node: OrgNode, goBack: () -> Unit, openNode: (String) -> Unit) {
+fun NodeScreen(node: OrgNode, viewModel: SharedViewModel, goBack: () -> Unit, openNode: (String) -> Unit) {
     val scrollState = rememberScrollState()
     var isEditMode by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -120,10 +119,7 @@ fun NodeScreen(node: OrgNode, goBack: () -> Unit, openNode: (String) -> Unit) {
             floatingActionButton = {
                 FloatingActionButton(onClick = {
                     if (isEditMode) {
-                        node.file?.let {
-                            writeFile(context, it, currentText)
-                            Toast.makeText(context, "File Saved", Toast.LENGTH_SHORT).show()
-                        }
+                        node.file?.let { viewModel.fileToSave.value = Pair(it, currentText) }
                     }
                 }) {
                     if (isEditMode) {
