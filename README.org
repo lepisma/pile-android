@@ -11,7 +11,7 @@ Android app for working with [[https://github.com/lepisma/pile][pile]]. There ar
 2. Learn Android development. It's been a long time since I learnt something new
    in programming.
 
-As of now, it can display my notes, allow title search, and let's me edit and
+As of now, it can display my notes, allow title search, and lets me edit and
 capture new items. I am now using it on a daily basis and will be updating based
 on my needs. Here are a few screenshots:
 
