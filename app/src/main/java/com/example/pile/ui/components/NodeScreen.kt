@@ -119,7 +119,7 @@ fun NodeScreen(node: OrgNode, viewModel: SharedViewModel, goBack: () -> Unit, op
             floatingActionButton = {
                 FloatingActionButton(onClick = {
                     if (isEditMode) {
-                        node.file?.let { viewModel.fileToSave.value = Pair(it, currentText) }
+                        node.file?.let { viewModel.fileToEdit.value = Pair(it, currentText) }
                     }
                 }) {
                     if (isEditMode) {

@@ -5,5 +5,5 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
 class SharedViewModel : ViewModel() {
-    val fileToSave: MutableLiveData<Pair<DocumentFile, String>> = MutableLiveData()
+    val fileToEdit: MutableLiveData<Pair<DocumentFile, String>> = MutableLiveData()
 }

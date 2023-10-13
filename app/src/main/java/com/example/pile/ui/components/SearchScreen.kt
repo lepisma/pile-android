@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -41,7 +43,13 @@ import com.example.pile.ui.theme.PileTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchScreen(nodeList: List<OrgNode>, isLoading: Boolean, openNode: (String) -> Unit, refreshDatabase: () -> Unit) {
+fun SearchScreen(
+    nodeList: List<OrgNode>,
+    isLoading: Boolean,
+    openNode: (String) -> Unit,
+    createAndOpenNode: (String) -> Unit,
+    refreshDatabase: () -> Unit
+) {
     PileTheme {
         Scaffold (
             topBar = {
@@ -75,7 +83,7 @@ fun SearchScreen(nodeList: List<OrgNode>, isLoading: Boolean, openNode: (String)
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp, vertical = 20.dp)
                 ) {
-                    SearchView(nodeList, openNode)
+                    SearchView(nodeList, openNode, createAndOpenNode)
                 }
             }
         }
@@ -85,7 +93,7 @@ fun SearchScreen(nodeList: List<OrgNode>, isLoading: Boolean, openNode: (String)
 /* Main search view that comes up as the first page */
 @ExperimentalMaterial3Api
 @Composable
-fun SearchView(nodes: List<OrgNode>, openNode: (String) -> Unit) {
+fun SearchView(nodes: List<OrgNode>, openNode: (String) -> Unit, createAndOpenNode: (String) -> Unit) {
     var text by remember { mutableStateOf("") }
 
     Column {
@@ -95,6 +103,7 @@ fun SearchView(nodes: List<OrgNode>, openNode: (String) -> Unit) {
                 RecentNodeList(nodes, openNode)
             } else {
                 SearchNodeList(nodes, text, openNode)
+                CreateButton(text, createAndOpenNode)
             }
         }
         SearchCreateField(text = text, onTextEntry = { text = it })
@@ -165,6 +174,21 @@ fun SearchNodeList(nodes: List<OrgNode>, searchString: String, openNode: (String
             searchString.length / it.title.length
         }.take(10)) { node ->
             OrgNodeItem(node) { openNode(node.id) }
+        }
+    }
+}
+
+@Composable
+fun CreateButton(nodeName: String, createAndOpenNode: (String) -> Unit) {
+    FilledTonalButton(modifier = Modifier.fillMaxWidth(), onClick = {
+        createAndOpenNode(nodeName)
+    }) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Text("Create ", color = Color.Gray)
+            Text(nodeName)
         }
     }
 }

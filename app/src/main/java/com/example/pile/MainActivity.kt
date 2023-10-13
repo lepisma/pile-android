@@ -56,13 +56,23 @@ class MainActivity : ComponentActivity() {
                         { navController.navigate("nodeScreen/${it}") },
                         {
                             CoroutineScope(Dispatchers.IO).launch {
+                                createNewNode(context, it, uri)?.let { node ->
+                                    nodeDao.insert(node)
+                                    withContext(Dispatchers.Main) {
+                                        nodeList = nodeList + listOf(node)
+                                        navController.navigate("nodeScreen/${node.id}")
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            CoroutineScope(Dispatchers.IO).launch {
                                 isLoading = true
                                 refreshDatabase(context, uri, nodeDao)
                                 nodeList = loadNodes(context, nodeDao)
                                 isLoading = false
                             }
-                        }
-                    )
+                        })
                 }
                 composable(
                     "nodeScreen/{nodeId}",
@@ -107,16 +117,16 @@ class MainActivity : ComponentActivity() {
         ).build()
         nodeDao = db.nodeDao()
 
-        viewModel.fileToSave.observe(this) { (file, text) ->
-            writeFile(this, file, text)
-            Toast.makeText(this, "File Saved", Toast.LENGTH_SHORT).show()
-        }
-
         if (uri != null) {
             setupContent(uri)
         } else {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
             startActivityForResult(intent, REQUEST_CODE_OPEN_FOLDER)
+        }
+
+        viewModel.fileToEdit.observe(this) { (file, text) ->
+            writeFile(this, file, text)
+            Toast.makeText(this, "File Saved", Toast.LENGTH_SHORT).show()
         }
     }
 

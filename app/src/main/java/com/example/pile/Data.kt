@@ -19,6 +19,7 @@ import kotlinx.coroutines.coroutineScope
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 @Entity(tableName = "nodes")
@@ -62,6 +63,9 @@ object DocumentFileConverter {
 @Dao
 interface NodeDao {
     @Insert
+    fun insert(node: OrgNode)
+
+    @Insert
     fun insertAll(vararg nodes: OrgNode)
 
     @Query("SELECT * FROM nodes")
@@ -91,6 +95,54 @@ fun readFile(context: Context, file: DocumentFile): String {
     }
 
     return stringBuilder.toString()
+}
+
+fun generateInitialContent(noteTitle: String, nodeId: String): String {
+    return """
+    :PROPERTIES:
+    :ID:      $nodeId
+    :END:
+    #+TITLE: $noteTitle
+    
+    """.trimIndent()
+}
+
+fun generateFileName(title: String, datetime: LocalDateTime): String {
+    val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+    val snakeCaseTitle = title.split(Regex("\\s+")).joinToString("_").lowercase()
+    return "${datetime.format(formatter)}-$snakeCaseTitle.org"
+}
+
+fun createNewNode(context: Context, noteTitle: String, rootUri: Uri): OrgNode? {
+    DocumentFile.fromTreeUri(context, rootUri)?.let { root ->
+        val nodeId = UUID.randomUUID().toString()
+        val datetime = LocalDateTime.now()
+        val fileName = generateFileName(noteTitle, datetime)
+        val initialContent = generateInitialContent(noteTitle, nodeId)
+
+        createAndWriteToFile(context, root, fileName, initialContent)
+
+        root.findFile(fileName)?.let {
+            return OrgNode(
+                id = nodeId,
+                title = noteTitle,
+                datetime = datetime,
+                fileString = it.uri.toString(),
+                file = it
+            )
+        }
+    }
+    return null
+}
+
+fun createAndWriteToFile(context: Context, directory: DocumentFile, fileName: String, text: String) {
+    val newFile = directory.createFile("application/octet-stream", fileName)
+
+    newFile?.uri?.let { uri ->
+        context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+            outputStream.write(text.toByteArray())
+        }
+    }
 }
 
 fun writeFile(context: Context, file: DocumentFile, text: String) {
