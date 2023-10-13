@@ -1,5 +1,7 @@
 #+TITLE:  pile-android
 
+[[https://img.shields.io/github/v/tag/lepisma/pile-android.svg]]
+
 Android app for working with [[https://github.com/lepisma/pile][pile]]. There are two primary goals for this project:
 
 1. Make [[https://www.orgroam.com/][Org-roam]] workflows work well on the go. Orgzly doesn't work here and I
@@ -13,4 +15,11 @@ As of now, it can display my notes, allow title search, and let's me edit and
 capture new items. I am now using it on a daily basis and will be updating based
 on my needs. Here are a few screenshots:
 
-[[file:screenshots/main.jpg]] [[file:screenshots/preview.jpg]] [[file:screenshots/edit.jpg]]
+#+BEGIN_HTML
+<br>
+<div style="display: flex; justify-content: space-between;">
+  <img src="screenshots/main.jpg" width="30%" />
+  <img src="screenshots/preview.jpg" width="30%" />
+  <img src="screenshots/edit.jpg" width="30%" />
+</div>
+#+END_HTML
