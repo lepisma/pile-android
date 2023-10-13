@@ -9,14 +9,8 @@ Android app for working with [[https://github.com/lepisma/pile][pile]]. There ar
 2. Learn Android development. It's been a long time since I learnt something new
    in programming.
 
-Here is the planned development path roughly in the order things might happen:
+As of now, it can display my notes, allow title search, and let's me edit and
+capture new items. I am now using it on a daily basis and will be updating based
+on my needs. Here are a few screenshots:
 
-+ Listing of org-roam nodes
-+ Search on nodes at title level
-+ Connection with Dropbox based repository for the above
-+ Ability to capture and save a /normal/ node
-+ Ability to link and refer to other nodes
-+ Ability to capture /literature/ node
-+ Ability to capture /daily/ node
-+ ... This should be okay as the daily driver. Then I can add more support for
-  adding other modalities, showing graphs, links, etc.
+[[file:screenshots/main.jpg]] [[file:screenshots/preview.jpg]] [[file:screenshots/edit.jpg]]
