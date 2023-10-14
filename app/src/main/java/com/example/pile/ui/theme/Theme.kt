@@ -57,8 +57,11 @@ fun PileTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            val insets = WindowCompat.getInsetsController(window, view)
+            window.statusBarColor = colorScheme.background.toArgb()
+            window.navigationBarColor = colorScheme.background.toArgb()
+            insets.isAppearanceLightStatusBars = !darkTheme
+            insets.isAppearanceLightNavigationBars = !darkTheme
         }
     }
 
