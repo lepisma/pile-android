@@ -13,8 +13,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -68,6 +73,8 @@ fun NodeEdit(text: String, onValueChange: (String) -> Unit) {
 fun NodeScreen(node: OrgNode, viewModel: SharedViewModel, goBack: () -> Unit, openNode: (String) -> Unit) {
     val scrollState = rememberScrollState()
     var isEditMode by remember { mutableStateOf(false) }
+    var menuExpanded by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
 
     val fileContent = node.file?.let { readFile(context, it) } ?: "NA"
@@ -111,8 +118,26 @@ fun NodeScreen(node: OrgNode, viewModel: SharedViewModel, goBack: () -> Unit, op
                                     )
                                 }
                             },
-                            modifier = Modifier.padding(horizontal = 20.dp)
+                            modifier = Modifier.padding(horizontal = 10.dp)
                         )
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(imageVector = Icons.Filled.MoreVert, contentDescription = "Menu")
+                        }
+
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Delete") },
+                                onClick = { menuExpanded = false },
+                                leadingIcon = { Icon(imageVector = Icons.Filled.Delete, contentDescription = "Delete") }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Share") },
+                                onClick = { menuExpanded = false },
+                                leadingIcon = { Icon(imageVector = Icons.Filled.Share, contentDescription = "Share") })
+                        }
                     }
                 )
             },
