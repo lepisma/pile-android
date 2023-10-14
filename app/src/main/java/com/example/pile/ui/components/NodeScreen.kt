@@ -13,11 +13,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,6 +53,7 @@ import com.example.pile.viewmodel.SharedViewModel
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Glasses
+import compose.icons.fontawesomeicons.solid.Link
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -141,19 +143,30 @@ fun NodeScreen(node: OrgNode, viewModel: SharedViewModel, goBack: () -> Unit, op
                     }
                 )
             },
-            floatingActionButton = {
-                FloatingActionButton(onClick = {
-                    if (isEditMode) {
-                        node.file?.let { viewModel.fileToEdit.value = Pair(it, currentText) }
-                    }
-                }) {
-                    if (isEditMode) {
-                        Icon(Icons.Filled.CheckCircle, contentDescription = "Save Node")
-                    } else {
-                        Icon(Icons.Filled.List, contentDescription = "Related Nodes")
-                    }
+            bottomBar = {
+                if (isEditMode) {
+                    BottomAppBar(
+                        actions = {
+                            IconButton(onClick = { }) {
+                                Icon(FontAwesomeIcons.Solid.Link, modifier = Modifier.size(SwitchDefaults.IconSize), contentDescription = "Link another node")
+                            }
+                            IconButton(onClick = { }) {
+                                Icon(Icons.Filled.DateRange, contentDescription = "Add current datetime")
+                            }
+                        },
+                        floatingActionButton = {
+                            FloatingActionButton(onClick = {
+                                node.file?.let {
+                                    viewModel.fileToEdit.value = Pair(it, currentText)
+                                }
+                            }) {
+                                Icon(Icons.Filled.CheckCircle, contentDescription = "Save Node")
+                            }
+                        }
+                    )
                 }
-            }
+            },
+
         ) { innerPadding ->
             Column(
                 modifier = Modifier.padding(innerPadding),
