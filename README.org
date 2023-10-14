@@ -1,4 +1,10 @@
-#+TITLE:  pile-android
+#+BEGIN_HTML
+<div style="display: flex; justify-content: space-between;">
+  <img src="icons/icon.png" width="10%" />
+</div>
+#+END_HTML
+
+* pile-android
 
 [[https://img.shields.io/github/v/tag/lepisma/pile-android.svg]]
 
