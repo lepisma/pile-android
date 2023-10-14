@@ -26,12 +26,14 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -54,6 +56,7 @@ import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Glasses
 import compose.icons.fontawesomeicons.solid.Link
+import compose.icons.fontawesomeicons.solid.ProjectDiagram
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,6 +79,8 @@ fun NodeScreen(node: OrgNode, viewModel: SharedViewModel, goBack: () -> Unit, op
     val scrollState = rememberScrollState()
     var isEditMode by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
 
     val context = LocalContext.current
 
@@ -148,10 +153,17 @@ fun NodeScreen(node: OrgNode, viewModel: SharedViewModel, goBack: () -> Unit, op
                     BottomAppBar(
                         actions = {
                             IconButton(onClick = { }) {
-                                Icon(FontAwesomeIcons.Solid.Link, modifier = Modifier.size(SwitchDefaults.IconSize), contentDescription = "Link another node")
+                                Icon(
+                                    FontAwesomeIcons.Solid.Link,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                    contentDescription = "Link another node"
+                                )
                             }
                             IconButton(onClick = { }) {
-                                Icon(Icons.Filled.DateRange, contentDescription = "Add current datetime")
+                                Icon(
+                                    Icons.Filled.DateRange,
+                                    contentDescription = "Add current datetime"
+                                )
                             }
                         },
                         floatingActionButton = {
@@ -160,13 +172,26 @@ fun NodeScreen(node: OrgNode, viewModel: SharedViewModel, goBack: () -> Unit, op
                                     viewModel.fileToEdit.value = Pair(it, currentText)
                                 }
                             }) {
-                                Icon(Icons.Filled.CheckCircle, contentDescription = "Save Node")
+                                Icon(
+                                    Icons.Filled.CheckCircle,
+                                    contentDescription = "Save Node"
+                                )
                             }
                         }
                     )
                 }
             },
-
+            floatingActionButton = {
+                if (!isEditMode) {
+                    FloatingActionButton(onClick = { showBottomSheet = true }) {
+                        Icon(
+                            FontAwesomeIcons.Solid.ProjectDiagram,
+                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                            contentDescription = "Show linked nodes"
+                        )
+                    }
+                }
+            }
         ) { innerPadding ->
             Column(
                 modifier = Modifier.padding(innerPadding),
@@ -184,6 +209,15 @@ fun NodeScreen(node: OrgNode, viewModel: SharedViewModel, goBack: () -> Unit, op
                                 NodeEdit(text = currentText) { currentText = it }
                             } else {
                                 OrgPreview(currentText, openNode)
+                                if (showBottomSheet) {
+                                    ModalBottomSheet(
+                                        onDismissRequest = { showBottomSheet = false },
+                                        sheetState = sheetState
+                                    ) {
+                                        // TODO: Get actual linked nodes
+                                        RandomNodeList(nodes = listOf(node), openNode = openNode)
+                                    }
+                                }
                             }
                         }
                     }
