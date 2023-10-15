@@ -13,7 +13,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,13 +25,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -50,6 +57,9 @@ fun SearchScreen(
     createAndOpenNode: (String) -> Unit,
     refreshDatabase: () -> Unit
 ) {
+    // This will move out
+    var selectedNavIndex by remember { mutableIntStateOf(0) }
+
     PileTheme {
         Scaffold (
             topBar = {
@@ -78,12 +88,36 @@ fun SearchScreen(
             ) {
                 Spacer(Modifier.weight(1f))
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 20.dp)
+                Column(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     SearchView(nodeList, openNode, createAndOpenNode)
+                    NavigationBar {
+                        NavigationBarItem(
+                            selected = true,
+                            onClick = { /*TODO*/ },
+                            icon = {
+                                Icon(Icons.Filled.Search, contentDescription = "Search View")
+                            },
+                            label = { Text("Search") }
+                        )
+                        NavigationBarItem(
+                            selected = false,
+                            onClick = { /*TODO*/ },
+                            icon = {
+                                Icon(Icons.Filled.DateRange, contentDescription = "Journal")
+                            },
+                            label = { Text("Journal") }
+                        )
+                        NavigationBarItem(
+                            selected = false,
+                            onClick = { /*TODO*/ },
+                            icon = {
+                                Icon(Icons.Filled.Settings, contentDescription = "Settings")
+                            },
+                            label = { Text("Settings") }
+                        )
+                    }
                 }
             }
         }
@@ -96,14 +130,16 @@ fun SearchScreen(
 fun SearchView(nodes: List<OrgNode>, openNode: (String) -> Unit, createAndOpenNode: (String) -> Unit) {
     var text by remember { mutableStateOf("") }
 
-    Column {
+    Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
         if (nodes.isNotEmpty()) {
             if (text == "") {
                 RandomNodeList(nodes, openNode)
                 RecentNodeList(nodes, openNode)
             } else {
                 SearchNodeList(nodes, text, openNode)
-                CreateButton(text, createAndOpenNode)
+                if (text != "") {
+                    CreateButton(text, createAndOpenNode)
+                }
             }
         }
         SearchCreateField(text = text, onTextEntry = { text = it })
@@ -129,7 +165,7 @@ fun RandomNodeList(nodes: List<OrgNode>, openNode: (String) -> Unit) {
                 modifier = Modifier.padding(bottom = 20.dp)
             )
             LazyColumn {
-                items(nodes.shuffled().take(5)) { node ->
+                items(nodes.shuffled().take(3)) { node ->
                     OrgNodeItem(node) { openNode(node.id) }
                 }
             }
@@ -156,7 +192,7 @@ fun RecentNodeList(nodes: List<OrgNode>, openNode: (String) -> Unit) {
                 modifier = Modifier.padding(bottom = 20.dp)
             )
             LazyColumn {
-                items(nodes.sortedByDescending { it.datetime }.take(5)) { node ->
+                items(nodes.sortedByDescending { it.datetime }.take(3)) { node ->
                     OrgNodeItem(node) { openNode(node.id) }
                 }
             }
@@ -167,13 +203,15 @@ fun RecentNodeList(nodes: List<OrgNode>, openNode: (String) -> Unit) {
 /* Clickable list of nodes that open edit/read view */
 @Composable
 fun SearchNodeList(nodes: List<OrgNode>, searchString: String, openNode: (String) -> Unit) {
-    LazyColumn(modifier = Modifier.padding(16.dp)) {
-        items(nodes.filter {
-            searchString.lowercase() in it.title.lowercase()
-        }.sortedBy {
-            searchString.length / it.title.length
-        }.take(10)) { node ->
-            OrgNodeItem(node) { openNode(node.id) }
+    if (searchString.trim() != "") {
+        LazyColumn(modifier = Modifier.padding(16.dp)) {
+            items(nodes.filter {
+                searchString.lowercase() in it.title.lowercase()
+            }.sortedBy {
+                searchString.length / it.title.length
+            }.take(5)) { node ->
+                OrgNodeItem(node) { openNode(node.id) }
+            }
         }
     }
 }
@@ -197,7 +235,7 @@ fun CreateButton(nodeName: String, createAndOpenNode: (String) -> Unit) {
 @ExperimentalMaterial3Api
 @Composable
 fun SearchCreateField(text: String, onTextEntry: (String) -> Unit) {
-    OutlinedTextField(
+    TextField(
         value = text,
         onValueChange = onTextEntry,
         label = { Text(text = "Search or Create") },
@@ -205,7 +243,13 @@ fun SearchCreateField(text: String, onTextEntry: (String) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 20.dp),
-        shape = RoundedCornerShape(60.dp)
+        shape = RoundedCornerShape(60.dp),
+        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+        colors = TextFieldDefaults.colors(
+            focusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent
+        )
     )
 }
 
