@@ -29,6 +29,14 @@ fun strikeThrough(original: AnnotatedString): AnnotatedString {
     }
 }
 
+/*
+ Split a checklist item (marked as complete) string in two pieces for separate styling
+ */
+fun splitCheckList(original: AnnotatedString): Pair<AnnotatedString, AnnotatedString> {
+    val splitPoint = 3
+    return Pair(original.subSequence(0, splitPoint), original.subSequence(splitPoint, original.length))
+}
+
 @Composable
 fun OrgText(text: String, openNode: (String) -> Unit) {
     var unfilledText = unfillText(text)
@@ -68,7 +76,10 @@ fun OrgText(text: String, openNode: (String) -> Unit) {
     }
 
     ClickableText(
-        text = if (shouldCross) { strikeThrough(annotatedString) } else annotatedString,
+        text = if (shouldCross) {
+            val (checkmark, content) = splitCheckList(annotatedString)
+            checkmark + strikeThrough(content)
+        } else annotatedString,
         style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
         onClick = { offset ->
             annotatedString.getStringAnnotations("NodeID", offset, offset).firstOrNull()?.let {
