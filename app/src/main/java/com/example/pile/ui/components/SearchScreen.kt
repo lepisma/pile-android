@@ -9,14 +9,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,6 +45,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pile.OrgNode
 import com.example.pile.ui.theme.PileTheme
+import compose.icons.FontAwesomeIcons
+import compose.icons.fontawesomeicons.Solid
+import compose.icons.fontawesomeicons.solid.Book
+import compose.icons.fontawesomeicons.solid.CalendarDay
+import compose.icons.fontawesomeicons.solid.SlidersH
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,15 +101,23 @@ fun SearchScreen(
                             selected = true,
                             onClick = { /*TODO*/ },
                             icon = {
-                                Icon(Icons.Filled.Search, contentDescription = "Search View")
+                                Icon(
+                                    FontAwesomeIcons.Solid.Book,
+                                    modifier = Modifier.size(18.dp),
+                                    contentDescription = "Notes"
+                                )
                             },
-                            label = { Text("Search") }
+                            label = { Text("Notes") }
                         )
                         NavigationBarItem(
                             selected = false,
                             onClick = { /*TODO*/ },
                             icon = {
-                                Icon(Icons.Filled.DateRange, contentDescription = "Journal")
+                                Icon(
+                                    FontAwesomeIcons.Solid.CalendarDay,
+                                    modifier = Modifier.size(18.dp),
+                                    contentDescription = "Journal"
+                                )
                             },
                             label = { Text("Journal") }
                         )
@@ -113,7 +125,11 @@ fun SearchScreen(
                             selected = false,
                             onClick = { /*TODO*/ },
                             icon = {
-                                Icon(Icons.Filled.Settings, contentDescription = "Settings")
+                                Icon(
+                                    FontAwesomeIcons.Solid.SlidersH,
+                                    modifier = Modifier.size(18.dp),
+                                    contentDescription = "Settings"
+                                )
                             },
                             label = { Text("Settings") }
                         )
