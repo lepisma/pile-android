@@ -90,7 +90,7 @@ class MainActivity : ComponentActivity() {
                     val nodeId = navBackStackEntry.arguments?.getString("nodeId")
                     val node = nodeList.find { it.id == nodeId }
                     if (node != null) {
-                        NodeScreen(node, viewModel, { navController.popBackStack() }) {
+                        NodeScreen(node, nodeList, viewModel, { navController.popBackStack() }) {
                             navController.navigate("nodeScreen/${it}")
                         }
                     }

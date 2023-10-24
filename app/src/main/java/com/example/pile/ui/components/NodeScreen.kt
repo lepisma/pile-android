@@ -57,6 +57,8 @@ import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Glasses
 import compose.icons.fontawesomeicons.solid.Link
 import compose.icons.fontawesomeicons.solid.ProjectDiagram
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,9 +77,11 @@ fun NodeEdit(text: String, onValueChange: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NodeScreen(node: OrgNode, viewModel: SharedViewModel, goBack: () -> Unit, openNode: (String) -> Unit) {
+fun NodeScreen(node: OrgNode, nodes: List<OrgNode>, viewModel: SharedViewModel, goBack: () -> Unit, openNode: (String) -> Unit) {
     val scrollState = rememberScrollState()
     var isEditMode by remember { mutableStateOf(false) }
+    // TODO: Disable this based on focus
+    var isEditFocused by remember { mutableStateOf(true) }
     var menuExpanded by remember { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
@@ -86,6 +90,8 @@ fun NodeScreen(node: OrgNode, viewModel: SharedViewModel, goBack: () -> Unit, op
 
     val fileContent = node.file?.let { readFile(context, it) } ?: "NA"
     var currentText by remember { mutableStateOf(fileContent) }
+
+    var showLinkDialog by remember { mutableStateOf(false) }
 
     PileTheme {
         Scaffold(
@@ -152,14 +158,20 @@ fun NodeScreen(node: OrgNode, viewModel: SharedViewModel, goBack: () -> Unit, op
                 if (isEditMode) {
                     BottomAppBar(
                         actions = {
-                            IconButton(onClick = { }) {
+                            IconButton(enabled = isEditFocused, onClick = {
+                                showLinkDialog = true
+                            }) {
                                 Icon(
                                     FontAwesomeIcons.Solid.Link,
                                     modifier = Modifier.size(SwitchDefaults.IconSize),
                                     contentDescription = "Link another node"
                                 )
                             }
-                            IconButton(onClick = { }) {
+                            IconButton(enabled = isEditFocused, onClick = {
+                                val currentTime = LocalDateTime.now()
+                                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                                currentText += "[${currentTime.format(formatter)}]"
+                            }) {
                                 Icon(
                                     Icons.Filled.DateRange,
                                     contentDescription = "Add current datetime"
@@ -207,6 +219,11 @@ fun NodeScreen(node: OrgNode, viewModel: SharedViewModel, goBack: () -> Unit, op
                         Column {
                             if (isEditMode) {
                                 NodeEdit(text = currentText) { currentText = it }
+                                if (showLinkDialog) {
+                                    InsertLinkDialog(nodes, onClick = { currentText += "[[id:$it][]]" }) {
+                                        showLinkDialog = false
+                                    }
+                                }
                             } else {
                                 OrgPreview(currentText, openNode)
                                 if (showBottomSheet) {
