@@ -14,8 +14,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
+import com.example.pile.ui.components.MainScreen
 import com.example.pile.ui.components.NodeScreen
-import com.example.pile.ui.components.SearchScreen
 import com.example.pile.viewmodel.SharedViewModel
 import kotlinx.coroutines.*
 
@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 ) {
-                    SearchScreen(
+                    MainScreen(
                         nodeList,
                         isLoading,
                         { navController.navigate("nodeScreen/${it}") },
