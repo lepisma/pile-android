@@ -15,14 +15,14 @@ import com.example.pile.parseOrgParagraphs
 import com.example.pile.parseTitle
 
 @Composable
-fun OrgPreview(text: String, openNode: (String) -> Unit) {
+fun OrgPreview(text: String, openNodeById: (String) -> Unit) {
     Column {
         OrgTitleText(title = parseTitle(text))
         OrgRefButton(text = text)
         val parsed = parseOrg(dropPreamble(text))
         Column {
             parseOrgParagraphs(parsed.file.preface).forEach {
-                OrgParagraphText(it, openNode)
+                OrgParagraphText(it, openNodeById)
             }
 
             parsed.headsInList.forEach {
@@ -38,7 +38,7 @@ fun OrgPreview(text: String, openNode: (String) -> Unit) {
                     modifier = Modifier.padding(top = 20.dp, bottom = 10.dp)
                 )
                 parseOrgParagraphs(it.head.content).forEach { para ->
-                    OrgParagraphText(para, openNode)
+                    OrgParagraphText(para, openNodeById)
                 }
             }
         }
@@ -46,14 +46,14 @@ fun OrgPreview(text: String, openNode: (String) -> Unit) {
 }
 
 @Composable
-fun OrgParagraphText(orgParagraph: OrgParagraph, openNode: (String) -> Unit) {
+fun OrgParagraphText(orgParagraph: OrgParagraph, openNodeById: (String) -> Unit) {
     when(orgParagraph) {
         is OrgParagraph.OrgHorizontalLine -> OrgHorizontalLine()
         is OrgParagraph.OrgTable -> Text(orgParagraph.text, fontFamily = FontFamily.Monospace)
-        is OrgParagraph.OrgList -> OrgListText(orgParagraph, openNode)
+        is OrgParagraph.OrgList -> OrgListText(orgParagraph, openNodeById)
         is OrgParagraph.OrgQuote -> OrgQuoteText(orgParagraph)
         is OrgParagraph.OrgBlock -> Text(orgParagraph.text, fontFamily = FontFamily.Monospace)
         is OrgParagraph.OrgLogBook -> Text("")
-        else -> OrgText(orgParagraph.text, openNode)
+        else -> OrgText(orgParagraph.text, openNodeById)
     }
 }

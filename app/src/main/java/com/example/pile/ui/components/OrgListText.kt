@@ -29,7 +29,7 @@ fun measureTextWidth(text: String, textStyle: TextStyle): Float {
 
 // TODO: The width calculation is wrong
 @Composable
-fun OrgListText(orgList: OrgParagraph.OrgList, openNode: (String) -> Unit) {
+fun OrgListText(orgList: OrgParagraph.OrgList, openNodeById: (String) -> Unit) {
     val maxBullet = if (orgList.type == OrgListType.UNORDERED) "\u2022" else "${orgList.items.size}."
     val textWidthPixels = measureTextWidth(maxBullet, LocalTextStyle.current.copy(fontFamily = FontFamily.Monospace))
     val maxIndexWidth = with(LocalDensity.current) { textWidthPixels.toDp() }
@@ -50,7 +50,7 @@ fun OrgListText(orgList: OrgParagraph.OrgList, openNode: (String) -> Unit) {
                 )
                 Column {
                     item.items.forEach {
-                        OrgParagraphText(it, openNode)
+                        OrgParagraphText(it, openNodeById)
                     }
                 }
             }

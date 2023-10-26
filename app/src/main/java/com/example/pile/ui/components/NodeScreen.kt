@@ -44,8 +44,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
@@ -60,11 +62,24 @@ import compose.icons.fontawesomeicons.solid.ProjectDiagram
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+/*
+ Insert given text in the text field at the cursor position
+ */
+fun insertText(textFieldValue: TextFieldValue, insertion: String): TextFieldValue {
+    val preText = textFieldValue.text.substring(0, textFieldValue.selection.min)
+    val postText = textFieldValue.text.substring(textFieldValue.selection.max, textFieldValue.text.length)
+
+    return TextFieldValue(
+        text = preText + insertion + postText,
+        selection = TextRange((preText + insertion).length)
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NodeEdit(text: String, onValueChange: (String) -> Unit) {
+fun NodeEdit(textFieldValue: TextFieldValue, onValueChange: (TextFieldValue) -> Unit) {
     BasicTextField(
-        value = text,
+        value = textFieldValue,
         onValueChange = { onValueChange(it) },
         modifier = Modifier.padding(5.dp),
         textStyle = TextStyle(
@@ -77,7 +92,7 @@ fun NodeEdit(text: String, onValueChange: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NodeScreen(node: OrgNode, nodes: List<OrgNode>, viewModel: SharedViewModel, goBack: () -> Unit, openNode: (String) -> Unit) {
+fun NodeScreen(node: OrgNode, nodes: List<OrgNode>, viewModel: SharedViewModel, goBack: () -> Unit, openNodeById: (String) -> Unit) {
     val scrollState = rememberScrollState()
     var isEditMode by remember { mutableStateOf(false) }
     // TODO: Disable this based on focus
@@ -89,7 +104,15 @@ fun NodeScreen(node: OrgNode, nodes: List<OrgNode>, viewModel: SharedViewModel, 
     val context = LocalContext.current
 
     val fileContent = node.file?.let { readFile(context, it) } ?: "NA"
-    var currentText by remember { mutableStateOf(fileContent) }
+
+    var currentTextFieldValue by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = fileContent,
+                selection = TextRange(fileContent.length)
+            )
+        )
+    }
 
     var showLinkDialog by remember { mutableStateOf(false) }
 
@@ -170,7 +193,7 @@ fun NodeScreen(node: OrgNode, nodes: List<OrgNode>, viewModel: SharedViewModel, 
                             IconButton(enabled = isEditFocused, onClick = {
                                 val currentTime = LocalDateTime.now()
                                 val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-                                currentText += "[${currentTime.format(formatter)}]"
+                                currentTextFieldValue = insertText(currentTextFieldValue, "[${currentTime.format(formatter)}]")
                             }) {
                                 Icon(
                                     Icons.Filled.DateRange,
@@ -181,7 +204,7 @@ fun NodeScreen(node: OrgNode, nodes: List<OrgNode>, viewModel: SharedViewModel, 
                         floatingActionButton = {
                             FloatingActionButton(onClick = {
                                 node.file?.let {
-                                    viewModel.fileToEdit.value = Pair(it, currentText)
+                                    viewModel.fileToEdit.value = Pair(it, currentTextFieldValue.text)
                                 }
                             }) {
                                 Icon(
@@ -218,21 +241,24 @@ fun NodeScreen(node: OrgNode, nodes: List<OrgNode>, viewModel: SharedViewModel, 
                     SelectionContainer {
                         Column {
                             if (isEditMode) {
-                                NodeEdit(text = currentText) { currentText = it }
+                                NodeEdit(currentTextFieldValue) { currentTextFieldValue = it }
                                 if (showLinkDialog) {
-                                    InsertLinkDialog(nodes, onClick = { currentText += "[[id:$it][]]" }) {
+                                    InsertLinkDialog(nodes, onClick = {
+                                        currentTextFieldValue = insertText(currentTextFieldValue, "[[id:${it.id}][${it.title}]]")
+                                        showLinkDialog = false
+                                    }) {
                                         showLinkDialog = false
                                     }
                                 }
                             } else {
-                                OrgPreview(currentText, openNode)
+                                OrgPreview(currentTextFieldValue.text, openNodeById)
                                 if (showBottomSheet) {
                                     ModalBottomSheet(
                                         onDismissRequest = { showBottomSheet = false },
                                         sheetState = sheetState
                                     ) {
                                         // TODO: Get actual linked nodes
-                                        RandomNodeList(nodes = listOf(node), openNode = openNode)
+                                        RandomNodeList(nodes = listOf(node), onClick = { openNodeById(it.id) })
                                     }
                                 }
                             }

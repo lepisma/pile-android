@@ -23,7 +23,7 @@ import androidx.compose.ui.window.Dialog
 import com.example.pile.OrgNode
 
 @Composable
-fun InsertLinkDialog(nodes: List<OrgNode>, onClick: (String) -> Unit, onDismiss: () -> Unit) {
+fun InsertLinkDialog(nodes: List<OrgNode>, onClick: (OrgNode) -> Unit, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = { onDismiss() }) {
         Card {
             var text by remember { mutableStateOf("") }

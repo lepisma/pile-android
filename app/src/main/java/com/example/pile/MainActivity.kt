@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
                     MainScreen(
                         nodeList,
                         isLoading,
-                        { navController.navigate("nodeScreen/${it}") },
+                        { navController.navigate("nodeScreen/${it.id}") },
                         {
                             CoroutineScope(Dispatchers.IO).launch {
                                 createNewNode(context, it, uri)?.let { node ->

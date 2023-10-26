@@ -34,7 +34,7 @@ import com.example.pile.OrgNode
 /* Main search view that comes up as the first page */
 @ExperimentalMaterial3Api
 @Composable
-fun FindView(nodes: List<OrgNode>, openNode: (String) -> Unit, createAndOpenNode: (String) -> Unit) {
+fun FindView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit, createAndOpenNode: (String) -> Unit) {
     var text by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
@@ -43,7 +43,7 @@ fun FindView(nodes: List<OrgNode>, openNode: (String) -> Unit, createAndOpenNode
                 RandomNodeList(nodes, openNode)
                 RecentNodeList(nodes, openNode)
             } else {
-                FindNodeList(nodes, text, openNode)
+                FindNodeList(nodes, text) { openNode(it) }
                 if (text != "") {
                     CreateButton(text, createAndOpenNode)
                 }
@@ -54,7 +54,7 @@ fun FindView(nodes: List<OrgNode>, openNode: (String) -> Unit, createAndOpenNode
 }
 
 @Composable
-fun RandomNodeList(nodes: List<OrgNode>, openNode: (String) -> Unit) {
+fun RandomNodeList(nodes: List<OrgNode>, onClick: (OrgNode) -> Unit) {
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -75,7 +75,7 @@ fun RandomNodeList(nodes: List<OrgNode>, openNode: (String) -> Unit) {
             )
             LazyColumn {
                 items(nodes.shuffled().take(3)) { node ->
-                    OrgNodeItem(node) { openNode(node.id) }
+                    OrgNodeItem(node) { onClick(node) }
                 }
             }
         }
@@ -83,7 +83,7 @@ fun RandomNodeList(nodes: List<OrgNode>, openNode: (String) -> Unit) {
 }
 
 @Composable
-fun RecentNodeList(nodes: List<OrgNode>, openNode: (String) -> Unit) {
+fun RecentNodeList(nodes: List<OrgNode>, onClick: (OrgNode) -> Unit) {
     ElevatedCard(
         elevation = CardDefaults.cardElevation(
             defaultElevation = 2.dp
@@ -104,7 +104,7 @@ fun RecentNodeList(nodes: List<OrgNode>, openNode: (String) -> Unit) {
             )
             LazyColumn {
                 items(nodes.sortedByDescending { it.datetime }.take(3)) { node ->
-                    OrgNodeItem(node) { openNode(node.id) }
+                    OrgNodeItem(node) { onClick(node) }
                 }
             }
         }
@@ -113,7 +113,7 @@ fun RecentNodeList(nodes: List<OrgNode>, openNode: (String) -> Unit) {
 
 /* Clickable list of nodes that open edit/read view */
 @Composable
-fun FindNodeList(nodes: List<OrgNode>, searchString: String, openNode: (String) -> Unit) {
+fun FindNodeList(nodes: List<OrgNode>, searchString: String, onClick: (OrgNode) -> Unit) {
     if (searchString.trim() != "") {
         LazyColumn(modifier = Modifier.padding(16.dp)) {
             items(nodes.filter {
@@ -121,7 +121,7 @@ fun FindNodeList(nodes: List<OrgNode>, searchString: String, openNode: (String) 
             }.sortedBy {
                 searchString.length / it.title.length
             }.take(5)) { node ->
-                OrgNodeItem(node) { openNode(node.id) }
+                OrgNodeItem(node) { onClick(node) }
             }
         }
     }

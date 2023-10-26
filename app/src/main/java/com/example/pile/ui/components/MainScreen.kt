@@ -41,7 +41,7 @@ import compose.icons.fontawesomeicons.solid.SlidersH
 fun MainScreen(
     nodeList: List<OrgNode>,
     isLoading: Boolean,
-    openNode: (String) -> Unit,
+    openNode: (OrgNode) -> Unit,
     createAndOpenNode: (String) -> Unit,
     refreshDatabase: () -> Unit
 ) {

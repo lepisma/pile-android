@@ -38,7 +38,7 @@ fun splitCheckList(original: AnnotatedString): Pair<AnnotatedString, AnnotatedSt
 }
 
 @Composable
-fun OrgText(text: String, openNode: (String) -> Unit) {
+fun OrgText(text: String, openNodeById: (String) -> Unit) {
     var unfilledText = unfillText(text)
     val shouldCross = unfilledText.matches(Regex("(?s)^\\[X\\].*"))
 
@@ -83,7 +83,7 @@ fun OrgText(text: String, openNode: (String) -> Unit) {
         style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
         onClick = { offset ->
             annotatedString.getStringAnnotations("NodeID", offset, offset).firstOrNull()?.let {
-                openNode(it.item)
+                openNodeById(it.item)
             }
         },
         modifier = Modifier.padding(bottom = 10.dp)
