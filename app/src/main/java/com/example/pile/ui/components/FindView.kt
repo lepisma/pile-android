@@ -13,7 +13,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,27 +57,14 @@ fun RandomNodeList(nodes: List<OrgNode>, onClick: (OrgNode) -> Unit) {
         border = BorderStroke(0.dp, Color.Transparent),
         shape = RoundedCornerShape(10.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(
-                "Random",
-                color = Color.Gray,
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(bottom = 20.dp)
-            )
-            LazyColumn {
-                items(nodes
-                    .shuffled()
-                    .filter { !isDailyNode(it) }
-                    .take(3)
-                ) { node ->
-                    OrgNodeItem(node) { onClick(node) }
-                }
-            }
-        }
+        HeaderedNodeList(
+            nodes
+                .shuffled()
+                .filter { !isDailyNode(it) }
+                .take(3),
+            "Random",
+            onClick
+        )
     }
 }
 
@@ -91,27 +77,14 @@ fun RecentNodeList(nodes: List<OrgNode>, onClick: (OrgNode) -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(
-                "Recent",
-                color = Color.Gray,
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(bottom = 20.dp)
-            )
-            LazyColumn {
-                items(nodes
-                    .sortedByDescending { it.datetime }
-                    .filter { !isDailyNode(it) }
-                    .take(3)
-                ) { node ->
-                    OrgNodeItem(node) { onClick(node) }
-                }
-            }
-        }
+        HeaderedNodeList(
+            nodes
+                .sortedByDescending { it.datetime }
+                .filter { !isDailyNode(it) }
+                .take(3),
+            "Recent",
+            onClick
+        )
     }
 }
 

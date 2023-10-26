@@ -333,7 +333,7 @@ class OrgModeTest {
     }
 
     @Test
-    fun dropPreamble() {
+    fun testDropPreamble() {
         val input = """
             :PROPERTIES:
             :ID:       e1be8ebc-a4d4-4c00-82c8-a2bf21315bc7
@@ -349,7 +349,7 @@ class OrgModeTest {
     }
 
     @Test
-    fun dropPreamble_TrailingBlock() {
+    fun testDropPreamble_TrailingBlock() {
         val input = """
             :PROPERTIES:
             :ID:       e1be8ebc-a4d4-4c00-82c8-a2bf21315bc7
@@ -369,5 +369,16 @@ class OrgModeTest {
             #+end_quote
         """.trimIndent()
         assertEquals(expected, dropPreamble(input))
+    }
+
+    @Test
+    fun testParseNodeLinks() {
+        val input = """
+            Hello hi, [[id:e1be8ebc-a4d4-4c00-82c8-a2bf21315bc7][this]] is a link,
+            This is another [[id:eab]] without link title
+        """.trimIndent()
+
+        val expected = listOf("e1be8ebc-a4d4-4c00-82c8-a2bf21315bc7", "eab")
+        assertEquals(expected, parseNodeLinks(input))
     }
 }

@@ -31,6 +31,14 @@ sealed class OrgParagraph {
     data class OrgLogBook(override var text: String) : OrgParagraph()
 }
 
+fun parseNodeLinks(orgText: String): List<String> {
+    val pattern = Regex("\\[\\[id:([0-9a-fA-F\\-]+)](\\[.*])?]")
+
+    return pattern.findAll(orgText).toList().mapNotNull {
+        it.groups[1]?.value
+    }
+}
+
 fun parseOrgParagraphs(text: String): List<OrgParagraph> {
     val brokenTexts = breakHeadingContent(text)
 

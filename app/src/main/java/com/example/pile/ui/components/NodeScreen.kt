@@ -51,6 +51,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
+import com.example.pile.parseNodeLinks
 import com.example.pile.readFile
 import com.example.pile.ui.theme.PileTheme
 import com.example.pile.viewmodel.SharedViewModel
@@ -257,8 +258,15 @@ fun NodeScreen(node: OrgNode, nodes: List<OrgNode>, viewModel: SharedViewModel, 
                                         onDismissRequest = { showBottomSheet = false },
                                         sheetState = sheetState
                                     ) {
-                                        // TODO: Get actual linked nodes
-                                        RandomNodeList(nodes = listOf(node), onClick = { openNodeById(it.id) })
+                                        // TODO: Get backlinks too
+                                        val linkedNodeIds = parseNodeLinks(currentTextFieldValue.text)
+
+                                        HeaderedNodeList(
+                                            linkedNodeIds.mapNotNull {
+                                                nodes.find { orgNode -> orgNode.id == it }
+                                            },
+                                            "Linked Nodes"
+                                        ) { openNodeById(it.id) }
                                     }
                                 }
                             }
