@@ -17,12 +17,21 @@ import androidx.compose.ui.unit.dp
 
 @ExperimentalMaterial3Api
 @Composable
-fun FindField(text: String, onTextEntry: (String) -> Unit) {
+fun FindField(
+    text: String,
+    onTextEntry: (String) -> Unit,
+    label: String? = "Find",
+    placeholder: String? = null
+) {
     TextField(
         value = text,
         onValueChange = onTextEntry,
-        label = { Text(text = "Find or Create") },
-        placeholder = { Text(text = "Node name") },
+        label = if (label != null) {
+            { Text(text = label) }
+        } else null,
+        placeholder = if (placeholder != null) {
+            { Text(text = placeholder) }
+        } else null,
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 20.dp),

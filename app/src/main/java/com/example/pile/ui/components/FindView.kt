@@ -44,7 +44,7 @@ fun FindView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit, createAndOpenNod
                 }
             }
         }
-        FindField(text = text, onTextEntry = { text = it })
+        FindField(text = text, onTextEntry = { text = it }, label = "Find or Create", placeholder = "Node Name")
     }
 }
 
