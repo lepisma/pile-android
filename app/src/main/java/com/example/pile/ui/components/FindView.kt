@@ -9,18 +9,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,7 +44,7 @@ fun FindView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit, createAndOpenNod
                 }
             }
         }
-        FindCreateField(text = text, onTextEntry = { text = it })
+        FindField(text = text, onTextEntry = { text = it })
     }
 }
 
@@ -140,26 +135,4 @@ fun CreateButton(nodeName: String, createAndOpenNode: (String) -> Unit) {
             Text(nodeName)
         }
     }
-}
-
-/* Input field that searches or creates a new node */
-@ExperimentalMaterial3Api
-@Composable
-fun FindCreateField(text: String, onTextEntry: (String) -> Unit) {
-    TextField(
-        value = text,
-        onValueChange = onTextEntry,
-        label = { Text(text = "Find or Create") },
-        placeholder = { Text(text = "Node name") },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 20.dp),
-        shape = RoundedCornerShape(60.dp),
-        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-        colors = TextFieldDefaults.colors(
-            focusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
-        )
-    )
 }
