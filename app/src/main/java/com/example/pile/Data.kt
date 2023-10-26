@@ -135,6 +135,12 @@ fun createNewNode(context: Context, noteTitle: String, rootUri: Uri): OrgNode? {
     return null
 }
 
+/*
+ Tell whether this is a daily note node only based on the file title. This would improve and become
+ more robust later.
+ */
+fun isDailyNode(node: OrgNode): Boolean = node.title.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))
+
 fun createAndWriteToFile(context: Context, directory: DocumentFile, fileName: String, text: String) {
     val newFile = directory.createFile("application/octet-stream", fileName)
 

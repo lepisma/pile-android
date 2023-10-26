@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
+import com.example.pile.isDailyNode
 
 /* Main search view that comes up as the first page */
 @ExperimentalMaterial3Api
@@ -69,7 +70,11 @@ fun RandomNodeList(nodes: List<OrgNode>, onClick: (OrgNode) -> Unit) {
                 modifier = Modifier.padding(bottom = 20.dp)
             )
             LazyColumn {
-                items(nodes.shuffled().take(3)) { node ->
+                items(nodes
+                    .shuffled()
+                    .filter { !isDailyNode(it) }
+                    .take(3)
+                ) { node ->
                     OrgNodeItem(node) { onClick(node) }
                 }
             }
@@ -98,7 +103,11 @@ fun RecentNodeList(nodes: List<OrgNode>, onClick: (OrgNode) -> Unit) {
                 modifier = Modifier.padding(bottom = 20.dp)
             )
             LazyColumn {
-                items(nodes.sortedByDescending { it.datetime }.take(3)) { node ->
+                items(nodes
+                    .sortedByDescending { it.datetime }
+                    .filter { !isDailyNode(it) }
+                    .take(3)
+                ) { node ->
                     OrgNodeItem(node) { onClick(node) }
                 }
             }
