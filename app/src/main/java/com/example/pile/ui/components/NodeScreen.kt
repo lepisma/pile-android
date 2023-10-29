@@ -93,7 +93,14 @@ fun NodeEdit(textFieldValue: TextFieldValue, onValueChange: (TextFieldValue) -> 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NodeScreen(node: OrgNode, nodes: List<OrgNode>, viewModel: SharedViewModel, goBack: () -> Unit, openNodeById: (String) -> Unit) {
+fun NodeScreen(
+    node: OrgNode,
+    nodes: List<OrgNode>,
+    viewModel: SharedViewModel,
+    goBack: () -> Unit,
+    openNodeById: (String) -> Unit,
+    createAndOpenNode: (String) -> Unit
+) {
     val scrollState = rememberScrollState()
     var isEditMode by remember { mutableStateOf(false) }
     // TODO: Disable this based on focus
@@ -244,12 +251,17 @@ fun NodeScreen(node: OrgNode, nodes: List<OrgNode>, viewModel: SharedViewModel, 
                             if (isEditMode) {
                                 NodeEdit(currentTextFieldValue) { currentTextFieldValue = it }
                                 if (showLinkDialog) {
-                                    InsertLinkDialog(nodes, onClick = {
-                                        currentTextFieldValue = insertText(currentTextFieldValue, "[[id:${it.id}][${it.title}]]")
-                                        showLinkDialog = false
-                                    }) {
-                                        showLinkDialog = false
-                                    }
+                                    InsertLinkDialog(
+                                        nodes,
+                                        onClick = {
+                                            currentTextFieldValue = insertText(currentTextFieldValue, "[[id:${it.id}][${it.title}]]")
+                                            showLinkDialog = false
+                                        },
+                                        {
+                                            showLinkDialog = false
+                                        },
+                                        createAndOpenNode
+                                    )
                                 }
                             } else {
                                 OrgPreview(currentTextFieldValue.text, openNodeById)

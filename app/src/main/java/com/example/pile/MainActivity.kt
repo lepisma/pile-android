@@ -90,9 +90,26 @@ class MainActivity : ComponentActivity() {
                     val nodeId = navBackStackEntry.arguments?.getString("nodeId")
                     val node = nodeList.find { it.id == nodeId }
                     if (node != null) {
-                        NodeScreen(node, nodeList, viewModel, { navController.popBackStack() }) {
-                            navController.navigate("nodeScreen/${it}")
-                        }
+                        NodeScreen(
+                            node,
+                            nodeList,
+                            viewModel,
+                            { navController.popBackStack() },
+                            {
+                                navController.navigate("nodeScreen/${it}")
+                            },
+                            {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    createNewNode(context, it, uri)?.let {node ->
+                                        nodeDao.insert(node)
+                                        withContext(Dispatchers.Main) {
+                                            nodeList = nodeList + listOf(node)
+                                            navController.navigate("nodeScreen/${node.id}")
+                                        }
+                                    }
+                                }
+                            }
+                        )
                     }
                 }
             }
