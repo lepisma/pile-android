@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -25,7 +24,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -42,11 +40,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -78,21 +73,6 @@ fun insertText(textFieldValue: TextFieldValue, insertion: String): TextFieldValu
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NodeEdit(textFieldValue: TextFieldValue, onValueChange: (TextFieldValue) -> Unit) {
-    BasicTextField(
-        value = textFieldValue,
-        onValueChange = { onValueChange(it) },
-        modifier = Modifier.padding(5.dp),
-        textStyle = TextStyle(
-            color = LocalContentColor.current,
-            fontFamily = FontFamily.Monospace
-        ),
-        cursorBrush = SolidColor(LocalContentColor.current)
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
 fun NodeScreen(
     node: OrgNode,
     nodes: List<OrgNode>,
@@ -103,8 +83,6 @@ fun NodeScreen(
 ) {
     val scrollState = rememberScrollState()
     var isEditMode by remember { mutableStateOf(false) }
-    // TODO: Disable this based on focus
-    var isEditFocused by remember { mutableStateOf(true) }
     var menuExpanded by remember { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
@@ -189,7 +167,7 @@ fun NodeScreen(
                 if (isEditMode) {
                     BottomAppBar(
                         actions = {
-                            IconButton(enabled = isEditFocused, onClick = {
+                            IconButton(enabled = true, onClick = {
                                 showLinkDialog = true
                             }) {
                                 Icon(
@@ -198,7 +176,7 @@ fun NodeScreen(
                                     contentDescription = "Link another node"
                                 )
                             }
-                            IconButton(enabled = isEditFocused, onClick = {
+                            IconButton(enabled = true, onClick = {
                                 val currentTime = LocalDateTime.now()
                                 val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
                                 currentTextFieldValue = insertText(currentTextFieldValue, "[${currentTime.format(formatter)}]")
@@ -249,7 +227,7 @@ fun NodeScreen(
                     SelectionContainer {
                         Column {
                             if (isEditMode) {
-                                NodeEdit(currentTextFieldValue) { currentTextFieldValue = it }
+                                NodeEditField(currentTextFieldValue) { currentTextFieldValue = it }
                                 if (showLinkDialog) {
                                     FindNodeDialog(
                                         nodes,
