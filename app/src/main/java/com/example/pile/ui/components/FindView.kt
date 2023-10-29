@@ -51,6 +51,13 @@ fun FindView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit, createAndOpenNod
 
 @Composable
 fun RandomNodeList(nodes: List<OrgNode>, onClick: (OrgNode) -> Unit) {
+    val randomNodes = remember {
+        nodes
+            .shuffled()
+            .filter { !isDailyNode(it) }
+            .take(3)
+    }
+
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -58,14 +65,7 @@ fun RandomNodeList(nodes: List<OrgNode>, onClick: (OrgNode) -> Unit) {
         border = BorderStroke(0.dp, Color.Transparent),
         shape = RoundedCornerShape(10.dp)
     ) {
-        NodeList(
-            nodes
-                .shuffled()
-                .filter { !isDailyNode(it) }
-                .take(3),
-            "Random",
-            onClick
-        )
+        NodeList(randomNodes,"Random", onClick)
     }
 }
 
