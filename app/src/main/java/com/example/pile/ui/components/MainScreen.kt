@@ -86,54 +86,24 @@ fun MainScreen(
                     }
 
                     NavigationBar {
-                        NavigationBarItem(
-                            selected = (selectedNavIndex == 0),
-                            onClick = { selectedNavIndex = 0 },
-                            icon = {
-                                Icon(
-                                    FontAwesomeIcons.Solid.Book,
-                                    modifier = Modifier.size(18.dp),
-                                    contentDescription = "Notes"
-                                )
-                            },
-                            label = { Text("Notes") }
-                        )
-                        NavigationBarItem(
-                            selected = (selectedNavIndex == 1),
-                            onClick = { selectedNavIndex = 1 },
-                            icon = {
-                                Icon(
-                                    FontAwesomeIcons.Solid.CalendarDay,
-                                    modifier = Modifier.size(18.dp),
-                                    contentDescription = "Journal"
-                                )
-                            },
-                            label = { Text("Journal") }
-                        )
-                        NavigationBarItem(
-                            selected = (selectedNavIndex == 2),
-                            onClick = { selectedNavIndex = 2 },
-                            icon = {
-                                Icon(
-                                    FontAwesomeIcons.Solid.Glasses,
-                                    modifier = Modifier.size(18.dp),
-                                    contentDescription = "Search"
-                                )
-                            },
-                            label = { Text("Search") }
-                        )
-                        NavigationBarItem(
-                            selected = (selectedNavIndex == 3),
-                            onClick = { selectedNavIndex = 3 },
-                            icon = {
-                                Icon(
-                                    FontAwesomeIcons.Solid.SlidersH,
-                                    modifier = Modifier.size(18.dp),
-                                    contentDescription = "Settings"
-                                )
-                            },
-                            label = { Text("Settings") }
-                        )
+                        listOf(
+                            Pair("Notes", FontAwesomeIcons.Solid.Book),
+                            Pair("Journal", FontAwesomeIcons.Solid.CalendarDay),
+                            Pair("Search", FontAwesomeIcons.Solid.Glasses),
+                            Pair("Settings", FontAwesomeIcons.Solid.SlidersH)
+                        ).forEachIndexed { index, (label, icon) ->
+                            NavigationBarItem(
+                                selected = (selectedNavIndex == index),
+                                onClick = { selectedNavIndex = index },
+                                icon = {
+                                    Icon(
+                                        icon,
+                                        modifier = Modifier.size(18.dp),
+                                        contentDescription = label
+                                    )
+                                },
+                                label = { Text(label) })
+                        }
                     }
                 }
             }
