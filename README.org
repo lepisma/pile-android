@@ -24,8 +24,8 @@ on my needs. Here are a few screenshots:
 #+BEGIN_HTML
 <br>
 <div style="display: flex; justify-content: space-between;">
-  <img src="screenshots/main.jpg" width="30%" />
-  <img src="screenshots/preview.jpg" width="30%" />
-  <img src="screenshots/edit.jpg" width="30%" />
+  <img src="screenshots/2023-10-29 16.19.10.jpg" width="30%" />
+  <img src="screenshots/2023-10-29 16.20.44.jpg" width="30%" />
+  <img src="screenshots/2023-10-29 16.20.50.jpg" width="30%" />
 </div>
 #+END_HTML
