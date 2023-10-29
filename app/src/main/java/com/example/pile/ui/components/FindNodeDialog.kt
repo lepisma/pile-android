@@ -21,13 +21,16 @@ import androidx.compose.ui.window.Dialog
 import com.example.pile.OrgNode
 import com.example.pile.isDailyNode
 
+/*
+ Dialog that allows finding nodes and creating new ones.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InsertLinkDialog(
+fun FindNodeDialog(
     nodes: List<OrgNode>,
     onClick: (OrgNode) -> Unit,
     onDismiss: () -> Unit,
-    createAndOpenNode: (String) -> Unit
+    onCreateClick: (String) -> Unit
 ) {
     Dialog(onDismissRequest = { onDismiss() }) {
         Box(
@@ -57,7 +60,7 @@ fun InsertLinkDialog(
                         }
                     } else {
                         FindNodeList(nodes, text) { onClick(it) }
-                        CreateButton(text, createAndOpenNode)
+                        CreateButton(text) { onCreateClick(it) }
                     }
                     FindField(
                         text = text,

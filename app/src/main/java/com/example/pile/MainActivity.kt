@@ -91,20 +91,20 @@ class MainActivity : ComponentActivity() {
                     val node = nodeList.find { it.id == nodeId }
                     if (node != null) {
                         NodeScreen(
-                            node,
-                            nodeList,
-                            viewModel,
-                            { navController.popBackStack() },
-                            {
+                            node = node,
+                            nodes = nodeList,
+                            viewModel = viewModel,
+                            goBack = { navController.popBackStack() },
+                            openNodeById = {
                                 navController.navigate("nodeScreen/${it}")
                             },
-                            {
+                            createNewNode = { name, callback ->
                                 CoroutineScope(Dispatchers.IO).launch {
-                                    createNewNode(context, it, uri)?.let {node ->
+                                    createNewNode(context, name, uri)?.let {node ->
                                         nodeDao.insert(node)
                                         withContext(Dispatchers.Main) {
                                             nodeList = nodeList + listOf(node)
-                                            navController.navigate("nodeScreen/${node.id}")
+                                            callback(node)
                                         }
                                     }
                                 }

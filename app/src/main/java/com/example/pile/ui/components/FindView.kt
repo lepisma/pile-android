@@ -105,10 +105,8 @@ fun FindNodeList(nodes: List<OrgNode>, searchString: String, onClick: (OrgNode) 
 }
 
 @Composable
-fun CreateButton(nodeName: String, createAndOpenNode: (String) -> Unit) {
-    FilledTonalButton(modifier = Modifier.fillMaxWidth(), onClick = {
-        createAndOpenNode(nodeName)
-    }) {
+fun CreateButton(nodeName: String, onClick: (String) -> Unit) {
+    FilledTonalButton(modifier = Modifier.fillMaxWidth(), onClick = { onClick(nodeName) }) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Start

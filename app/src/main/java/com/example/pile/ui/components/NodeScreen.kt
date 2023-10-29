@@ -99,7 +99,7 @@ fun NodeScreen(
     viewModel: SharedViewModel,
     goBack: () -> Unit,
     openNodeById: (String) -> Unit,
-    createAndOpenNode: (String) -> Unit
+    createNewNode: (String, (OrgNode) -> Unit) -> Unit
 ) {
     val scrollState = rememberScrollState()
     var isEditMode by remember { mutableStateOf(false) }
@@ -251,16 +251,21 @@ fun NodeScreen(
                             if (isEditMode) {
                                 NodeEdit(currentTextFieldValue) { currentTextFieldValue = it }
                                 if (showLinkDialog) {
-                                    InsertLinkDialog(
+                                    FindNodeDialog(
                                         nodes,
                                         onClick = {
                                             currentTextFieldValue = insertText(currentTextFieldValue, "[[id:${it.id}][${it.title}]]")
                                             showLinkDialog = false
                                         },
-                                        {
+                                        onDismiss = {
                                             showLinkDialog = false
                                         },
-                                        createAndOpenNode
+                                        onCreateClick = {
+                                            createNewNode(it) { newNode ->
+                                                currentTextFieldValue = insertText(currentTextFieldValue, "[[id:${newNode.id}][${newNode.title}]]")
+                                                showLinkDialog = false
+                                            }
+                                        }
                                     )
                                 }
                             } else {
