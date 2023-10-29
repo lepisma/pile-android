@@ -1,5 +1,7 @@
 package com.example.pile.ui.components
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -69,6 +71,13 @@ fun insertText(textFieldValue: TextFieldValue, insertion: String): TextFieldValu
         text = preText + insertion + postText,
         selection = TextRange((preText + insertion).length)
     )
+}
+
+fun shareText(context: Context, text: String) {
+    val intent = Intent(Intent.ACTION_SEND)
+    intent.type = "type/plain"
+    intent.putExtra(Intent.EXTRA_TEXT, text)
+    context.startActivity(Intent.createChooser(intent, "Share Content"))
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -157,7 +166,10 @@ fun NodeScreen(
                             )
                             DropdownMenuItem(
                                 text = { Text("Share") },
-                                onClick = { menuExpanded = false },
+                                onClick = {
+                                    shareText(context, currentTextFieldValue.text)
+                                    menuExpanded = false
+                                },
                                 leadingIcon = { Icon(imageVector = Icons.Filled.Share, contentDescription = "Share") })
                         }
                     }
