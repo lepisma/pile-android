@@ -80,7 +80,7 @@ fun MainScreen(
                 ) {
                     when (selectedNavIndex) {
                         0 -> FindView(nodeList, openNode, createAndOpenNode)
-                        1 -> JournalView()
+                        1 -> JournalView(nodeList, openNode)
                         2 -> SearchView()
                         3 -> SettingsView()
                     }
