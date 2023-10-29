@@ -278,7 +278,7 @@ fun NodeScreen(
                                         // TODO: Get backlinks too
                                         val linkedNodeIds = parseNodeLinks(currentTextFieldValue.text)
 
-                                        HeaderedNodeList(
+                                        NodeList(
                                             linkedNodeIds.mapNotNull {
                                                 nodes.find { orgNode -> orgNode.id == it }
                                             },

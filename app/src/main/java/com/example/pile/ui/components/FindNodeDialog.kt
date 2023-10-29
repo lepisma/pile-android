@@ -66,8 +66,15 @@ fun FindNodeDialog(
                             }
                         }
                     } else {
-                        FindNodeList(nodes, text) { onClick(it) }
-                        CreateButton(text) { onCreateClick(it) }
+                        NodeList(
+                            nodes = nodes
+                                .filter { text.lowercase() in it.title.lowercase() }
+                                .sortedBy { text.length / it.title.length }
+                                .take(5),
+                            heading = null,
+                            onClick = { onClick(it) }
+                        )
+                        CreateNodeButton(text) { onCreateClick(it) }
                     }
                     FindField(
                         text = text,

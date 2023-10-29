@@ -1,20 +1,14 @@
 package com.example.pile.ui.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,9 +32,16 @@ fun FindView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit, createAndOpenNod
                 RandomNodeList(nodes, openNode)
                 RecentNodeList(nodes, openNode)
             } else {
-                FindNodeList(nodes, text) { openNode(it) }
+                NodeList(
+                    nodes = nodes
+                        .filter { text.lowercase() in it.title.lowercase() }
+                        .sortedBy { text.length / it.title.length }
+                        .take(5),
+                    heading = null,
+                    onClick = { openNode(it) }
+                )
                 if (text != "") {
-                    CreateButton(text, createAndOpenNode)
+                    CreateNodeButton(text, createAndOpenNode)
                 }
             }
         }
@@ -57,7 +58,7 @@ fun RandomNodeList(nodes: List<OrgNode>, onClick: (OrgNode) -> Unit) {
         border = BorderStroke(0.dp, Color.Transparent),
         shape = RoundedCornerShape(10.dp)
     ) {
-        HeaderedNodeList(
+        NodeList(
             nodes
                 .shuffled()
                 .filter { !isDailyNode(it) }
@@ -77,7 +78,7 @@ fun RecentNodeList(nodes: List<OrgNode>, onClick: (OrgNode) -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp)
     ) {
-        HeaderedNodeList(
+        NodeList(
             nodes
                 .sortedByDescending { it.datetime }
                 .filter { !isDailyNode(it) }
@@ -85,34 +86,5 @@ fun RecentNodeList(nodes: List<OrgNode>, onClick: (OrgNode) -> Unit) {
             "Recent",
             onClick
         )
-    }
-}
-
-/* Clickable list of nodes that open edit/read view */
-@Composable
-fun FindNodeList(nodes: List<OrgNode>, searchString: String, onClick: (OrgNode) -> Unit) {
-    if (searchString.trim() != "") {
-        LazyColumn(modifier = Modifier.padding(16.dp)) {
-            items(nodes.filter {
-                searchString.lowercase() in it.title.lowercase()
-            }.sortedBy {
-                searchString.length / it.title.length
-            }.take(5)) { node ->
-                OrgNodeItem(node) { onClick(node) }
-            }
-        }
-    }
-}
-
-@Composable
-fun CreateButton(nodeName: String, onClick: (String) -> Unit) {
-    FilledTonalButton(modifier = Modifier.fillMaxWidth(), onClick = { onClick(nodeName) }) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start
-        ) {
-            Text("Create ", color = Color.Gray)
-            Text(nodeName)
-        }
     }
 }

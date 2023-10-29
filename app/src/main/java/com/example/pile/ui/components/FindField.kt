@@ -15,6 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
+/**
+ * Text field with search icon, supposed to be used for finding stuff.
+ */
 @ExperimentalMaterial3Api
 @Composable
 fun FindField(
