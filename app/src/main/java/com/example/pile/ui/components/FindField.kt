@@ -4,9 +4,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -24,7 +26,9 @@ fun FindField(
     text: String,
     onTextEntry: (String) -> Unit,
     label: String? = "Find",
-    placeholder: String? = null
+    placeholder: String? = null,
+    showButton: Boolean = false,
+    onButtonClick: ((String) -> Unit)? = null
 ) {
     TextField(
         value = text,
@@ -44,6 +48,11 @@ fun FindField(
             focusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent
-        )
+        ),
+        trailingIcon = if (showButton) { {
+            IconButton(onClick = { if (onButtonClick != null) onButtonClick(text) }) {
+                Icon(Icons.Filled.ArrowForward, contentDescription = null)
+            }
+        } } else null
     )
 }
