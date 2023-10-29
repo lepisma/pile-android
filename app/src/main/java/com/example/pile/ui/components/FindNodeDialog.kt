@@ -21,8 +21,15 @@ import androidx.compose.ui.window.Dialog
 import com.example.pile.OrgNode
 import com.example.pile.isDailyNode
 
-/*
- Dialog that allows finding nodes and creating new ones.
+/**
+ * Dialog that allows finding nodes and creating new ones. For me main view, you should be relying
+ * on FindView. This is a minimal version to be embedded in, say, editing environment.
+ *
+ * @param nodes List of all nodes.
+ * @param onClick Function that runs when you click on any shown node.
+ * @param onDismiss Function that runs on dismissal.
+ * @param onCreateClick Function that runs after you click on create button. It takes name of the
+ *                      new node as an argument.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
