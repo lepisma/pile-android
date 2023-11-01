@@ -13,6 +13,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -54,6 +55,8 @@ fun OrgText(text: String, openNodeById: (String) -> Unit) {
     var formattedString by remember { mutableStateOf<AnnotatedString?>(null) }
     val primaryColor = MaterialTheme.colorScheme.primary
 
+    val localUriHandler = LocalUriHandler.current
+
     LaunchedEffect(text) {
         coroutineScope.launch(Dispatchers.Default) {
             val output = formatString(text, primaryColor)
@@ -66,8 +69,11 @@ fun OrgText(text: String, openNodeById: (String) -> Unit) {
             text = formattedString!!,
             style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
             onClick = { offset ->
-                formattedString!!.getStringAnnotations("NodeID", offset, offset).firstOrNull()?.let {
+                formattedString!!.getStringAnnotations("NODE", offset, offset).firstOrNull()?.let {
                     openNodeById(it.item)
+                }
+                formattedString!!.getStringAnnotations("EXTERNAL", offset, offset).firstOrNull()?.let {
+                    localUriHandler.openUri(it.item)
                 }
             },
             modifier = Modifier.padding(bottom = 10.dp)
@@ -89,12 +95,12 @@ private fun formatString(text: String, primaryColor: Color): AnnotatedString {
         .replace(Regex("^\\[-\\]"), "\uD83D\uDD33")
         .replace(Regex("^\\[X\\]"), "\uD83D\uDFE9")
 
-    val nodeLinkPattern = Regex("""\[\[id:([a-fA-F0-9\-]+)\]\[([^\]]+)\]\]""")
+    val linkPattern = Regex("""\[\[(.+?)\](?:\[([^\]]*?)\])?\]""")
     val annotatedString = buildAnnotatedString {
         var lastIndex = 0
-        nodeLinkPattern.findAll(unfilledText).forEach { match ->
-            val nodeId = match.groups[1]?.value ?: ""
-            val label = match.groups[2]?.value ?: ""
+        linkPattern.findAll(unfilledText).forEach { match ->
+            val url = match.groups[1]?.value ?: ""
+            val label = match.groups[2]?.value ?: url
 
             append(unfilledText.substring(lastIndex, match.range.first))
 
@@ -106,9 +112,23 @@ private fun formatString(text: String, primaryColor: Color): AnnotatedString {
             ) {
                 append(label)
             }
+
+            val tag: String
+            val annotation: String
+
+            if (url.startsWith("http")) {
+                tag = "EXTERNAL"
+                annotation = url
+            } else if (url.startsWith("id:")) {
+                tag = "NODE"
+                annotation = url.substring(3)
+            } else {
+                tag = "UNK"
+                annotation = url
+            }
             addStringAnnotation(
-                tag = "NodeID",
-                annotation = nodeId,
+                tag = tag,
+                annotation = annotation,
                 start = length - label.length,
                 end = length
             )
