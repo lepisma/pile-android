@@ -3,8 +3,16 @@ package com.example.pile.ui.components
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -12,6 +20,9 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.example.pile.unfillText
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 fun strikeThrough(original: AnnotatedString): AnnotatedString {
     return buildAnnotatedString {
@@ -39,6 +50,37 @@ fun splitCheckList(original: AnnotatedString): Pair<AnnotatedString, AnnotatedSt
 
 @Composable
 fun OrgText(text: String, openNodeById: (String) -> Unit) {
+    val coroutineScope = rememberCoroutineScope()
+    var formattedString by remember { mutableStateOf<AnnotatedString?>(null) }
+    val primaryColor = MaterialTheme.colorScheme.primary
+
+    LaunchedEffect(text) {
+        coroutineScope.launch(Dispatchers.Default) {
+            val output = formatString(text, primaryColor)
+            withContext(Dispatchers.Main) { formattedString = output }
+        }
+    }
+
+    if (formattedString != null) {
+        ClickableText(
+            text = formattedString!!,
+            style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+            onClick = { offset ->
+                formattedString!!.getStringAnnotations("NodeID", offset, offset).firstOrNull()?.let {
+                    openNodeById(it.item)
+                }
+            },
+            modifier = Modifier.padding(bottom = 10.dp)
+        )
+    } else {
+        Text(text)
+    }
+}
+
+/**
+ * Parse org paragraph text and return annotated string object.
+ */
+private fun formatString(text: String, primaryColor: Color): AnnotatedString {
     var unfilledText = unfillText(text)
     val shouldCross = unfilledText.matches(Regex("(?s)^\\[X\\].*"))
 
@@ -58,7 +100,7 @@ fun OrgText(text: String, openNodeById: (String) -> Unit) {
 
             withStyle(
                 SpanStyle(
-                    color = MaterialTheme.colorScheme.primary,
+                    color = primaryColor,
                     textDecoration = TextDecoration.Underline
                 )
             ) {
@@ -74,18 +116,10 @@ fun OrgText(text: String, openNodeById: (String) -> Unit) {
         }
         append(unfilledText.substring(lastIndex))
     }
-
-    ClickableText(
-        text = if (shouldCross) {
-            val (checkmark, content) = splitCheckList(annotatedString)
-            checkmark + strikeThrough(content)
-        } else annotatedString,
-        style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-        onClick = { offset ->
-            annotatedString.getStringAnnotations("NodeID", offset, offset).firstOrNull()?.let {
-                openNodeById(it.item)
-            }
-        },
-        modifier = Modifier.padding(bottom = 10.dp)
-    )
+    return if (shouldCross) {
+        val (checkmark, content) = splitCheckList(annotatedString)
+        checkmark + strikeThrough(content)
+    } else {
+        annotatedString
+    }
 }
