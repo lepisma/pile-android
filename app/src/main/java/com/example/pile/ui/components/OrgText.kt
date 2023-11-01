@@ -95,12 +95,12 @@ private fun formatString(text: String, primaryColor: Color): AnnotatedString {
         .replace(Regex("^\\[-\\]"), "\uD83D\uDD33")
         .replace(Regex("^\\[X\\]"), "\uD83D\uDFE9")
 
-    val linkPattern = Regex("""\[\[(.+?)\](?:\[([^\]]*?)\])?\]""")
+    val linkPattern = Regex("""\[\[(?<orglink>.+?)\](?:\[(?<label>[^\]]*?)\])?\]|(?<rawlink>https?:\/\/\S+)""")
     val annotatedString = buildAnnotatedString {
         var lastIndex = 0
         linkPattern.findAll(unfilledText).forEach { match ->
-            val url = match.groups[1]?.value ?: ""
-            val label = match.groups[2]?.value ?: url
+            val url = match.groups["orglink"]?.value ?: match.groups["rawlink"]?.value ?: ""
+            val label = match.groups["label"]?.value ?: url
 
             append(unfilledText.substring(lastIndex, match.range.first))
 
