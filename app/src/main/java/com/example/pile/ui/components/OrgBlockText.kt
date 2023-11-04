@@ -14,7 +14,7 @@ fun OrgBlockText(orgBlock: OrgParagraph.OrgBlock) {
     Text(
         orgBlock.text,
         fontFamily = FontFamily.Monospace,
-        fontSize = MaterialTheme.typography.bodyMedium.fontSize * 0.95,
+        fontSize = MaterialTheme.typography.bodyMedium.fontSize,
         modifier = Modifier.padding(bottom = 10.dp)
     )
 }
