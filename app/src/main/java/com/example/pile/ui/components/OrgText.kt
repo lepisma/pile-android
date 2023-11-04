@@ -165,7 +165,7 @@ private fun formatString(text: String, primaryColor: Color): AnnotatedString {
 }
 
 @Composable
-fun OrgText(text: String, openNodeById: (String) -> Unit) {
+fun OrgText(text: String, openNodeById: (String) -> Unit, modifier: Modifier = Modifier) {
     val coroutineScope = rememberCoroutineScope()
     var formattedString by remember { mutableStateOf<AnnotatedString?>(null) }
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -191,7 +191,7 @@ fun OrgText(text: String, openNodeById: (String) -> Unit) {
                     localUriHandler.openUri(it.item)
                 }
             },
-            modifier = Modifier.padding(bottom = 10.dp)
+            modifier = modifier.padding(bottom = 10.dp)
         )
     } else {
         Text(text)
