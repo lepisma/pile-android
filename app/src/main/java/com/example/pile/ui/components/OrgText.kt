@@ -2,8 +2,10 @@ package com.example.pile.ui.components
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -12,7 +14,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -99,7 +100,7 @@ fun formatPattern(
 /**
  * Parse org paragraph text and return annotated string object.
  */
-private fun formatString(text: String, primaryColor: Color): AnnotatedString {
+private fun formatString(text: String, colorScheme: ColorScheme, typography: Typography): AnnotatedString {
     var unfilledText = unfillText(text)
     val shouldCross = unfilledText.matches(Regex("(?s)^\\[X\\].*"))
 
@@ -118,7 +119,7 @@ private fun formatString(text: String, primaryColor: Color): AnnotatedString {
             val url = matchResult.groups["orglink"]?.value ?: matchResult.groups["rawlink"]?.value ?: ""
             matchResult.groups["label"]?.value ?: url
         },
-        SpanStyle(color = primaryColor, textDecoration = TextDecoration.Underline),
+        SpanStyle(color = colorScheme.primary, textDecoration = TextDecoration.Underline),
         { matchResult ->
             val url = matchResult.groups["orglink"]?.value ?: matchResult.groups["rawlink"]?.value ?: ""
 
@@ -153,7 +154,7 @@ private fun formatString(text: String, primaryColor: Color): AnnotatedString {
         annotatedString,
         Regex("""(?<=^|\s)[~=](?<text>\S(.*?)\S)[~=]"""),
         { matchResult -> matchResult.groups["text"]?.value ?: "" },
-        SpanStyle(fontFamily = FontFamily.Monospace)
+        SpanStyle(fontFamily = FontFamily.Monospace, fontSize = typography.bodyMedium.fontSize)
     )
 
     return if (shouldCross) {
@@ -168,13 +169,14 @@ private fun formatString(text: String, primaryColor: Color): AnnotatedString {
 fun OrgText(text: String, openNodeById: (String) -> Unit, modifier: Modifier = Modifier) {
     val coroutineScope = rememberCoroutineScope()
     var formattedString by remember { mutableStateOf<AnnotatedString?>(null) }
-    val primaryColor = MaterialTheme.colorScheme.primary
+    val colorScheme = MaterialTheme.colorScheme
+    val typography = MaterialTheme.typography
 
     val localUriHandler = LocalUriHandler.current
 
     LaunchedEffect(text) {
         coroutineScope.launch(Dispatchers.Default) {
-            val output = formatString(text, primaryColor)
+            val output = formatString(text, colorScheme, typography)
             withContext(Dispatchers.Main) { formattedString = output }
         }
     }
