@@ -19,6 +19,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.example.pile.unfillText
@@ -137,6 +138,14 @@ private fun formatString(text: String, primaryColor: Color): AnnotatedString {
         Regex("""(?<=^|\s)\/(?<text>\S(.*?)\S)\/"""),
         { matchResult -> matchResult.groups["text"]?.value ?: "" },
         SpanStyle(fontStyle = FontStyle.Italic)
+    )
+
+    // Bold formatting
+    annotatedString = formatPattern(
+        annotatedString,
+        Regex("""(?<=^|\s)\*(?<text>\S(.*?)\S)\*"""),
+        { matchResult -> matchResult.groups["text"]?.value ?: "" },
+        SpanStyle(fontWeight = FontWeight.Bold)
     )
 
     // Inline code formatting
