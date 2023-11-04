@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -114,17 +113,7 @@ fun OrgPreview(text: String, openNodeById: (String) -> Unit) {
 
             parsed!!.headsInList.forEach { head ->
                 item {
-                    val style = when (head.level) {
-                        1 -> MaterialTheme.typography.headlineLarge
-                        2 -> MaterialTheme.typography.headlineMedium
-                        else -> MaterialTheme.typography.headlineSmall
-                    }
-
-                    Text(
-                        text = head.head.title,
-                        style = style,
-                        modifier = Modifier.padding(top = 20.dp, bottom = 10.dp)
-                    )
+                    OrgHeadingText(text = head.head.title, level = head.level)
                 }
 
                 items(parseOrgParagraphs(head.head.content)) { para ->
