@@ -22,6 +22,7 @@ import com.example.pile.ui.formatDatePattern
 import com.example.pile.ui.formatInlineCodePattern
 import com.example.pile.ui.formatItalicPattern
 import com.example.pile.ui.formatLinkPattern
+import com.example.pile.ui.formatTagPattern
 import com.example.pile.unfillText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -40,6 +41,7 @@ fun OrgText(text: String, openNodeById: (String) -> Unit, modifier: Modifier = M
             var annotatedString = buildAnnotatedString { append(unfillText(text)) }
             annotatedString = formatCheckboxPattern(annotatedString)
             annotatedString = formatLinkPattern(annotatedString, colorScheme)
+            annotatedString = formatTagPattern(annotatedString, colorScheme)
             annotatedString = formatItalicPattern(annotatedString)
             annotatedString = formatBoldPattern(annotatedString)
             annotatedString = formatInlineCodePattern(annotatedString, typography.bodyMedium.fontSize)

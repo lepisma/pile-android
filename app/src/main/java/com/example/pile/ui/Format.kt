@@ -240,3 +240,19 @@ fun formatCheckboxPattern(annotatedString: AnnotatedString): AnnotatedString {
         }
     }
 }
+
+/**
+ * Format special tags like # and @
+ */
+fun formatTagPattern(annotatedString: AnnotatedString, colorScheme: ColorScheme): AnnotatedString {
+    return formatPattern(
+        annotatedString,
+        Regex("""[@#]\S*""")
+    ) { matchResult ->
+        buildAnnotatedString {
+            withStyle(SpanStyle(color = colorScheme.primary)) {
+                append(matchResult.value)
+            }
+        }
+    }
+}

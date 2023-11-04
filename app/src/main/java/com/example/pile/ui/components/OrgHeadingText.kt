@@ -13,6 +13,7 @@ import com.example.pile.ui.formatDatePattern
 import com.example.pile.ui.formatInlineCodePattern
 import com.example.pile.ui.formatItalicPattern
 import com.example.pile.ui.formatLinkPattern
+import com.example.pile.ui.formatTagPattern
 import com.example.pile.ui.formatTitlePattern
 
 @Composable
@@ -30,6 +31,7 @@ fun OrgHeadingText(text: String, level: Int, openNodeById: (String) -> Unit) {
     annotatedString = formatTitlePattern(annotatedString, colorScheme)
     annotatedString = formatDatePattern(annotatedString, colorScheme, style.fontSize)
     annotatedString = formatLinkPattern(annotatedString, colorScheme)
+    annotatedString = formatTagPattern(annotatedString, colorScheme)
     annotatedString = formatItalicPattern(annotatedString)
     annotatedString = formatBoldPattern(annotatedString)
     annotatedString = formatInlineCodePattern(annotatedString, style.fontSize)
