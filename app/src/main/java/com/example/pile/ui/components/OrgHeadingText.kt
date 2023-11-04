@@ -22,7 +22,7 @@ fun OrgHeadingText(text: String, level: Int, openNodeById: (String) -> Unit) {
         1 -> MaterialTheme.typography.headlineLarge
         2 -> MaterialTheme.typography.headlineMedium
         else -> MaterialTheme.typography.headlineSmall
-    }
+    }.copy(color = MaterialTheme.colorScheme.onSurface)
 
     var annotatedString = buildAnnotatedString { append(text) }
     val localUriHandler = LocalUriHandler.current
