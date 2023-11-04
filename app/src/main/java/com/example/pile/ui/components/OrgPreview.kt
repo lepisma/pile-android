@@ -113,7 +113,7 @@ fun OrgPreview(text: String, openNodeById: (String) -> Unit) {
 
             parsed!!.headsInList.forEach { head ->
                 item {
-                    OrgHeadingText(text = head.head.title, level = head.level)
+                    OrgHeadingText(head.head.title, head.level, openNodeById)
                 }
 
                 items(parseOrgParagraphs(head.head.content)) { para ->
