@@ -144,7 +144,7 @@ fun OrgParagraphText(orgParagraph: OrgParagraph, openNodeById: (String) -> Unit)
         is OrgParagraph.OrgTable -> Text(orgParagraph.text, fontFamily = FontFamily.Monospace)
         is OrgParagraph.OrgList -> OrgListText(orgParagraph, openNodeById)
         is OrgParagraph.OrgQuote -> OrgQuoteText(orgParagraph, openNodeById)
-        is OrgParagraph.OrgBlock -> Text(orgParagraph.text, fontFamily = FontFamily.Monospace)
+        is OrgParagraph.OrgBlock -> OrgBlockText(orgParagraph)
         is OrgParagraph.OrgLogBook -> Text("")
         else -> OrgText(orgParagraph.text, openNodeById)
     }
