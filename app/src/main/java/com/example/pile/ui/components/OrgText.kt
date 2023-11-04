@@ -157,6 +157,22 @@ private fun formatString(text: String, colorScheme: ColorScheme, typography: Typ
         SpanStyle(fontFamily = FontFamily.Monospace, fontSize = typography.bodyMedium.fontSize)
     )
 
+    // Date tag
+    annotatedString = formatPattern(
+        annotatedString,
+        Regex("""[<\[](?<stamp>\d{4}-\d{2}-\d{2}( [a-zA-Z]+)?(\s+\d{1,2}:\d{2})?)[>\]]"""),
+        { matchResult ->
+            val stamp = matchResult.groups["stamp"]?.value
+            " $stamp "
+        },
+        SpanStyle(
+            fontFamily = FontFamily.Monospace,
+            fontSize = typography.bodyMedium.fontSize,
+            background = colorScheme.secondaryContainer,
+            color = colorScheme.onSecondaryContainer
+        )
+    )
+
     return if (shouldCross) {
         val (checkmark, content) = splitCheckList(annotatedString)
         checkmark + addSpanStyle(content, SpanStyle(textDecoration = TextDecoration.LineThrough))
