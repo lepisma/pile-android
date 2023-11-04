@@ -117,7 +117,13 @@ private fun formatString(text: String, colorScheme: ColorScheme, typography: Typ
         Regex("""\[\[(?<orglink>.+?)\](?:\[(?<label>[^\]]*?)\])?\]|(?<rawlink>https?:\/\/\S+)"""),
         { matchResult ->
             val url = matchResult.groups["orglink"]?.value ?: matchResult.groups["rawlink"]?.value ?: ""
-            matchResult.groups["label"]?.value ?: url
+            val label = matchResult.groups["label"]?.value ?: url
+
+            if (url.startsWith("id:")) {
+                "‹ $label ›"
+            } else {
+                label
+            }
         },
         SpanStyle(color = colorScheme.primary, textDecoration = TextDecoration.Underline),
         { matchResult ->
