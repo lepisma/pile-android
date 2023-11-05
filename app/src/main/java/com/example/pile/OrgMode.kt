@@ -32,7 +32,7 @@ sealed class OrgParagraph {
 }
 
 fun parseNodeLinks(orgText: String): List<String> {
-    val pattern = Regex("\\[\\[id:([0-9a-fA-F\\-]+)](\\[.*])?]")
+    val pattern = Regex("\\[\\[id:([0-9a-fA-F\\-]+)](\\[(.*?)])?]")
 
     return pattern.findAll(orgText).toList().mapNotNull {
         it.groups[1]?.value
