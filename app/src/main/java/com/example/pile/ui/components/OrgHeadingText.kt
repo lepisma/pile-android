@@ -1,8 +1,11 @@
 package com.example.pile.ui.components
 
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
@@ -37,6 +40,8 @@ fun OrgHeadingText(head: OrgNodeInList, openNodeById: (String) -> Unit) {
     annotatedString = formatBoldPattern(annotatedString)
     annotatedString = formatInlineCodePattern(annotatedString, style.fontSize)
 
+    // Heading tags go in next line
+
     ClickableText(
         text = annotatedString,
         style = style,
@@ -50,4 +55,13 @@ fun OrgHeadingText(head: OrgNodeInList, openNodeById: (String) -> Unit) {
         },
         modifier = Modifier.padding(top = 20.dp, bottom = 10.dp)
     )
+    Row {
+        head.head.tags.forEach {
+            SuggestionChip(
+                onClick = { },
+                label = { Text(it) },
+                modifier = Modifier.padding(end = 10.dp, bottom = 10.dp)
+            )
+        }
+    }
 }
