@@ -40,8 +40,6 @@ fun OrgHeadingText(head: OrgNodeInList, openNodeById: (String) -> Unit) {
     annotatedString = formatBoldPattern(annotatedString)
     annotatedString = formatInlineCodePattern(annotatedString, style.fontSize)
 
-    // Heading tags go in next line
-
     ClickableText(
         text = annotatedString,
         style = style,
