@@ -15,16 +15,17 @@ import com.example.pile.ui.formatItalicPattern
 import com.example.pile.ui.formatLinkPattern
 import com.example.pile.ui.formatTagPattern
 import com.example.pile.ui.formatTitlePattern
+import com.orgzly.org.parser.OrgNodeInList
 
 @Composable
-fun OrgHeadingText(text: String, level: Int, openNodeById: (String) -> Unit) {
-    val style = when (level) {
+fun OrgHeadingText(head: OrgNodeInList, openNodeById: (String) -> Unit) {
+    val style = when (head.level) {
         1 -> MaterialTheme.typography.headlineLarge
         2 -> MaterialTheme.typography.headlineMedium
         else -> MaterialTheme.typography.headlineSmall
     }.copy(color = MaterialTheme.colorScheme.onSurface)
 
-    var annotatedString = buildAnnotatedString { append(text) }
+    var annotatedString = buildAnnotatedString { append(head.head.title) }
     val localUriHandler = LocalUriHandler.current
     val colorScheme = MaterialTheme.colorScheme
 
