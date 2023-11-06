@@ -131,7 +131,7 @@ class MainActivity : ComponentActivity() {
         val db = Room.databaseBuilder(
             applicationContext,
             PileDatabase::class.java, "pile-database"
-        ).build()
+        ).addMigrations(MIGRATION_1_2).build()
         nodeDao = db.nodeDao()
 
         if (uri != null) {
