@@ -133,6 +133,13 @@ fun breakHeadingContent(text: String): List<String> {
         .filter { it.isNotEmpty() }
 }
 
+fun parseLastModified(file: DocumentFile): LocalDateTime {
+    val lastModifiedMillis = file.lastModified()
+    return Instant.ofEpochMilli(lastModifiedMillis)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDateTime()
+}
+
 /*
  We assume a certain structure of node entries where each file's name has datetime information. And
  we are not considering the nodes that could be found within a file right now.
@@ -162,10 +169,7 @@ fun parseFileDatetime(file: DocumentFile): LocalDateTime {
     }
 
     // Else fallback to using last modified time
-    val lastModifiedMillis = file.lastModified()
-    return Instant.ofEpochMilli(lastModifiedMillis)
-        .atZone(ZoneId.systemDefault())
-        .toLocalDateTime()
+    return parseLastModified(file)
 }
 
 fun parseTitle(preamble: String): String {
