@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import androidx.room.Dao
 import androidx.room.Database
+import androidx.room.Delete
 import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.PrimaryKey
@@ -13,6 +14,7 @@ import androidx.room.Query
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import androidx.room.Update
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.async
@@ -73,6 +75,12 @@ interface NodeDao {
 
     @Query("SELECT * FROM nodes")
     fun getAllNodes(): List<OrgNode>
+
+    @Update
+    fun updateNode(node: OrgNode)
+
+    @Delete
+    fun deleteNode(node: OrgNode)
 
     @Query("DELETE FROM nodes")
     fun deleteAll()
@@ -191,9 +199,20 @@ suspend fun readFilesFromDirectory(context: Context, uri: Uri): List<OrgNode> = 
 }
 
 suspend fun refreshDatabase(context: Context, uri: Uri, nodeDao: NodeDao) {
-    val nodes = readFilesFromDirectory(context, uri)
-    nodeDao.deleteAll()
-    nodeDao.insertAll(*nodes.toTypedArray())
+    val newNodes = readFilesFromDirectory(context, uri).associateBy { it.id }
+    val existingNodes = nodeDao.getAllNodes().associateBy { it.id }
+
+    for (newNode in newNodes.values) {
+        existingNodes[newNode.id]?.let { existingNode ->
+            val updatedNode = newNode.copy(bookmarked = existingNode.bookmarked)
+            nodeDao.updateNode(updatedNode)
+        } ?: run {
+            nodeDao.insert(newNode)
+        }
+    }
+
+    val nodesToDelete = existingNodes.filterKeys { it !in newNodes.keys }
+    nodesToDelete.values.forEach { nodeDao.deleteNode(it) }
 }
 
 suspend fun loadNodes(context: Context, nodeDao: NodeDao): List<OrgNode> = coroutineScope {
