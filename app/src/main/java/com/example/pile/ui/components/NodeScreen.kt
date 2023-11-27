@@ -15,6 +15,8 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.BottomAppBar
@@ -128,6 +130,13 @@ fun NodeScreen(
                         rememberTopAppBarState()
                     ),
                     actions = {
+                        IconButton(onClick = {  }) {
+                            Icon(
+                                imageVector = if (node.bookmarked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                                contentDescription = "Bookmark",
+                                tint = if (node.bookmarked) Color.Red else Color.Gray
+                            )
+                        }
                         Switch(
                             checked = isEditMode,
                             onCheckedChange = { isEditMode = it },
