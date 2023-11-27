@@ -36,6 +36,7 @@ class MainActivity : ComponentActivity() {
             var isLoading by remember { mutableStateOf(true) }
             var nodeList by remember { mutableStateOf(listOf<OrgNode>()) }
             var currentNode by remember { mutableStateOf<OrgNode?>(null) }
+            var selectedNavIndex by remember { mutableIntStateOf(0) }
 
             NavHost(navController = navController, startDestination = "main-screen") {
                 composable(
@@ -54,6 +55,8 @@ class MainActivity : ComponentActivity() {
                     MainScreen(
                         nodeList,
                         isLoading,
+                        selectedNavIndex,
+                        { selectedNavIndex = it },
                         { navController.navigate("nodeScreen/${it.id}") },
                         {
                             CoroutineScope(Dispatchers.IO).launch {

@@ -19,10 +19,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -41,12 +37,12 @@ import compose.icons.fontawesomeicons.solid.Heart
 fun MainScreen(
     nodeList: List<OrgNode>,
     isLoading: Boolean,
+    selectedNavIndex: Int,
+    setSelectedNavIndex: (Int) -> Unit,
     openNode: (OrgNode) -> Unit,
     createAndOpenNode: (String) -> Unit,
     refreshDatabase: () -> Unit
 ) {
-    var selectedNavIndex by remember { mutableIntStateOf(0) }
-
     PileTheme {
         Scaffold (
             topBar = {
@@ -94,7 +90,7 @@ fun MainScreen(
                         ).forEachIndexed { index, (label, icon) ->
                             NavigationBarItem(
                                 selected = (selectedNavIndex == index),
-                                onClick = { selectedNavIndex = index },
+                                onClick = { setSelectedNavIndex(index) },
                                 icon = {
                                     Icon(
                                         icon,
