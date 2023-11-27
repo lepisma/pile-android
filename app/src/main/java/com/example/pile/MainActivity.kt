@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private lateinit var nodeDao: NodeDao
-    private val viewModel = SharedViewModel()
+    private lateinit var viewModel: SharedViewModel
 
     private fun setupContent(uri: Uri) {
         val context = this
@@ -133,17 +133,16 @@ class MainActivity : ComponentActivity() {
             PileDatabase::class.java, "pile-database"
         ).addMigrations(MIGRATION_1_2).build()
         nodeDao = db.nodeDao()
+        viewModel = SharedViewModel(nodeDao) { file, text ->
+            writeFile(this, file, text)
+            Toast.makeText(this, "File Saved", Toast.LENGTH_SHORT).show()
+        }
 
         if (uri != null) {
             setupContent(uri)
         } else {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
             startActivityForResult(intent, REQUEST_CODE_OPEN_FOLDER)
-        }
-
-        viewModel.fileToEdit.observe(this) { (file, text) ->
-            writeFile(this, file, text)
-            Toast.makeText(this, "File Saved", Toast.LENGTH_SHORT).show()
         }
     }
 

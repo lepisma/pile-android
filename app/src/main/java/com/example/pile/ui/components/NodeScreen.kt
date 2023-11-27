@@ -207,9 +207,7 @@ fun NodeScreen(
                         },
                         floatingActionButton = {
                             FloatingActionButton(onClick = {
-                                node.file?.let {
-                                    viewModel.fileToEdit.value = Pair(it, currentTextFieldValue.text)
-                                }
+                                node.file?.let { viewModel.writeFile(it, currentTextFieldValue.text) }
                             }) {
                                 Icon(
                                     Icons.Filled.CheckCircle,
