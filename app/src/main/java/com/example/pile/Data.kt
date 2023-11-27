@@ -76,6 +76,9 @@ interface NodeDao {
 
     @Query("DELETE FROM nodes")
     fun deleteAll()
+
+    @Query("UPDATE nodes SET bookmarked = :bookmarked WHERE id = :id")
+    fun toggleBookmark(id: String, bookmarked: Boolean)
 }
 
 @Database(entities = [OrgNode::class], version = 2)

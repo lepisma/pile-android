@@ -88,7 +88,8 @@ fun NodeScreen(
     viewModel: SharedViewModel,
     goBack: () -> Unit,
     openNodeById: (String) -> Unit,
-    createNewNode: (String, (OrgNode) -> Unit) -> Unit
+    createNewNode: (String, (OrgNode) -> Unit) -> Unit,
+    onNodeUpdated: (OrgNode) -> Unit
 ) {
     var isEditMode by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
@@ -130,7 +131,7 @@ fun NodeScreen(
                         rememberTopAppBarState()
                     ),
                     actions = {
-                        IconButton(onClick = {  }) {
+                        IconButton(onClick = { viewModel.toggleBookmark(node) { onNodeUpdated(it) } }) {
                             Icon(
                                 imageVector = if (node.bookmarked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                                 contentDescription = "Bookmark",

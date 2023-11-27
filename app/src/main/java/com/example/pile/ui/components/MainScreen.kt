@@ -31,9 +31,9 @@ import com.example.pile.ui.theme.PileTheme
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Book
-import compose.icons.fontawesomeicons.solid.Bookmark
 import compose.icons.fontawesomeicons.solid.CalendarDay
 import compose.icons.fontawesomeicons.solid.Glasses
+import compose.icons.fontawesomeicons.solid.Heart
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,7 +82,7 @@ fun MainScreen(
                         0 -> FindView(nodeList, openNode, createAndOpenNode)
                         1 -> JournalView(nodeList, openNode)
                         2 -> SearchView()
-                        3 -> BookmarksView()
+                        3 -> BookmarksView(nodeList, openNode)
                     }
 
                     NavigationBar {
@@ -90,7 +90,7 @@ fun MainScreen(
                             Pair("Notes", FontAwesomeIcons.Solid.Book),
                             Pair("Journal", FontAwesomeIcons.Solid.CalendarDay),
                             Pair("Search", FontAwesomeIcons.Solid.Glasses),
-                            Pair("Bookmarks", FontAwesomeIcons.Solid.Bookmark)
+                            Pair("Bookmarks", FontAwesomeIcons.Solid.Heart)
                         ).forEachIndexed { index, (label, icon) ->
                             NavigationBarItem(
                                 selected = (selectedNavIndex == index),

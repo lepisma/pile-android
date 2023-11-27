@@ -35,6 +35,7 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             var isLoading by remember { mutableStateOf(true) }
             var nodeList by remember { mutableStateOf(listOf<OrgNode>()) }
+            var currentNode by remember { mutableStateOf<OrgNode?>(null) }
 
             NavHost(navController = navController, startDestination = "main-screen") {
                 composable(
@@ -88,10 +89,10 @@ class MainActivity : ComponentActivity() {
                     }
                 ) { navBackStackEntry ->
                     val nodeId = navBackStackEntry.arguments?.getString("nodeId")
-                    val node = nodeList.find { it.id == nodeId }
-                    if (node != null) {
+                    currentNode = nodeList.find { it.id == nodeId }
+                    if (currentNode != null) {
                         NodeScreen(
-                            node = node,
+                            node = currentNode!!,
                             nodes = nodeList,
                             viewModel = viewModel,
                             goBack = { navController.popBackStack() },
@@ -108,6 +109,10 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 }
+                            },
+                            onNodeUpdated = { updatedNode ->
+                                currentNode = updatedNode
+                                nodeList = nodeList.map { if (it.id == updatedNode.id) updatedNode else it }
                             }
                         )
                     }
