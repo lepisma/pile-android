@@ -8,8 +8,12 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -17,7 +21,10 @@ import androidx.room.Room
 import com.example.pile.ui.components.MainScreen
 import com.example.pile.ui.components.NodeScreen
 import com.example.pile.viewmodel.SharedViewModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
 
@@ -53,12 +60,12 @@ class MainActivity : ComponentActivity() {
                     }
                 ) {
                     MainScreen(
-                        nodeList,
-                        isLoading,
-                        selectedNavIndex,
-                        { selectedNavIndex = it },
-                        { navController.navigate("nodeScreen/${it.id}") },
-                        {
+                        nodeList = nodeList,
+                        isLoading = isLoading,
+                        selectedNavIndex = selectedNavIndex,
+                        setSelectedNavIndex = { selectedNavIndex = it },
+                        openNode = { navController.navigate("nodeScreen/${it.id}") },
+                        createAndOpenNode = {
                             CoroutineScope(Dispatchers.IO).launch {
                                 createNewNode(context, it, uri)?.let { node ->
                                     nodeDao.insert(node)
@@ -69,14 +76,15 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         },
-                        {
+                        refreshDatabase = {
                             CoroutineScope(Dispatchers.IO).launch {
                                 isLoading = true
                                 refreshDatabase(context, uri, nodeDao)
                                 nodeList = loadNodes(context, nodeDao)
                                 isLoading = false
                             }
-                        })
+                        }
+                    )
                 }
                 composable(
                     "nodeScreen/{nodeId}",

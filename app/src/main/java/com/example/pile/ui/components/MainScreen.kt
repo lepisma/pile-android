@@ -30,6 +30,7 @@ import compose.icons.fontawesomeicons.solid.Book
 import compose.icons.fontawesomeicons.solid.CalendarDay
 import compose.icons.fontawesomeicons.solid.Glasses
 import compose.icons.fontawesomeicons.solid.Heart
+import compose.icons.fontawesomeicons.solid.PenNib
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,6 +80,7 @@ fun MainScreen(
                         1 -> JournalView(nodeList, openNode)
                         2 -> SearchView()
                         3 -> BookmarksView(nodeList, openNode)
+                        4 -> ScratchView()
                     }
 
                     NavigationBar {
@@ -86,7 +88,8 @@ fun MainScreen(
                             Pair("Notes", FontAwesomeIcons.Solid.Book),
                             Pair("Journal", FontAwesomeIcons.Solid.CalendarDay),
                             Pair("Search", FontAwesomeIcons.Solid.Glasses),
-                            Pair("Bookmarks", FontAwesomeIcons.Solid.Heart)
+                            Pair("Bookmarks", FontAwesomeIcons.Solid.Heart),
+                            Pair("Scratch", FontAwesomeIcons.Solid.PenNib)
                         ).forEachIndexed { index, (label, icon) ->
                             NavigationBarItem(
                                 selected = (selectedNavIndex == index),
