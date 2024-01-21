@@ -1,8 +1,10 @@
 package com.example.pile.ui.components
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -11,13 +13,17 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -27,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
 import com.example.pile.isDailyNode
@@ -40,6 +47,8 @@ import kotlin.math.max
 fun JournalView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit) {
     var text by remember { mutableStateOf("") }
 
+    val dailyNodes = nodes.filter { isDailyNode(it) }
+
     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
         if (nodes.isNotEmpty()) {
             if (text == "") {
@@ -50,14 +59,15 @@ fun JournalView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp)
                 ) {
-                    Calendar(nodes.map { it.datetime.toLocalDate()!! }) { date ->
-                        println("Clicked on $date")
+                    Calendar(
+                        dailyNodes.map { it.datetime.toLocalDate()!! }
+                    ) { date ->
+                        openNode(dailyNodes.find { it.datetime.toLocalDate()!! == date }!!)
                     }
                 }
             } else {
                 NodeList(
-                    nodes = nodes
-                        .filter { isDailyNode(it) }
+                    nodes = dailyNodes
                         .filter { text.lowercase() in it.title.lowercase() }
                         .take(5),
                     heading = null,
@@ -71,10 +81,10 @@ fun JournalView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit) {
 
 @Composable
 fun Calendar(dates: List<LocalDate>, onClick: (LocalDate) -> Unit) {
+    val context = LocalContext.current
     val currentDate = LocalDate.now()
 
-    var selectedDate by remember { mutableStateOf(currentDate) }
-    var selectedYearMonth by remember { mutableStateOf(YearMonth.of(selectedDate.year, selectedDate.monthValue)) }
+    var selectedYearMonth by remember { mutableStateOf(YearMonth.of(currentDate.year, currentDate.monthValue)) }
 
     val years = (dates.min().year..(max(dates.max().year, currentDate.year))).toList()
     val months = listOf("January", "February", "March", "April", "June", "July", "August", "September", "October", "November", "December")
@@ -155,12 +165,46 @@ fun Calendar(dates: List<LocalDate>, onClick: (LocalDate) -> Unit) {
         }
 
         items((1..daysInMonth).toList()) { day ->
-            Box(modifier = Modifier
-                .height(50.dp)
-                .fillMaxWidth(),
+            Box(
+                modifier = Modifier
+                    .padding(2.dp)
+                    .height(50.dp)
+                    .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = day.toString())
+                val itemLocalDate = LocalDate.of(selectedYearMonth.year, selectedYearMonth.monthValue, day)
+
+                if (itemLocalDate == currentDate) {
+                    if (dates.contains(itemLocalDate)) {
+                        Button(
+                            onClick = { onClick(itemLocalDate) },
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text(day.toString())
+                        }
+                    } else {
+                        OutlinedButton(
+                            onClick = { Toast.makeText(context, "Node creation not available", Toast.LENGTH_SHORT).show() },
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text(day.toString())
+                        }
+                    }
+                } else if (dates.contains(itemLocalDate)) {
+                    FilledTonalButton(
+                        onClick = { onClick(itemLocalDate) },
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text(day.toString())
+                    }
+                } else {
+                    TextButton(
+                        onClick = { Toast.makeText(context, "Node creation not available", Toast.LENGTH_SHORT).show() },
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text(day.toString())
+                    }
+                }
             }
         }
     }
