@@ -199,7 +199,7 @@ fun Calendar(dates: List<LocalDate>, onClick: (LocalDate) -> Unit) {
                     }
                 } else {
                     TextButton(
-                        onClick = { Toast.makeText(context, "Node creation not available", Toast.LENGTH_SHORT).show() },
+                        onClick = { Toast.makeText(context, "Node creation not allowed for non current day", Toast.LENGTH_SHORT).show() },
                         contentPadding = PaddingValues(0.dp)
                     ) {
                         Text(day.toString())
