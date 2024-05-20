@@ -49,7 +49,7 @@ fun Calendar(dates: List<LocalDate>, onClick: (LocalDate) -> Unit) {
     }
 
     val years = (dates.min().year..(max(dates.max().year, currentDate.year))).toList()
-    val months = listOf("January", "February", "March", "April", "June", "July", "August", "September", "October", "November", "December")
+    val months = listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
 
     var yearDropdownExpanded by remember { mutableStateOf(false) }
     var yearDropdownSelectedIndex by remember { mutableIntStateOf(years.indexOf(selectedYearMonth.year)) }
