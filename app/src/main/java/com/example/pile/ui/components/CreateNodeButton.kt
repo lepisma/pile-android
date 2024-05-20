@@ -2,12 +2,22 @@ package com.example.pile.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import compose.icons.FontAwesomeIcons
+import compose.icons.fontawesomeicons.Regular
+import compose.icons.fontawesomeicons.regular.Bookmark
 
 /**
  * Button for creating new node with given name. Usually used along with FindField.
@@ -20,10 +30,27 @@ fun CreateNodeButton(nodeName: String, onClick: (String) -> Unit) {
     FilledTonalButton(modifier = Modifier.fillMaxWidth(), onClick = { onClick(nodeName) }) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text("Create ", color = Color.Gray)
             Text(nodeName)
+            Spacer(modifier = Modifier.weight(1f))
+            ElevatedButton(onClick = { /*TODO*/ }) {
+                Icon(
+                    imageVector = FontAwesomeIcons.Regular.Bookmark,
+                    modifier = Modifier.size(18.dp),
+                    contentDescription = "Literature Node"
+                )
+            }
         }
+    }
+}
+
+@Preview
+@Composable
+fun test() {
+    CreateNodeButton(nodeName = "Test Node") {
+
     }
 }
