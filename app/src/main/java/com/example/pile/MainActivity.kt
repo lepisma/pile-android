@@ -154,6 +154,12 @@ class MainActivity : ComponentActivity() {
             Toast.makeText(this, "File Saved", Toast.LENGTH_SHORT).show()
         }
 
+        if (intent.action == Intent.ACTION_SEND && intent.type == "text/plain") {
+            intent.getStringExtra(Intent.EXTRA_TEXT)?.let {
+                Toast.makeText(this, "Received link: $it", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         if (uri != null) {
             setupContent(uri)
         } else {
