@@ -161,6 +161,19 @@ fun createNewNode(context: Context, noteTitle: String, rootUri: Uri): OrgNode? {
  */
 fun isDailyNode(node: OrgNode): Boolean = node.title.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))
 
+fun isLiteratureNodePath(path: String): Boolean {
+    val pattern = Regex("%2Fliterature%2F\\d{14}-")
+    return pattern.containsMatchIn(path)
+}
+
+fun isLiteratureNode(node: OrgNode): Boolean {
+    if (node.file?.parentFile?.name == "literature") {
+        return true
+    }
+
+    return isLiteratureNodePath(node.fileString)
+}
+
 fun createAndWriteToFile(context: Context, directory: DocumentFile, fileName: String, text: String) {
     val newFile = directory.createFile("application/octet-stream", fileName)
 
