@@ -50,6 +50,7 @@ android {
 dependencies {
     implementation 'com.orgzly:org-java:1.2.3'
     implementation 'androidx.room:room-runtime:2.5.2'
+    implementation 'org.jsoup:jsoup:1.17.2'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
     annotationProcessor 'androidx.room:room-compiler:2.5.2'
     kapt 'androidx.room:room-compiler:2.5.2'

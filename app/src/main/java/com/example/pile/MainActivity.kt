@@ -11,9 +11,11 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -25,6 +27,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jsoup.Jsoup
 
 class MainActivity : ComponentActivity() {
 
@@ -35,17 +38,19 @@ class MainActivity : ComponentActivity() {
     private lateinit var nodeDao: NodeDao
     private lateinit var viewModel: SharedViewModel
 
+    private var navController: NavHostController? = null
+    private var nodeList = mutableStateListOf<OrgNode>()
+
     private fun setupContent(uri: Uri) {
         val context = this
 
         setContent {
-            val navController = rememberNavController()
+            navController = rememberNavController()
             var isLoading by remember { mutableStateOf(true) }
-            var nodeList by remember { mutableStateOf(listOf<OrgNode>()) }
             var currentNode by remember { mutableStateOf<OrgNode?>(null) }
             var selectedNavIndex by remember { mutableIntStateOf(0) }
 
-            NavHost(navController = navController, startDestination = "main-screen") {
+            NavHost(navController = navController!!, startDestination = "main-screen") {
                 composable(
                     "main-screen",
                     exitTransition = {
@@ -64,14 +69,14 @@ class MainActivity : ComponentActivity() {
                         isLoading = isLoading,
                         selectedNavIndex = selectedNavIndex,
                         setSelectedNavIndex = { selectedNavIndex = it },
-                        openNode = { navController.navigate("nodeScreen/${it.id}") },
+                        openNode = { navController!!.navigate("nodeScreen/${it.id}") },
                         createAndOpenNode = { title, nodeType ->
                             CoroutineScope(Dispatchers.IO).launch {
                                 createNewNode(context, title, uri, nodeType)?.let { node ->
                                     nodeDao.insert(node)
                                     withContext(Dispatchers.Main) {
-                                        nodeList = nodeList + listOf(node)
-                                        navController.navigate("nodeScreen/${node.id}")
+                                        nodeList.add(node)
+                                        navController!!.navigate("nodeScreen/${node.id}")
                                     }
                                 }
                             }
@@ -80,7 +85,8 @@ class MainActivity : ComponentActivity() {
                             CoroutineScope(Dispatchers.IO).launch {
                                 isLoading = true
                                 refreshDatabase(context, uri, nodeDao)
-                                nodeList = loadNodes(context, nodeDao)
+                                nodeList.clear()
+                                nodeList.addAll(loadNodes(context, nodeDao))
                                 isLoading = false
                             }
                         }
@@ -106,16 +112,16 @@ class MainActivity : ComponentActivity() {
                             node = currentNode!!,
                             nodes = nodeList,
                             viewModel = viewModel,
-                            goBack = { navController.popBackStack() },
+                            goBack = { navController!!.popBackStack() },
                             openNodeById = {
-                                navController.navigate("nodeScreen/${it}")
+                                navController!!.navigate("nodeScreen/${it}")
                             },
                             createNewNode = { title, nodeType, callback ->
                                 CoroutineScope(Dispatchers.IO).launch {
                                     createNewNode(context, title, uri, nodeType)?.let {node ->
                                         nodeDao.insert(node)
                                         withContext(Dispatchers.Main) {
-                                            nodeList = nodeList + listOf(node)
+                                            nodeList.add(node)
                                             callback(node)
                                         }
                                     }
@@ -123,7 +129,7 @@ class MainActivity : ComponentActivity() {
                             },
                             onNodeUpdated = { updatedNode ->
                                 currentNode = updatedNode
-                                nodeList = nodeList.map { if (it.id == updatedNode.id) updatedNode else it }
+                                nodeList.replaceAll { if (it.id == updatedNode.id) updatedNode else it }
                             }
                         )
                     }
@@ -131,9 +137,9 @@ class MainActivity : ComponentActivity() {
             }
 
             LaunchedEffect(uri) {
-                nodeList = withContext(Dispatchers.IO) {
+                nodeList.addAll(withContext(Dispatchers.IO) {
                     loadNodes(context, nodeDao)
-                }
+                })
                 isLoading = false
             }
         }
@@ -154,17 +160,49 @@ class MainActivity : ComponentActivity() {
             Toast.makeText(this, "File Saved", Toast.LENGTH_SHORT).show()
         }
 
-        if (intent.action == Intent.ACTION_SEND && intent.type == "text/plain") {
-            intent.getStringExtra(Intent.EXTRA_TEXT)?.let {
-                Toast.makeText(this, "Received link: $it", Toast.LENGTH_SHORT).show()
-            }
-        }
-
         if (uri != null) {
             setupContent(uri)
         } else {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
             startActivityForResult(intent, REQUEST_CODE_OPEN_FOLDER)
+        }
+
+        handleIntent(intent, uri)
+    }
+
+    private fun handleIntent(intent: Intent, uri: Uri?) {
+        // Handle share from outside the app
+        if (intent.action == Intent.ACTION_SEND && intent.type == "text/plain") {
+            intent.getStringExtra(Intent.EXTRA_TEXT)?.let { link ->
+                val context = this
+
+                if (uri != null) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        // Figure out title from the link
+                        // Not handling errors and letting this fail for now. The user can use
+                        // manual literature node creation.
+                        try {
+                            val document = Jsoup.connect(link).get()
+                            createNewNode(
+                                context,
+                                document.title(),
+                                uri,
+                                OrgNodeType.LITERATURE,
+                                link
+                            )?.let { node ->
+                                nodeDao.insert(node)
+                                withContext(Dispatchers.Main) {
+                                    nodeList.add(node)
+                                    navController!!.navigate("nodeScreen/${node.id}")
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Error in parsing the link, please create node manually", Toast.LENGTH_SHORT).show()
+                        }
+
+                    }
+                }
+            }
         }
     }
 
