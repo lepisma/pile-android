@@ -37,6 +37,10 @@ data class OrgNode(
     val bookmarked: Boolean = false
 )
 
+enum class OrgNodeType {
+    CONCEPT, LITERATURE, DAILY
+}
+
 object LocalDateTimeConverter {
     @TypeConverter
     @JvmStatic
@@ -127,13 +131,52 @@ fun generateInitialContent(noteTitle: String, nodeId: String): String {
     """.trimIndent()
 }
 
+fun generateInitialContentLiterature(noteTitle: String, nodeId: String, nodeRef: String?): String {
+    return """
+    :PROPERTIES:
+    :ID:      $nodeId
+    :ROAM:_REFS: $nodeRef
+    :END:
+    #+TITLE: $noteTitle
+    
+    """.trimIndent()
+}
+
+/**
+ * Generate file name for the given node type.
+ */
 fun generateFileName(title: String, datetime: LocalDateTime): String {
     val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
     val snakeCaseTitle = title.split(Regex("\\s+")).joinToString("_").lowercase()
     return "${datetime.format(formatter)}-$snakeCaseTitle.org"
 }
 
-fun createNewNode(context: Context, noteTitle: String, rootUri: Uri): OrgNode? {
+private fun createNewLiteratureNode(context: Context, noteTitle: String, rootUri: Uri, nodeRef: String?): OrgNode? {
+    DocumentFile.fromTreeUri(context, rootUri)?.let { root ->
+        val nodeId = UUID.randomUUID().toString()
+        val datetime = LocalDateTime.now()
+        val fileName = generateFileName(noteTitle, datetime)
+        val initialContent = generateInitialContentLiterature(noteTitle, nodeId, nodeRef)
+        val directory = root.findFile("literature") ?: root.createDirectory("literature")
+
+        directory?.let { dir ->
+            createAndWriteToFile(context, dir, fileName, initialContent)
+
+            dir.findFile(fileName)?.let {
+                return OrgNode(
+                    id = nodeId,
+                    title = noteTitle,
+                    datetime = datetime,
+                    fileString = it.uri.toString(),
+                    file = it
+                )
+            }
+        }
+    }
+    return null
+}
+
+private fun createNewConceptNode(context: Context, noteTitle: String, rootUri: Uri): OrgNode? {
     DocumentFile.fromTreeUri(context, rootUri)?.let { root ->
         val nodeId = UUID.randomUUID().toString()
         val datetime = LocalDateTime.now()
@@ -153,6 +196,59 @@ fun createNewNode(context: Context, noteTitle: String, rootUri: Uri): OrgNode? {
         }
     }
     return null
+}
+
+private fun createNewDailyNode(context: Context, noteTitle: String, rootUri: Uri): OrgNode? {
+    if (!noteTitle.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))) {
+        println("Node title $noteTitle doesn't match daily title format.")
+        return null
+    }
+
+    DocumentFile.fromTreeUri(context, rootUri)?.let { root ->
+        val nodeId = UUID.randomUUID().toString()
+        val datetime = LocalDateTime.now()
+        val fileName = "$noteTitle.org"
+        val initialContent = generateInitialContent(noteTitle, nodeId)
+        val directory = root.findFile("daily") ?: root.createDirectory("daily")
+
+        directory?.let { dir ->
+            createAndWriteToFile(context, dir, fileName, initialContent)
+
+            dir.findFile(fileName)?.let {
+                return OrgNode(
+                    id = nodeId,
+                    title = noteTitle,
+                    datetime = datetime,
+                    fileString = it.uri.toString(),
+                    file = it
+                )
+            }
+        }
+    }
+    return null
+}
+
+/**
+ * Create a new node in file system
+ *
+ * @param context
+ * @param noteTitle Text that defines the name of note. For daily nodes, this should be in the exact
+ *                  format YYYY-MM-DD.
+ * @param rootUri Uri of the root directory where files are kept
+ * @param nodeType
+ * @param nodeRef Roam ref link to be added in case of literature node
+ */
+fun createNewNode(
+    context: Context,
+    noteTitle: String,
+    rootUri: Uri,
+    nodeType: OrgNodeType = OrgNodeType.CONCEPT,
+    nodeRef: String? = null): OrgNode? {
+    return when (nodeType) {
+        OrgNodeType.LITERATURE -> createNewLiteratureNode(context, noteTitle, rootUri, nodeRef)
+        OrgNodeType.DAILY -> createNewDailyNode(context, noteTitle, rootUri)
+        else -> createNewConceptNode(context, noteTitle, rootUri)
+    }
 }
 
 /*
