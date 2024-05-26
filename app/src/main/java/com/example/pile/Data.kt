@@ -135,7 +135,7 @@ fun generateInitialContentLiterature(noteTitle: String, nodeId: String, nodeRef:
     return """
     :PROPERTIES:
     :ID:      $nodeId
-    :ROAM:_REFS: $nodeRef
+    :ROAM_REFS: $nodeRef
     :END:
     #+TITLE: $noteTitle
     
