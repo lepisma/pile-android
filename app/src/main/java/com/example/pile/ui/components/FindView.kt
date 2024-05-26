@@ -18,12 +18,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
+import com.example.pile.OrgNodeType
 import com.example.pile.isDailyNode
 
 /* Main search view that comes up as the first page */
 @ExperimentalMaterial3Api
 @Composable
-fun FindView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit, createAndOpenNode: (String) -> Unit) {
+fun FindView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit, createAndOpenNode: (String, OrgNodeType) -> Unit) {
     var text by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {

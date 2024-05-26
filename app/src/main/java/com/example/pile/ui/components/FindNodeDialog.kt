@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.pile.OrgNode
+import com.example.pile.OrgNodeType
 import com.example.pile.isDailyNode
 
 /**
@@ -37,7 +38,7 @@ fun FindNodeDialog(
     nodes: List<OrgNode>,
     onClick: (OrgNode) -> Unit,
     onDismiss: () -> Unit,
-    onCreateClick: (String) -> Unit
+    onCreateClick: (String, OrgNodeType) -> Unit
 ) {
     Dialog(onDismissRequest = { onDismiss() }) {
         Box(
@@ -74,7 +75,7 @@ fun FindNodeDialog(
                             heading = null,
                             onClick = { onClick(it) }
                         )
-                        CreateNodeButton(text) { onCreateClick(it) }
+                        CreateNodeButton(text) { title, nodeType -> onCreateClick(title, nodeType) }
                     }
                     FindField(
                         text = text,

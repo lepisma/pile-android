@@ -65,9 +65,9 @@ class MainActivity : ComponentActivity() {
                         selectedNavIndex = selectedNavIndex,
                         setSelectedNavIndex = { selectedNavIndex = it },
                         openNode = { navController.navigate("nodeScreen/${it.id}") },
-                        createAndOpenNode = {
+                        createAndOpenNode = { title, nodeType ->
                             CoroutineScope(Dispatchers.IO).launch {
-                                createNewNode(context, it, uri)?.let { node ->
+                                createNewNode(context, title, uri, nodeType)?.let { node ->
                                     nodeDao.insert(node)
                                     withContext(Dispatchers.Main) {
                                         nodeList = nodeList + listOf(node)
@@ -110,9 +110,9 @@ class MainActivity : ComponentActivity() {
                             openNodeById = {
                                 navController.navigate("nodeScreen/${it}")
                             },
-                            createNewNode = { name, callback ->
+                            createNewNode = { title, nodeType, callback ->
                                 CoroutineScope(Dispatchers.IO).launch {
-                                    createNewNode(context, name, uri)?.let {node ->
+                                    createNewNode(context, title, uri, nodeType)?.let {node ->
                                         nodeDao.insert(node)
                                         withContext(Dispatchers.Main) {
                                             nodeList = nodeList + listOf(node)

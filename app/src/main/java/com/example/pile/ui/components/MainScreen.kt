@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
+import com.example.pile.OrgNodeType
 import com.example.pile.ui.theme.PileTheme
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
@@ -40,7 +41,7 @@ fun MainScreen(
     selectedNavIndex: Int,
     setSelectedNavIndex: (Int) -> Unit,
     openNode: (OrgNode) -> Unit,
-    createAndOpenNode: (String) -> Unit,
+    createAndOpenNode: (String, OrgNodeType) -> Unit,
     refreshDatabase: () -> Unit
 ) {
     PileTheme {
@@ -76,7 +77,7 @@ fun MainScreen(
                 ) {
                     when (selectedNavIndex) {
                         0 -> FindView(nodeList, openNode, createAndOpenNode)
-                        1 -> JournalView(nodeList, openNode)
+                        1 -> JournalView(nodeList, openNode, createAndOpenNode)
                         2 -> SearchView()
                         3 -> BookmarksView(nodeList, openNode)
                     }

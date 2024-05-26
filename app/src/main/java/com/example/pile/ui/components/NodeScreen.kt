@@ -48,6 +48,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
+import com.example.pile.OrgNodeType
 import com.example.pile.parseNodeLinks
 import com.example.pile.readFile
 import com.example.pile.ui.theme.PileTheme
@@ -88,7 +89,7 @@ fun NodeScreen(
     viewModel: SharedViewModel,
     goBack: () -> Unit,
     openNodeById: (String) -> Unit,
-    createNewNode: (String, (OrgNode) -> Unit) -> Unit,
+    createNewNode: (String, OrgNodeType, (OrgNode) -> Unit) -> Unit,
     onNodeUpdated: (OrgNode) -> Unit
 ) {
     var isEditMode by remember { mutableStateOf(false) }
@@ -254,8 +255,8 @@ fun NodeScreen(
                                         onDismiss = {
                                             showLinkDialog = false
                                         },
-                                        onCreateClick = {
-                                            createNewNode(it) { newNode ->
+                                        onCreateClick = { title, nodeType ->
+                                            createNewNode(title, nodeType) { newNode ->
                                                 currentTextFieldValue = insertText(currentTextFieldValue, "[[id:${newNode.id}][${newNode.title}]]")
                                                 showLinkDialog = false
                                             }

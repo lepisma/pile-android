@@ -17,12 +17,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
+import com.example.pile.OrgNodeType
 import com.example.pile.isDailyNode
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun JournalView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit) {
+fun JournalView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit, createAndOpenNode: (String, nodeType: OrgNodeType) -> Unit) {
     var text by remember { mutableStateOf("") }
     val currentDate = LocalDate.now()
     val context = LocalContext.current
@@ -48,7 +50,8 @@ fun JournalView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit) {
                         if (dateNode != null) {
                             openNode(dateNode)
                         } else if (dateIsToday) {
-                            println("To create daily node for $date")
+                            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                            createAndOpenNode(date.format(formatter), OrgNodeType.DAILY)
                         } else {
                             Toast.makeText(
                                 context,
