@@ -164,7 +164,7 @@ fun MainScreen(
                                         contentDescription = "Literature Node"
                                     )
                                     Text(
-                                        "New Literature Node",
+                                        "Capture Node",
                                         color = Color.Gray,
                                         style = MaterialTheme.typography.headlineSmall
                                     )
