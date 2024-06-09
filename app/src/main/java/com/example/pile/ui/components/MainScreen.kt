@@ -1,5 +1,6 @@
 package com.example.pile.ui.components
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
 import com.example.pile.OrgNodeType
@@ -64,6 +66,7 @@ fun MainScreen(
     refreshDatabase: () -> Unit,
     captureLinkInitial: String?
 ) {
+    val context = LocalContext.current
     val toCapture = captureLinkInitial != null
 
     var showCaptureSheet by remember { mutableStateOf(toCapture) }
@@ -191,6 +194,8 @@ fun MainScreen(
                                 ) {
                                     FilledTonalButton(onClick = {
                                         createAndOpenNode(captureTitle, OrgNodeType.LITERATURE, captureLink)
+                                        showCaptureSheet = false
+                                        Toast.makeText(context, "Link captured", Toast.LENGTH_SHORT).show()
                                     }) {
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically
