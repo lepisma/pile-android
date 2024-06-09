@@ -27,6 +27,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +47,9 @@ import compose.icons.fontawesomeicons.solid.Book
 import compose.icons.fontawesomeicons.solid.CalendarDay
 import compose.icons.fontawesomeicons.solid.Glasses
 import compose.icons.fontawesomeicons.solid.Heart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.jsoup.Jsoup
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,13 +61,29 @@ fun MainScreen(
     setSelectedNavIndex: (Int) -> Unit,
     openNode: (OrgNode) -> Unit,
     createAndOpenNode: (String, OrgNodeType, String?) -> Unit,
-    refreshDatabase: () -> Unit
+    refreshDatabase: () -> Unit,
+    captureLinkInitial: String?
 ) {
-    var showCaptureSheet by remember { mutableStateOf(true) }
+    val toCapture = captureLinkInitial != null
+
+    var showCaptureSheet by remember { mutableStateOf(toCapture) }
     val captureSheetState = rememberModalBottomSheetState()
 
-    var captureLink by remember { mutableStateOf("") }
+    var captureLink by remember { mutableStateOf(captureLinkInitial ?: "") }
     var captureTitle by remember { mutableStateOf("") }
+
+    if (toCapture) {
+        LaunchedEffect(captureLink) {
+            captureTitle = try {
+                withContext(Dispatchers.IO) {
+                    val document = Jsoup.connect(captureLink).get()
+                    document.title()
+                }
+            } catch (e: Exception) {
+                "Link title resolution failed"
+            }
+        }
+    }
 
     PileTheme {
         Scaffold (

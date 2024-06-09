@@ -27,7 +27,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jsoup.Jsoup
 
 class MainActivity : ComponentActivity() {
 
@@ -41,7 +40,7 @@ class MainActivity : ComponentActivity() {
     private var navController: NavHostController? = null
     private var nodeList = mutableStateListOf<OrgNode>()
 
-    private fun setupContent(uri: Uri) {
+    private fun setupContent(uri: Uri, captureLink: String? = null) {
         val context = this
 
         setContent {
@@ -89,7 +88,8 @@ class MainActivity : ComponentActivity() {
                                 nodeList.addAll(loadNodes(context, nodeDao))
                                 isLoading = false
                             }
-                        }
+                        },
+                        captureLinkInitial = captureLink
                     )
                 }
                 composable(
@@ -161,35 +161,15 @@ class MainActivity : ComponentActivity() {
         }
 
         if (uri != null) {
-            setupContent(uri)
+            if (intent.action == Intent.ACTION_SEND && intent.type == "text/plain") {
+                val captureLink = intent.getStringExtra(Intent.EXTRA_TEXT)
+                setupContent(uri, captureLink)
+            } else {
+                setupContent(uri)
+            }
         } else {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
             startActivityForResult(intent, REQUEST_CODE_OPEN_FOLDER)
-        }
-
-        handleIntent(intent, uri)
-    }
-
-    private fun handleIntent(intent: Intent, uri: Uri?) {
-        // Handle share from outside the app
-        if (intent.action == Intent.ACTION_SEND && intent.type == "text/plain") {
-            intent.getStringExtra(Intent.EXTRA_TEXT)?.let { link ->
-                val context = this
-
-                if (uri != null) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        // Figure out title from the link
-                        // Not handling errors and letting this fail for now. The user can use
-                        // manual literature node creation.
-                        val title = try {
-                            val document = Jsoup.connect(link).get()
-                            document.title()
-                        } catch (e: Exception) {
-                            ""
-                        }
-                    }
-                }
-            }
         }
     }
 
