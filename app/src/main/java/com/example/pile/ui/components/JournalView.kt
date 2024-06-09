@@ -24,7 +24,7 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun JournalView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit, createAndOpenNode: (String, nodeType: OrgNodeType) -> Unit) {
+fun JournalView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit, createAndOpenNode: (String, nodeType: OrgNodeType, String?) -> Unit) {
     var text by remember { mutableStateOf("") }
     val currentDate = LocalDate.now()
     val context = LocalContext.current
@@ -51,7 +51,7 @@ fun JournalView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit, createAndOpen
                             openNode(dateNode)
                         } else if (dateIsToday) {
                             val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                            createAndOpenNode(date.format(formatter), OrgNodeType.DAILY)
+                            createAndOpenNode(date.format(formatter), OrgNodeType.DAILY, null)
                         } else {
                             Toast.makeText(
                                 context,

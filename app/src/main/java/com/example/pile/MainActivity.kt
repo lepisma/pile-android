@@ -70,9 +70,9 @@ class MainActivity : ComponentActivity() {
                         selectedNavIndex = selectedNavIndex,
                         setSelectedNavIndex = { selectedNavIndex = it },
                         openNode = { navController!!.navigate("nodeScreen/${it.id}") },
-                        createAndOpenNode = { title, nodeType ->
+                        createAndOpenNode = { title, nodeType, nodeRef ->
                             CoroutineScope(Dispatchers.IO).launch {
-                                createNewNode(context, title, uri, nodeType)?.let { node ->
+                                createNewNode(context, title, uri, nodeType, nodeRef)?.let { node ->
                                     nodeDao.insert(node)
                                     withContext(Dispatchers.Main) {
                                         nodeList.add(node)
@@ -118,7 +118,7 @@ class MainActivity : ComponentActivity() {
                             },
                             createNewNode = { title, nodeType, callback ->
                                 CoroutineScope(Dispatchers.IO).launch {
-                                    createNewNode(context, title, uri, nodeType)?.let {node ->
+                                    createNewNode(context, title, uri, nodeType)?.let { node ->
                                         nodeDao.insert(node)
                                         withContext(Dispatchers.Main) {
                                             nodeList.add(node)
@@ -181,25 +181,12 @@ class MainActivity : ComponentActivity() {
                         // Figure out title from the link
                         // Not handling errors and letting this fail for now. The user can use
                         // manual literature node creation.
-                        try {
+                        val title = try {
                             val document = Jsoup.connect(link).get()
-                            createNewNode(
-                                context,
-                                document.title(),
-                                uri,
-                                OrgNodeType.LITERATURE,
-                                link
-                            )?.let { node ->
-                                nodeDao.insert(node)
-                                withContext(Dispatchers.Main) {
-                                    nodeList.add(node)
-                                    navController!!.navigate("nodeScreen/${node.id}")
-                                }
-                            }
+                            document.title()
                         } catch (e: Exception) {
-                            Toast.makeText(context, "Error in parsing the link, please create node manually", Toast.LENGTH_SHORT).show()
+                            ""
                         }
-
                     }
                 }
             }

@@ -26,8 +26,8 @@ import compose.icons.fontawesomeicons.regular.Bookmark
  * @param onClick Function taking node name and creating node (or doing something else).
  */
 @Composable
-fun CreateNodeButton(nodeName: String, onClick: (String, OrgNodeType) -> Unit) {
-    FilledTonalButton(modifier = Modifier.fillMaxWidth(), onClick = { onClick(nodeName, OrgNodeType.CONCEPT) }) {
+fun CreateNodeButton(nodeName: String, onClick: (String, OrgNodeType, String?) -> Unit) {
+    FilledTonalButton(modifier = Modifier.fillMaxWidth(), onClick = { onClick(nodeName, OrgNodeType.CONCEPT, null) }) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Start,
@@ -36,7 +36,7 @@ fun CreateNodeButton(nodeName: String, onClick: (String, OrgNodeType) -> Unit) {
             Text("Create ", color = Color.Gray)
             Text(nodeName)
             Spacer(modifier = Modifier.weight(1f))
-            ElevatedButton(onClick = { onClick(nodeName, OrgNodeType.LITERATURE) }) {
+            ElevatedButton(onClick = { onClick(nodeName, OrgNodeType.LITERATURE, null) }) {
                 Icon(
                     imageVector = FontAwesomeIcons.Regular.Bookmark,
                     modifier = Modifier.size(18.dp),

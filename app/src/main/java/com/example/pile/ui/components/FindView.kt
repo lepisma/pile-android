@@ -24,7 +24,7 @@ import com.example.pile.isDailyNode
 /* Main search view that comes up as the first page */
 @ExperimentalMaterial3Api
 @Composable
-fun FindView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit, createAndOpenNode: (String, OrgNodeType) -> Unit) {
+fun FindView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit, createAndOpenNode: (String, OrgNodeType, String?) -> Unit) {
     var text by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
