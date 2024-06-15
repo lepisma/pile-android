@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pile.OrgNode
@@ -37,7 +38,11 @@ fun OrgNodeItem(node: OrgNode, onClick: (OrgNode) -> Unit) {
                     tint = Color.Gray
                 )
             }
-            Text(node.title)
+            Text(
+                text = node.title,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
         Text(node.datetime.toString(), fontSize = 10.sp, color = Color.Gray)
     }
