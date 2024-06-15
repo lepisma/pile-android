@@ -210,7 +210,7 @@ fun MainScreen(
                                     contentAlignment = Alignment.CenterEnd
                                 ) {
                                     FilledTonalButton(onClick = {
-                                        createAndOpenNode(captureTitle, OrgNodeType.LITERATURE, captureLink, if (readChecked) null else listOf("unread"))
+                                        createAndOpenNode(captureTitle, OrgNodeType.LITERATURE, captureLink, if (readChecked) null else listOf("unsorted"))
                                         showCaptureSheet = false
                                         Toast.makeText(context, "Link captured", Toast.LENGTH_SHORT).show()
                                     }) {
