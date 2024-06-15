@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Refresh
@@ -23,8 +24,10 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -62,7 +65,7 @@ fun MainScreen(
     selectedNavIndex: Int,
     setSelectedNavIndex: (Int) -> Unit,
     openNode: (OrgNode) -> Unit,
-    createAndOpenNode: (String, OrgNodeType, String?) -> Unit,
+    createAndOpenNode: (nodeTitle: String, nodeType: OrgNodeType, refLink: String?, tags: List<String>?) -> Unit,
     refreshDatabase: () -> Unit,
     captureLinkInitial: String?
 ) {
@@ -152,6 +155,8 @@ fun MainScreen(
                             onDismissRequest = { showCaptureSheet = false },
                             sheetState = captureSheetState
                         ) {
+                            var readChecked by remember { mutableStateOf(false) }
+
                             Column(
                                 modifier = Modifier
                                     .padding(horizontal = 40.dp, vertical = 40.dp)
@@ -175,25 +180,37 @@ fun MainScreen(
                                 TextField(
                                     value = captureLink,
                                     onValueChange = { captureLink = it },
+                                    label = { Text("Node link") },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = 20.dp)
+                                        .padding(vertical = 20.dp),
+                                    colors = TextFieldDefaults.colors(
+                                        unfocusedContainerColor = Color.Transparent,
+                                        focusedContainerColor = Color.Transparent
+                                    )
                                 )
                                 OutlinedTextField(
                                     value = captureTitle,
                                     onValueChange = { captureTitle = it },
-                                    label = { Text("Node title") },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(bottom = 20.dp)
+                                        .padding(bottom = 20.dp),
+                                    shape = RoundedCornerShape(60.dp)
                                 )
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Switch(checked = readChecked, onCheckedChange = { readChecked = it })
+                                    Text("Read", modifier = Modifier.padding(start = 10.dp))
+                                }
 
                                 Box(
                                     modifier = Modifier.fillMaxWidth(),
                                     contentAlignment = Alignment.CenterEnd
                                 ) {
                                     FilledTonalButton(onClick = {
-                                        createAndOpenNode(captureTitle, OrgNodeType.LITERATURE, captureLink)
+                                        createAndOpenNode(captureTitle, OrgNodeType.LITERATURE, captureLink, if (readChecked) null else listOf("unread"))
                                         showCaptureSheet = false
                                         Toast.makeText(context, "Link captured", Toast.LENGTH_SHORT).show()
                                     }) {

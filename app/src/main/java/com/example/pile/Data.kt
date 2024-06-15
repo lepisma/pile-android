@@ -121,25 +121,22 @@ fun readFile(context: Context, file: DocumentFile): String {
     return stringBuilder.toString()
 }
 
-fun generateInitialContent(noteTitle: String, nodeId: String): String {
-    return """
+fun generateInitialContent(noteTitle: String, nodeId: String, nodeRef: String?, nodeTags: List<String>?): String {
+    var content = """
     :PROPERTIES:
     :ID:      $nodeId
+    ${if (nodeRef != null) ":ROAM_REFS: $nodeRef" else "" }
     :END:
+    ${if (nodeTags != null) "#+TAGS: ${nodeTags.joinToString(", ")}" else ""}
     #+TITLE: $noteTitle
-    
     """.trimIndent()
-}
 
-fun generateInitialContentLiterature(noteTitle: String, nodeId: String, nodeRef: String?): String {
-    return """
-    :PROPERTIES:
-    :ID:      $nodeId
-    :ROAM_REFS: $nodeRef
-    :END:
-    #+TITLE: $noteTitle
-    
-    """.trimIndent()
+    content = content
+        .split("\n")
+        .filter { it.isNotBlank() }
+        .joinToString("\n")
+
+    return content + "\n"
 }
 
 /**
@@ -151,12 +148,12 @@ fun generateFileName(title: String, datetime: LocalDateTime): String {
     return "${datetime.format(formatter)}-$snakeCaseTitle.org"
 }
 
-private fun createNewLiteratureNode(context: Context, noteTitle: String, rootUri: Uri, nodeRef: String?): OrgNode? {
+private fun createNewLiteratureNode(context: Context, noteTitle: String, rootUri: Uri, nodeRef: String?, nodeTags: List<String>?): OrgNode? {
     DocumentFile.fromTreeUri(context, rootUri)?.let { root ->
         val nodeId = UUID.randomUUID().toString()
         val datetime = LocalDateTime.now()
         val fileName = generateFileName(noteTitle, datetime)
-        val initialContent = generateInitialContentLiterature(noteTitle, nodeId, nodeRef)
+        val initialContent = generateInitialContent(noteTitle, nodeId, nodeRef, nodeTags)
         val directory = root.findFile("literature") ?: root.createDirectory("literature")
 
         directory?.let { dir ->
@@ -176,12 +173,12 @@ private fun createNewLiteratureNode(context: Context, noteTitle: String, rootUri
     return null
 }
 
-private fun createNewConceptNode(context: Context, noteTitle: String, rootUri: Uri): OrgNode? {
+private fun createNewConceptNode(context: Context, noteTitle: String, rootUri: Uri, nodeTags: List<String>?): OrgNode? {
     DocumentFile.fromTreeUri(context, rootUri)?.let { root ->
         val nodeId = UUID.randomUUID().toString()
         val datetime = LocalDateTime.now()
         val fileName = generateFileName(noteTitle, datetime)
-        val initialContent = generateInitialContent(noteTitle, nodeId)
+        val initialContent = generateInitialContent(noteTitle, nodeId, null, nodeTags)
 
         createAndWriteToFile(context, root, fileName, initialContent)
 
@@ -198,7 +195,7 @@ private fun createNewConceptNode(context: Context, noteTitle: String, rootUri: U
     return null
 }
 
-private fun createNewDailyNode(context: Context, noteTitle: String, rootUri: Uri): OrgNode? {
+private fun createNewDailyNode(context: Context, noteTitle: String, rootUri: Uri, nodeTags: List<String>?): OrgNode? {
     if (!noteTitle.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))) {
         println("Node title $noteTitle doesn't match daily title format.")
         return null
@@ -208,7 +205,7 @@ private fun createNewDailyNode(context: Context, noteTitle: String, rootUri: Uri
         val nodeId = UUID.randomUUID().toString()
         val datetime = LocalDateTime.now()
         val fileName = "$noteTitle.org"
-        val initialContent = generateInitialContent(noteTitle, nodeId)
+        val initialContent = generateInitialContent(noteTitle, nodeId, null, nodeTags)
         val directory = root.findFile("daily") ?: root.createDirectory("daily")
 
         directory?.let { dir ->
@@ -237,17 +234,19 @@ private fun createNewDailyNode(context: Context, noteTitle: String, rootUri: Uri
  * @param rootUri Uri of the root directory where files are kept
  * @param nodeType
  * @param nodeRef Roam ref link to be added in case of literature node
+ * @param nodeTags Org mode style (file level) tags
  */
 fun createNewNode(
     context: Context,
     noteTitle: String,
     rootUri: Uri,
     nodeType: OrgNodeType = OrgNodeType.CONCEPT,
-    nodeRef: String? = null): OrgNode? {
+    nodeRef: String? = null,
+    nodeTags: List<String>? = null): OrgNode? {
     return when (nodeType) {
-        OrgNodeType.LITERATURE -> createNewLiteratureNode(context, noteTitle, rootUri, nodeRef)
-        OrgNodeType.DAILY -> createNewDailyNode(context, noteTitle, rootUri)
-        else -> createNewConceptNode(context, noteTitle, rootUri)
+        OrgNodeType.LITERATURE -> createNewLiteratureNode(context, noteTitle, rootUri, nodeRef, nodeTags)
+        OrgNodeType.DAILY -> createNewDailyNode(context, noteTitle, rootUri, nodeTags)
+        else -> createNewConceptNode(context, noteTitle, rootUri, nodeTags)
     }
 }
 

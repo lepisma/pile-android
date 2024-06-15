@@ -24,7 +24,11 @@ import com.example.pile.isDailyNode
 /* Main search view that comes up as the first page */
 @ExperimentalMaterial3Api
 @Composable
-fun FindView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit, createAndOpenNode: (String, OrgNodeType, String?) -> Unit) {
+fun FindView(
+    nodes: List<OrgNode>,
+    openNode: (OrgNode) -> Unit,
+    createAndOpenNode: (nodeTitle: String, nodeType: OrgNodeType, refLink: String?, tags: List<String>?) -> Unit
+) {
     var text by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
@@ -42,7 +46,7 @@ fun FindView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit, createAndOpenNod
                     onClick = { openNode(it) }
                 )
                 if (text != "") {
-                    CreateNodeButton(text, createAndOpenNode)
+                    CreateNodeButton(text) { nodeTitle, nodeType -> createAndOpenNode(nodeTitle, nodeType, null, null) }
                 }
             }
         }

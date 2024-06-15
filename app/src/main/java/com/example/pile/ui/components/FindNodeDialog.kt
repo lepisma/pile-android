@@ -38,7 +38,7 @@ fun FindNodeDialog(
     nodes: List<OrgNode>,
     onClick: (OrgNode) -> Unit,
     onDismiss: () -> Unit,
-    onCreateClick: (String, OrgNodeType) -> Unit
+    onCreateClick: (nodeTitle: String, nodeType: OrgNodeType) -> Unit
 ) {
     Dialog(onDismissRequest = { onDismiss() }) {
         Box(
@@ -75,7 +75,7 @@ fun FindNodeDialog(
                             heading = null,
                             onClick = { onClick(it) }
                         )
-                        CreateNodeButton(text) { title, nodeType, _ -> onCreateClick(title, nodeType) }
+                        CreateNodeButton(text) { title, nodeType -> onCreateClick(title, nodeType) }
                     }
                     FindField(
                         text = text,

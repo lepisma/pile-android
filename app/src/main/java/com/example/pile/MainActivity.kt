@@ -69,9 +69,9 @@ class MainActivity : ComponentActivity() {
                         selectedNavIndex = selectedNavIndex,
                         setSelectedNavIndex = { selectedNavIndex = it },
                         openNode = { navController!!.navigate("nodeScreen/${it.id}") },
-                        createAndOpenNode = { title, nodeType, nodeRef ->
+                        createAndOpenNode = { title, nodeType, nodeRef, tags ->
                             CoroutineScope(Dispatchers.IO).launch {
-                                createNewNode(context, title, uri, nodeType, nodeRef)?.let { node ->
+                                createNewNode(context, title, uri, nodeType, nodeRef, tags)?.let { node ->
                                     nodeDao.insert(node)
                                     withContext(Dispatchers.Main) {
                                         nodeList.add(node)
