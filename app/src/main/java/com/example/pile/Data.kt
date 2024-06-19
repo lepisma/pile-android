@@ -26,6 +26,13 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
+/**
+ * Data class representing each node in the zettelkasten. As of now this maps to file based nodes
+ * and not Org header based ones.
+ *
+ * @property pinned Pile-Android specific flag to tell if this node is pinned. This can be moved to
+ *                  files later.
+ */
 @Entity(tableName = "nodes")
 data class OrgNode(
     @PrimaryKey
