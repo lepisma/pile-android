@@ -153,7 +153,9 @@ class MainActivity : ComponentActivity() {
         val db = Room.databaseBuilder(
             applicationContext,
             PileDatabase::class.java, "pile-database"
-        ).addMigrations(MIGRATION_1_2).build()
+        )
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .build()
         nodeDao = db.nodeDao()
         viewModel = SharedViewModel(nodeDao) { file, text ->
             writeFile(this, file, text)

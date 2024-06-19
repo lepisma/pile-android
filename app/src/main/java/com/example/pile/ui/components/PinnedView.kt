@@ -8,12 +8,12 @@ import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
 
 @Composable
-fun BookmarksView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit) {
+fun PinnedView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit) {
     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
         if (nodes.isNotEmpty()) {
             NodeList(
                 nodes = nodes
-                    .filter { it.bookmarked }
+                    .filter { it.pinned }
                     .sortedBy { it.title },
                 heading = null,
                 onClick = openNode

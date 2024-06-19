@@ -15,8 +15,6 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.BottomAppBar
@@ -58,6 +56,7 @@ import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Glasses
 import compose.icons.fontawesomeicons.solid.Link
 import compose.icons.fontawesomeicons.solid.ProjectDiagram
+import compose.icons.fontawesomeicons.solid.Thumbtack
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -132,11 +131,12 @@ fun NodeScreen(
                         rememberTopAppBarState()
                     ),
                     actions = {
-                        IconButton(onClick = { viewModel.toggleBookmark(node) { onNodeUpdated(it) } }) {
+                        IconButton(onClick = { viewModel.togglePinned(node) { onNodeUpdated(it) } }) {
                             Icon(
-                                imageVector = if (node.bookmarked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                                contentDescription = "Bookmark",
-                                tint = if (node.bookmarked) Color.Red else Color.Gray
+                                imageVector = FontAwesomeIcons.Solid.Thumbtack,
+                                modifier = Modifier.size(18.dp),
+                                contentDescription = "Pin",
+                                tint = if (node.pinned) Color(0xFFFFA726) else Color.Gray
                             )
                         }
                         Switch(

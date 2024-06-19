@@ -11,12 +11,12 @@ import kotlinx.coroutines.withContext
 
 class SharedViewModel(private val nodeDao: NodeDao, val writeFile: (DocumentFile, String) -> Unit) : ViewModel() {
 
-    fun toggleBookmark(node: OrgNode, onCompletion: (OrgNode) -> Unit) {
+    fun togglePinned(node: OrgNode, onCompletion: (OrgNode) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            nodeDao.toggleBookmark(node.id, !node.bookmarked)
+            nodeDao.togglePinned(node.id, !node.pinned)
 
             withContext(Dispatchers.Main) {
-                onCompletion(node.copy(bookmarked = !node.bookmarked))
+                onCompletion(node.copy(pinned = !node.pinned))
             }
         }
     }

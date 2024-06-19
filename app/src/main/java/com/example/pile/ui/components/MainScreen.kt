@@ -51,7 +51,7 @@ import compose.icons.fontawesomeicons.regular.Bookmark
 import compose.icons.fontawesomeicons.solid.Book
 import compose.icons.fontawesomeicons.solid.CalendarDay
 import compose.icons.fontawesomeicons.solid.Glasses
-import compose.icons.fontawesomeicons.solid.Heart
+import compose.icons.fontawesomeicons.solid.Thumbtack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
@@ -126,7 +126,7 @@ fun MainScreen(
                         0 -> FindView(nodeList, openNode, createAndOpenNode)
                         1 -> JournalView(nodeList, openNode, createAndOpenNode)
                         2 -> SearchView()
-                        3 -> BookmarksView(nodeList, openNode)
+                        3 -> PinnedView(nodeList, openNode)
                     }
 
                     NavigationBar {
@@ -134,7 +134,7 @@ fun MainScreen(
                             Pair("Notes", FontAwesomeIcons.Solid.Book),
                             Pair("Journal", FontAwesomeIcons.Solid.CalendarDay),
                             Pair("Search", FontAwesomeIcons.Solid.Glasses),
-                            Pair("Bookmarks", FontAwesomeIcons.Solid.Heart)
+                            Pair("Pinned", FontAwesomeIcons.Solid.Thumbtack)
                         ).forEachIndexed { index, (label, icon) ->
                             NavigationBarItem(
                                 selected = (selectedNavIndex == index),

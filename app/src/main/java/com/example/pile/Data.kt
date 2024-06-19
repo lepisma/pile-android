@@ -34,7 +34,7 @@ data class OrgNode(
     val datetime: LocalDateTime,
     val fileString: String,
     val file: DocumentFile? = null,
-    val bookmarked: Boolean = false
+    val pinned: Boolean = false
 )
 
 enum class OrgNodeType {
@@ -89,11 +89,11 @@ interface NodeDao {
     @Query("DELETE FROM nodes")
     fun deleteAll()
 
-    @Query("UPDATE nodes SET bookmarked = :bookmarked WHERE id = :id")
-    fun toggleBookmark(id: String, bookmarked: Boolean)
+    @Query("UPDATE nodes SET pinned = :pinned WHERE id = :id")
+    fun togglePinned(id: String, pinned: Boolean)
 }
 
-@Database(entities = [OrgNode::class], version = 2)
+@Database(entities = [OrgNode::class], version = 3)
 @TypeConverters(LocalDateTimeConverter::class, DocumentFileConverter::class)
 abstract class PileDatabase : RoomDatabase() {
     abstract fun nodeDao(): NodeDao
@@ -102,6 +102,32 @@ abstract class PileDatabase : RoomDatabase() {
 val MIGRATION_1_2: Migration = object : Migration(1, 2) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE nodes ADD COLUMN bookmarked INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+val MIGRATION_2_3: Migration = object : Migration(2, 3) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        // This is assuming we don't have field renaming capability in the SQLite version
+        database.execSQL("""
+            CREATE TABLE nodes_new (
+                id TEXT NOT NULL PRIMARY KEY,
+                title TEXT NOT NULL,
+                datetime TEXT NOT NULL,
+                fileString TEXT NOT NULL,
+                file TEXT,
+                pinned INTEGER NOT NULL DEFAULT 0
+            )
+        """.trimIndent())
+
+        database.execSQL("""
+            INSERT INTO nodes_new (id, title, datetime, fileString, file, pinned)
+            SELECT id, title, datetime, fileString, file, bookmarked
+            FROM nodes
+        """.trimIndent())
+
+        database.execSQL("DROP TABLE nodes")
+
+        database.execSQL("ALTER TABLE nodes_new RENAME TO nodes")
     }
 }
 
@@ -312,7 +338,7 @@ suspend fun refreshDatabase(context: Context, uri: Uri, nodeDao: NodeDao) {
 
     for (newNode in newNodes.values) {
         existingNodes[newNode.id]?.let { existingNode ->
-            val updatedNode = newNode.copy(bookmarked = existingNode.bookmarked)
+            val updatedNode = newNode.copy(pinned = existingNode.pinned)
             nodeDao.updateNode(updatedNode)
         } ?: run {
             nodeDao.insert(newNode)
