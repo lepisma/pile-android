@@ -49,6 +49,7 @@ import compose.icons.fontawesomeicons.Regular
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.regular.Bookmark
 import compose.icons.fontawesomeicons.solid.Book
+import compose.icons.fontawesomeicons.solid.Bookmark
 import compose.icons.fontawesomeicons.solid.CalendarDay
 import compose.icons.fontawesomeicons.solid.Glasses
 import compose.icons.fontawesomeicons.solid.Thumbtack
@@ -125,16 +126,18 @@ fun MainScreen(
                     when (selectedNavIndex) {
                         0 -> FindView(nodeList, openNode, createAndOpenNode)
                         1 -> JournalView(nodeList, openNode, createAndOpenNode)
-                        2 -> SearchView()
-                        3 -> PinnedView(nodeList, openNode)
+                        2 -> PinnedView(nodeList, openNode)
+                        3 -> BookmarksView(nodeList, openNode)
+                        4 -> SearchView()
                     }
 
                     NavigationBar {
                         listOf(
                             Pair("Notes", FontAwesomeIcons.Solid.Book),
                             Pair("Journal", FontAwesomeIcons.Solid.CalendarDay),
-                            Pair("Search", FontAwesomeIcons.Solid.Glasses),
-                            Pair("Pinned", FontAwesomeIcons.Solid.Thumbtack)
+                            Pair("Pinned", FontAwesomeIcons.Solid.Thumbtack),
+                            Pair("Bookmarks", FontAwesomeIcons.Solid.Bookmark),
+                            Pair("Search", FontAwesomeIcons.Solid.Glasses)
                         ).forEachIndexed { index, (label, icon) ->
                             NavigationBarItem(
                                 selected = (selectedNavIndex == index),

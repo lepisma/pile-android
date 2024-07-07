@@ -3,6 +3,7 @@ package com.example.pile.ui.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,6 +18,7 @@ fun SearchView() {
     var text by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
+        Text("This view is under development")
         FindField(
             text = text,
             onTextEntry = { text = it },
