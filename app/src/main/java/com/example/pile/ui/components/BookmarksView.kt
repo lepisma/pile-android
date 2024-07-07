@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -14,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
 import com.example.pile.isLiteratureNode
+import com.example.pile.isUnsortedNode
 
 @Composable
 fun BookmarksView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit) {
@@ -23,6 +23,7 @@ fun BookmarksView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit) {
                 nodes
                     .shuffled()
                     .filter { isLiteratureNode(it) }
+                    .filter { isUnsortedNode(it) }
                     .take(10)
             }
 
@@ -33,8 +34,7 @@ fun BookmarksView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit) {
                 border = BorderStroke(0.dp, Color.Transparent),
                 shape = RoundedCornerShape(10.dp)
             ) {
-                NodeList(randomNodes,"Random Bookmarks", openNode)
-                Text("This view is under development")
+                NodeList(randomNodes,"Random unsorted bookmarks", openNode)
             }
         }
     }
