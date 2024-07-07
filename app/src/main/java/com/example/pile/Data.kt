@@ -328,6 +328,12 @@ fun isLiteratureNode(node: OrgNode): Boolean {
     return isLiteratureNodePath(node.fileString)
 }
 
+// Tell if the node is a literature node which is not sorted (using Raindrop's terminology). These
+// are links that have not been read or skimmed.
+fun isUnsortedNode(node: OrgNode): Boolean {
+    return node.tags.contains("unsorted")
+}
+
 fun createAndWriteToFile(context: Context, directory: DocumentFile, fileName: String, text: String) {
     val newFile = directory.createFile("application/octet-stream", fileName)
 

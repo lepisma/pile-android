@@ -17,8 +17,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pile.OrgNode
 import com.example.pile.isLiteratureNode
+import com.example.pile.isUnsortedNode
 import compose.icons.FontAwesomeIcons
+import compose.icons.fontawesomeicons.Regular
 import compose.icons.fontawesomeicons.Solid
+import compose.icons.fontawesomeicons.regular.Bookmark
 import compose.icons.fontawesomeicons.solid.Bookmark
 
 /* View for one node */
@@ -32,7 +35,7 @@ fun OrgNodeItem(node: OrgNode, onClick: (OrgNode) -> Unit) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (isLiteratureNode(node)) {
                 Icon(
-                    imageVector = FontAwesomeIcons.Solid.Bookmark,
+                    imageVector = if (isUnsortedNode(node)) FontAwesomeIcons.Regular.Bookmark else FontAwesomeIcons.Solid.Bookmark,
                     modifier = Modifier.size(14.dp).padding(end = 5.dp),
                     contentDescription = "Literature Node",
                     tint = Color.Gray
