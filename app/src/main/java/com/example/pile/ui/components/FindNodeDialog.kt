@@ -62,7 +62,7 @@ fun FindNodeDialog(
                                         .filter { !isDailyNode(it) }
                                         .take(5)
                                 ) { node ->
-                                    OrgNodeItem(node) { onClick(node) }
+                                    OrgNodeItem(node, expandedView = false) { onClick(node) }
                                 }
                             }
                         }

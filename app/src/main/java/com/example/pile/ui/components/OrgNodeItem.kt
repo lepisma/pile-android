@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,7 +28,7 @@ import compose.icons.fontawesomeicons.solid.Bookmark
 
 /* View for one node */
 @Composable
-fun OrgNodeItem(node: OrgNode, onClick: (OrgNode) -> Unit) {
+fun OrgNodeItem(node: OrgNode, expandedView: Boolean, onClick: (OrgNode) -> Unit) {
     Column(modifier = Modifier
         .padding(vertical = 5.dp)
         .fillMaxWidth()
@@ -36,7 +38,9 @@ fun OrgNodeItem(node: OrgNode, onClick: (OrgNode) -> Unit) {
             if (isLiteratureNode(node)) {
                 Icon(
                     imageVector = if (isUnsortedNode(node)) FontAwesomeIcons.Regular.Bookmark else FontAwesomeIcons.Solid.Bookmark,
-                    modifier = Modifier.size(14.dp).padding(end = 5.dp),
+                    modifier = Modifier
+                        .size(14.dp)
+                        .padding(end = 5.dp),
                     contentDescription = "Literature Node",
                     tint = Color.Gray
                 )
@@ -46,6 +50,18 @@ fun OrgNodeItem(node: OrgNode, onClick: (OrgNode) -> Unit) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+        }
+        if (expandedView) {
+            Row {
+                node.tags.map {
+                    SuggestionChip(
+                        onClick = { /*TODO*/ },
+                        label = { Text("#$it") },
+                        modifier = Modifier.padding(end = 5.dp),
+                        border = SuggestionChipDefaults.suggestionChipBorder(borderColor = Color.DarkGray)
+                    )
+                }
+            }
         }
         Text(node.datetime.toString(), fontSize = 10.sp, color = Color.Gray)
     }

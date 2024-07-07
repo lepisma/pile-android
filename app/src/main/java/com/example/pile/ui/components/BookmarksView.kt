@@ -24,7 +24,7 @@ fun BookmarksView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit) {
                     .shuffled()
                     .filter { isLiteratureNode(it) }
                     .filter { isUnsortedNode(it) }
-                    .take(10)
+                    .take(5)
             }
 
             OutlinedCard(
@@ -34,7 +34,7 @@ fun BookmarksView(nodes: List<OrgNode>, openNode: (OrgNode) -> Unit) {
                 border = BorderStroke(0.dp, Color.Transparent),
                 shape = RoundedCornerShape(10.dp)
             ) {
-                NodeList(randomNodes,"Random unsorted bookmarks", openNode)
+                NodeList(randomNodes,"Random unsorted bookmarks", openNode, expandedView = true)
             }
         }
     }

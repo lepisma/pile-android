@@ -277,8 +277,10 @@ fun NodeScreen(
                                             linkedNodeIds.mapNotNull {
                                                 nodes.find { orgNode -> orgNode.id == it }
                                             },
-                                            "Linked Nodes"
-                                        ) { openNodeById(it.id) }
+                                            "Linked Nodes",
+                                            { openNodeById(it.id) },
+                                            expandedView = false
+                                        )
                                     }
                                 }
                             }
