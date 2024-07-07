@@ -172,6 +172,15 @@ fun parseFileDatetime(file: DocumentFile): LocalDateTime {
     return parseLastModified(file)
 }
 
+// Return list of file level Org Mode tags
+fun parseTags(preamble: String): List<String> {
+    val tagsPattern = Regex("^#\\+TAGS:\\s*(.*)", setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
+    val match = tagsPattern.find(preamble)
+    val tagsString = match?.groups?.get(1)?.value?.trim() ?: return listOf()
+
+    return tagsString.split(",").map { it -> it.trim() }
+}
+
 fun parseTitle(preamble: String): String {
     val titlePattern = Regex("^#\\+TITLE:\\s*(.*)", setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
     val match = titlePattern.find(preamble)

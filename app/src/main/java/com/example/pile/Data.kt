@@ -32,6 +32,7 @@ import java.util.UUID
  *
  * @property pinned Pile-Android specific flag to tell if this node is pinned. This can be moved to
  *                  files later.
+ * @property tags   Org mode file tags.
  */
 @Entity(tableName = "nodes")
 data class OrgNode(
@@ -41,11 +42,30 @@ data class OrgNode(
     val datetime: LocalDateTime,
     val fileString: String,
     val file: DocumentFile? = null,
-    val pinned: Boolean = false
+    val pinned: Boolean = false,
+    val tags: List<String> = listOf()
 )
 
 enum class OrgNodeType {
     CONCEPT, LITERATURE, DAILY
+}
+
+object TagsConverter {
+    @TypeConverter
+    @JvmStatic
+    fun toTags(value: String): List<String> {
+        return value.split(",").map { it -> it.trim() }
+    }
+
+    @TypeConverter
+    @JvmStatic
+    fun fromTags(tags: List<String>): String {
+        if (tags.isEmpty()) {
+            return ""
+        }
+
+        return tags.joinToString(", ")
+    }
 }
 
 object LocalDateTimeConverter {
@@ -100,8 +120,8 @@ interface NodeDao {
     fun togglePinned(id: String, pinned: Boolean)
 }
 
-@Database(entities = [OrgNode::class], version = 3)
-@TypeConverters(LocalDateTimeConverter::class, DocumentFileConverter::class)
+@Database(entities = [OrgNode::class], version = 4)
+@TypeConverters(LocalDateTimeConverter::class, DocumentFileConverter::class, TagsConverter::class)
 abstract class PileDatabase : RoomDatabase() {
     abstract fun nodeDao(): NodeDao
 }
@@ -135,6 +155,12 @@ val MIGRATION_2_3: Migration = object : Migration(2, 3) {
         database.execSQL("DROP TABLE nodes")
 
         database.execSQL("ALTER TABLE nodes_new RENAME TO nodes")
+    }
+}
+
+val MIGRATION_3_4: Migration = object : Migration(3, 4) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE nodes ADD COLUMN tags TEXT NOT NULL DEFAULT ''")
     }
 }
 
@@ -321,10 +347,11 @@ fun writeFile(context: Context, file: DocumentFile, text: String) {
 fun parseFileOrgNode(context: Context, file: DocumentFile): OrgNode {
     val preamble = readOrgPreamble(context, file)
     val title = parseTitle(preamble)
+    val tags = parseTags(preamble)
     // This is not correct since UUID is probably not the way org-id works
     val nodeId = parseId(preamble) ?: UUID.randomUUID().toString()
 
-    return OrgNode(nodeId, title, parseFileDatetime(file), file.uri.toString(), file)
+    return OrgNode(nodeId, title, parseFileDatetime(file), file.uri.toString(), file, tags = tags)
 }
 
 suspend fun readFilesFromDirectory(context: Context, uri: Uri): List<OrgNode> = coroutineScope {
