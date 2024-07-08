@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -52,16 +50,7 @@ fun OrgNodeItem(node: OrgNode, expandedView: Boolean, onClick: (OrgNode) -> Unit
             )
         }
         if (expandedView) {
-            Row {
-                node.tags.map {
-                    SuggestionChip(
-                        onClick = { /*TODO*/ },
-                        label = { Text("#$it") },
-                        modifier = Modifier.padding(end = 5.dp),
-                        border = SuggestionChipDefaults.suggestionChipBorder(borderColor = Color.DarkGray)
-                    )
-                }
-            }
+            OrgTags(tags = node.tags)
         }
         Text(node.datetime.toString(), fontSize = 10.sp, color = Color.Gray)
     }

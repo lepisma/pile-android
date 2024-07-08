@@ -32,6 +32,7 @@ import com.example.pile.OrgParagraph
 import com.example.pile.dropPreamble
 import com.example.pile.parseOrg
 import com.example.pile.parseOrgParagraphs
+import com.example.pile.parseTags
 import com.example.pile.parseTitle
 import com.orgzly.org.parser.OrgParsedFile
 import kotlinx.coroutines.Dispatchers
@@ -105,6 +106,7 @@ fun OrgPreview(text: String, openNodeById: (String) -> Unit) {
             item {
                 OrgTitleText(title = parseTitle(text))
                 OrgRefButton(text = text)
+                OrgTags(tags = parseTags(text))
             }
 
             items(parseOrgParagraphs(parsed!!.file.preface)) {
