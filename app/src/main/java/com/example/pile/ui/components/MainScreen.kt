@@ -111,6 +111,30 @@ fun MainScreen(
                         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     }
                 }
+            },
+            bottomBar = {
+                NavigationBar {
+                    listOf(
+                        Pair("Notes", FontAwesomeIcons.Solid.Book),
+                        Pair("Journal", FontAwesomeIcons.Solid.CalendarDay),
+                        Pair("Pinned", FontAwesomeIcons.Solid.Thumbtack),
+                        Pair("Bookmarks", FontAwesomeIcons.Solid.Bookmark),
+                        Pair("Search", FontAwesomeIcons.Solid.Glasses)
+                    ).forEachIndexed { index, (label, icon) ->
+                        NavigationBarItem(
+                            selected = (selectedNavIndex == index),
+                            onClick = { setSelectedNavIndex(index) },
+                            icon = {
+                                Icon(
+                                    icon,
+                                    modifier = Modifier.size(18.dp),
+                                    contentDescription = label
+                                )
+                            },
+                            label = { Text(label) })
+                    }
+                }
+
             }
         ) { innerPadding ->
             Column(
@@ -129,28 +153,6 @@ fun MainScreen(
                         2 -> PinnedView(nodeList, openNode)
                         3 -> BookmarksView(nodeList, openNode)
                         4 -> SearchView()
-                    }
-
-                    NavigationBar {
-                        listOf(
-                            Pair("Notes", FontAwesomeIcons.Solid.Book),
-                            Pair("Journal", FontAwesomeIcons.Solid.CalendarDay),
-                            Pair("Pinned", FontAwesomeIcons.Solid.Thumbtack),
-                            Pair("Bookmarks", FontAwesomeIcons.Solid.Bookmark),
-                            Pair("Search", FontAwesomeIcons.Solid.Glasses)
-                        ).forEachIndexed { index, (label, icon) ->
-                            NavigationBarItem(
-                                selected = (selectedNavIndex == index),
-                                onClick = { setSelectedNavIndex(index) },
-                                icon = {
-                                    Icon(
-                                        icon,
-                                        modifier = Modifier.size(18.dp),
-                                        contentDescription = label
-                                    )
-                                },
-                                label = { Text(label) })
-                        }
                     }
 
                     if (showCaptureSheet) {
