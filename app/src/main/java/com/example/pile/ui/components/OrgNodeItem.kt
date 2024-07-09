@@ -50,7 +50,9 @@ fun OrgNodeItem(node: OrgNode, expandedView: Boolean, onClick: (OrgNode) -> Unit
             )
         }
         if (expandedView) {
-            OrgTags(tags = node.tags)
+            if (node.tags.isNotEmpty() && node.tags != listOf("")) {
+                OrgTags(tags = node.tags)
+            }
         }
         Text(node.datetime.toString(), fontSize = 10.sp, color = Color.Gray)
     }
