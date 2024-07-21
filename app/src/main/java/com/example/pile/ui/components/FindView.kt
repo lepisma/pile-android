@@ -2,6 +2,7 @@ package com.example.pile.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,26 +32,48 @@ fun FindView(
 ) {
     var text by remember { mutableStateOf("") }
 
-    Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp, vertical = 20.dp)
+    ) {
         if (nodes.isNotEmpty()) {
-            if (text == "") {
-                RandomNodeList(nodes, openNode)
-                RecentNodeList(nodes, openNode)
-            } else {
-                NodeList(
-                    nodes = nodes
-                        .filter { text.lowercase() in it.title.lowercase() }
-                        .sortedBy { text.length / it.title.length }
-                        .take(5),
-                    heading = null,
-                    onClick = { openNode(it) }
-                )
-                if (text != "") {
-                    CreateNodeButton(text) { nodeTitle, nodeType -> createAndOpenNode(nodeTitle, nodeType, null, null) }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
+                if (text == "") {
+                    RandomNodeList(nodes, openNode)
+                    RecentNodeList(nodes, openNode)
+                } else {
+                    NodeList(
+                        nodes = nodes
+                            .filter { text.lowercase() in it.title.lowercase() }
+                            .sortedBy { text.length / it.title.length },
+                        heading = null,
+                        onClick = { openNode(it) }
+                    )
                 }
             }
+
+            if (text != "") {
+                CreateNodeButton(text) { nodeTitle, nodeType ->
+                    createAndOpenNode(
+                        nodeTitle,
+                        nodeType,
+                        null,
+                        null
+                    )
+                }
+            }
+            FindField(
+                text = text,
+                onTextEntry = { text = it },
+                label = "Find or Create",
+                placeholder = "Node Name"
+            )
         }
-        FindField(text = text, onTextEntry = { text = it }, label = "Find or Create", placeholder = "Node Name")
     }
 }
 
@@ -86,8 +109,7 @@ fun RecentNodeList(nodes: List<OrgNode>, onClick: (OrgNode) -> Unit) {
         NodeList(
             nodes
                 .sortedByDescending { it.datetime }
-                .filter { !isDailyNode(it) }
-                .take(8),
+                .filter { !isDailyNode(it) },
             "Recent",
             onClick
         )
