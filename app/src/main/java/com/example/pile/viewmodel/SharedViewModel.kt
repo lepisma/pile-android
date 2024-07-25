@@ -10,7 +10,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class SharedViewModel(private val nodeDao: NodeDao, val writeFile: (DocumentFile, String) -> Unit) : ViewModel() {
-
     fun togglePinned(node: OrgNode, onCompletion: (OrgNode) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             nodeDao.togglePinned(node.id, !node.pinned)
@@ -21,4 +20,9 @@ class SharedViewModel(private val nodeDao: NodeDao, val writeFile: (DocumentFile
         }
     }
 
+    fun updateTags(node: OrgNode, tags: List<String>, onCompletion: (OrgNode) -> Unit) {
+        // Tags is not something we maintain in the db, so we just need to update the in-memory
+        // version
+        onCompletion(node.copy(tags = tags))
+    }
 }

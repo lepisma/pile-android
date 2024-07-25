@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
 import com.example.pile.OrgNodeType
 import com.example.pile.parseNodeLinks
+import com.example.pile.parseTags
 import com.example.pile.readFile
 import com.example.pile.ui.theme.PileTheme
 import com.example.pile.viewmodel.SharedViewModel
@@ -209,7 +210,12 @@ fun NodeScreen(
                         },
                         floatingActionButton = {
                             FloatingActionButton(onClick = {
-                                node.file?.let { viewModel.writeFile(it, currentTextFieldValue.text) }
+                                node.file?.let { documentFile ->
+                                    viewModel.writeFile(documentFile, currentTextFieldValue.text)
+                                    // Re-parse the note to get updated tags
+                                    val newTags = parseTags(currentTextFieldValue.text)
+                                    viewModel.updateTags(node, newTags) { onNodeUpdated(it) }
+                                }
                             }) {
                                 Icon(
                                     Icons.Filled.CheckCircle,
