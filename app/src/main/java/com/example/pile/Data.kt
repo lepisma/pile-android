@@ -203,7 +203,11 @@ fun generateInitialContent(noteTitle: String, nodeId: String, nodeRef: String?, 
  */
 fun generateFileName(title: String, datetime: LocalDateTime): String {
     val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-    val snakeCaseTitle = title.split(Regex("\\s+")).joinToString("_").lowercase()
+    var snakeCaseTitle = title.split(Regex("\\s+")).joinToString("_").lowercase()
+
+    // There is some sanitization that the file writing system does on its own. We will try to
+    // replicate that here
+    snakeCaseTitle = snakeCaseTitle.replace(Regex("[\\\\/:*?\"<>|]"), "_")
     return "${datetime.format(formatter)}-$snakeCaseTitle.org"
 }
 
