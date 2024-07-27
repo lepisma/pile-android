@@ -1,5 +1,6 @@
 package com.example.pile.ui.components
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.MaterialTheme
@@ -12,10 +13,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
+import com.example.pile.orgmode.unfillText
 import com.example.pile.ui.formatBoldPattern
 import com.example.pile.ui.formatCheckboxPattern
 import com.example.pile.ui.formatDatePattern
@@ -23,7 +26,6 @@ import com.example.pile.ui.formatInlineCodePattern
 import com.example.pile.ui.formatItalicPattern
 import com.example.pile.ui.formatLinkPattern
 import com.example.pile.ui.formatTagPattern
-import com.example.pile.orgmode.unfillText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -35,6 +37,8 @@ fun OrgText(text: String, openNodeById: (String) -> Unit, modifier: Modifier = M
     val colorScheme = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
     val localUriHandler = LocalUriHandler.current
+
+    val context = LocalContext.current
 
     LaunchedEffect(text) {
         coroutineScope.launch(Dispatchers.Default) {
@@ -60,6 +64,9 @@ fun OrgText(text: String, openNodeById: (String) -> Unit, modifier: Modifier = M
                 }
                 formattedString!!.getStringAnnotations("EXTERNAL", offset, offset).firstOrNull()?.let {
                     localUriHandler.openUri(it.item)
+                }
+                formattedString!!.getStringAnnotations("ATTACHMENT", offset, offset).firstOrNull()?.let {
+                    Toast.makeText(context, "Attachment opening not supported yet", Toast.LENGTH_SHORT).show()
                 }
             },
             modifier = modifier.padding(bottom = 10.dp)

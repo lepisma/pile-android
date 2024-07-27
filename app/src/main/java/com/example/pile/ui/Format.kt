@@ -53,6 +53,7 @@ fun formatLinkPattern(
         val label = matchResult.groups["label"]?.value ?: url
 
         val isInternalUrl = url.startsWith("id:")
+        val isAttachmentUrl = url.startsWith("attachment:")
 
         buildAnnotatedString {
             if (isInternalUrl) {
@@ -65,7 +66,13 @@ fun formatLinkPattern(
                     textDecoration = TextDecoration.Underline
                 )
             ) {
+                if (isAttachmentUrl) {
+                    append("[ATTACHMENT: ")
+                }
                 append(label)
+                if (isAttachmentUrl) {
+                    append("]")
+                }
             }
 
             val tag: String
@@ -77,11 +84,18 @@ fun formatLinkPattern(
             } else if (isInternalUrl) {
                 tag = "NODE"
                 annotation = url.substring(3)
+            } else if (isAttachmentUrl) {
+                tag = "ATTACHMENT"
+                annotation = url.substring(11)
             } else {
                 tag = "UNK"
                 annotation = url
             }
-            addStringAnnotation(tag, annotation, start = length - label.length, end = length)
+
+            val annStart = length - label.length - (if (isAttachmentUrl) 14 else 0)
+            val annEnd = length
+
+            addStringAnnotation(tag, annotation, start = annStart, annEnd)
 
             if (isInternalUrl) {
                 append(" ›")
