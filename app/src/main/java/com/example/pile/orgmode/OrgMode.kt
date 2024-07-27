@@ -1,4 +1,4 @@
-package com.example.pile
+package com.example.pile.orgmode
 
 import android.content.Context
 import androidx.documentfile.provider.DocumentFile
@@ -97,7 +97,7 @@ fun parseOrgList(text: String): OrgParagraph.OrgList {
         .map {
             val nIndent = (Regex("\n +").find(it)?.value?.length ?: 1) - 1
             val processedText = it.replace(Regex("^(\\d+\\.|\\+|-) "), " ".repeat(nIndent)).trimIndent()
-            OrgParagraph.OrgListItem(processedText, items=parseOrgParagraphs(processedText))
+            OrgParagraph.OrgListItem(processedText, items = parseOrgParagraphs(processedText))
         }
 
     return OrgParagraph.OrgList(text, type = type, items = items)

@@ -23,7 +23,7 @@ import com.example.pile.ui.formatInlineCodePattern
 import com.example.pile.ui.formatItalicPattern
 import com.example.pile.ui.formatLinkPattern
 import com.example.pile.ui.formatTagPattern
-import com.example.pile.unfillText
+import com.example.pile.orgmode.unfillText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

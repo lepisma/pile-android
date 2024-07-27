@@ -47,8 +47,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
 import com.example.pile.OrgNodeType
-import com.example.pile.parseNodeLinks
-import com.example.pile.parseTags
+import com.example.pile.orgmode.parseNodeLinks
+import com.example.pile.orgmode.parseTags
 import com.example.pile.readFile
 import com.example.pile.ui.theme.PileTheme
 import com.example.pile.viewmodel.SharedViewModel

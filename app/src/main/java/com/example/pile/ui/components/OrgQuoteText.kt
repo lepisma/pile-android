@@ -7,7 +7,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.pile.OrgParagraph
+import com.example.pile.orgmode.OrgParagraph
 
 @Composable
 fun OrgQuoteText(orgQuote: OrgParagraph.OrgQuote, openNodeById: (String) -> Unit) {

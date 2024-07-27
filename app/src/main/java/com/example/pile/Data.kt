@@ -17,6 +17,11 @@ import androidx.room.TypeConverters
 import androidx.room.Update
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.pile.orgmode.parseFileDatetime
+import com.example.pile.orgmode.parseId
+import com.example.pile.orgmode.parseTags
+import com.example.pile.orgmode.parseTitle
+import com.example.pile.orgmode.readOrgPreamble
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope

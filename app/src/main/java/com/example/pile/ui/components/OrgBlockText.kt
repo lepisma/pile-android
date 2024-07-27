@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import com.example.pile.OrgParagraph
+import com.example.pile.orgmode.OrgParagraph
 
 @Composable
 fun OrgBlockText(orgBlock: OrgParagraph.OrgBlock) {

@@ -17,8 +17,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.pile.OrgListType
-import com.example.pile.OrgParagraph
+import com.example.pile.orgmode.OrgListType
+import com.example.pile.orgmode.OrgParagraph
 
 fun measureTextWidth(text: String, textStyle: TextStyle): Float {
     val paint = Paint()
