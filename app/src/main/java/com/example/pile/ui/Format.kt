@@ -67,7 +67,7 @@ fun formatLinkPattern(
                 )
             ) {
                 if (isAttachmentUrl) {
-                    append("[ATTACHMENT: ")
+                    append("[attachment: ")
                 }
                 append(label)
                 if (isAttachmentUrl) {
