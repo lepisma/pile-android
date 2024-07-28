@@ -59,6 +59,9 @@ fun formatLinkPattern(
             if (isInternalUrl) {
                 append("‹ ")
             }
+            if (isAttachmentUrl) {
+                append("[")
+            }
 
             withStyle(
                 SpanStyle(
@@ -66,13 +69,7 @@ fun formatLinkPattern(
                     textDecoration = TextDecoration.Underline
                 )
             ) {
-                if (isAttachmentUrl) {
-                    append("[attachment: ")
-                }
                 append(label)
-                if (isAttachmentUrl) {
-                    append("]")
-                }
             }
 
             val tag: String
@@ -92,13 +89,13 @@ fun formatLinkPattern(
                 annotation = url
             }
 
-            val annStart = length - label.length - (if (isAttachmentUrl) 14 else 0)
-            val annEnd = length
-
-            addStringAnnotation(tag, annotation, start = annStart, annEnd)
+            addStringAnnotation(tag, annotation, start = length - label.length, length)
 
             if (isInternalUrl) {
                 append(" ›")
+            }
+            if (isAttachmentUrl) {
+                append("]")
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.example.pile.ui.components
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.ClickableText
@@ -66,7 +67,13 @@ fun OrgText(text: String, openNodeById: (String) -> Unit, modifier: Modifier = M
                     localUriHandler.openUri(it.item)
                 }
                 formattedString!!.getStringAnnotations("ATTACHMENT", offset, offset).firstOrNull()?.let {
-                    Toast.makeText(context, "Attachment opening not supported yet", Toast.LENGTH_SHORT).show()
+                    try {
+                        localUriHandler.openUri(it.item)
+                    } catch (e: Exception) {
+                        val errorMessage = "Failed to open link ${it.item}: $e"
+                        Log.d("FileInteractionError", errorMessage)
+                        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                    }
                 }
             },
             modifier = modifier.padding(bottom = 10.dp)
