@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -82,7 +83,7 @@ fun StructuredNavigationButton(onSwipe: (dir: StructuredNavigationDirection, lev
             Icon(
                 FontAwesomeIcons.Solid.ArrowsAlt,
                 modifier = Modifier
-                    .size(SwitchDefaults.IconSize)
+                    .size(24.dp)
                     .padding(end = 10.dp),
                 contentDescription = "Structured Scrolling"
             )
