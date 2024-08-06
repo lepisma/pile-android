@@ -2,6 +2,8 @@ package com.example.pile.ui.components
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -79,6 +81,29 @@ fun shareText(context: Context, text: String) {
     intent.type = "type/plain"
     intent.putExtra(Intent.EXTRA_TEXT, text)
     context.startActivity(Intent.createChooser(intent, "Share Content"))
+}
+
+/**
+ * Find position of the directed structure (headline in our case) based on the direction and level
+ * provided. Return the integer position to jump to. If nothing valid found, return null.
+ *
+ * This is not very correct since it doesn't restrict jumping outside of a higher heading when you
+ * are working at a lower level. But it's good enough to start.
+ */
+fun findStructure(textFieldValue: TextFieldValue, dir: StructuredNavigationDirection, level: Int): Int? {
+    val currentPosition = textFieldValue.selection.end
+    val pattern = Regex("""^(\*{$level}) """, RegexOption.MULTILINE)
+
+    return when (dir) {
+        StructuredNavigationDirection.UP -> {
+            val searchText = textFieldValue.text.substring(0, currentPosition)
+            pattern.findAll(searchText).lastOrNull()?.range?.start
+        }
+        StructuredNavigationDirection.DOWN -> {
+            val searchText = textFieldValue.text.substring(currentPosition + 1)
+            pattern.find(searchText)?.range?.start?.plus(currentPosition + 1)
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -206,6 +231,15 @@ fun NodeScreen(
                                     Icons.Filled.DateRange,
                                     contentDescription = "Add current datetime"
                                 )
+                            }
+                            StructuredNavigationButton { dir, level ->
+                                val jumpPosition = findStructure(currentTextFieldValue, dir, level)
+
+                                if (jumpPosition != null) {
+                                    currentTextFieldValue = currentTextFieldValue.copy(selection = TextRange(jumpPosition))
+                                } else {
+                                    Toast.makeText(context, "Nowhere to jump", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         },
                         floatingActionButton = {
