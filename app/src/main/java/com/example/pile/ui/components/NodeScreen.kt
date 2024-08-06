@@ -2,7 +2,6 @@ package com.example.pile.ui.components
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -100,8 +99,12 @@ fun findStructure(textFieldValue: TextFieldValue, dir: StructuredNavigationDirec
             pattern.findAll(searchText).lastOrNull()?.range?.start
         }
         StructuredNavigationDirection.DOWN -> {
-            val searchText = textFieldValue.text.substring(currentPosition + 1)
-            pattern.find(searchText)?.range?.start?.plus(currentPosition + 1)
+            if (currentPosition == textFieldValue.text.length) {
+                null
+            } else {
+                val searchText = textFieldValue.text.substring(currentPosition + 1)
+                pattern.find(searchText)?.range?.start?.plus(currentPosition + 1)
+            }
         }
     }
 }
