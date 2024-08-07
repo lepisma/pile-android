@@ -89,21 +89,25 @@ fun shareText(context: Context, text: String) {
  * This is not very correct since it doesn't restrict jumping outside of a higher heading when you
  * are working at a lower level. But it's good enough to start.
  */
-fun findStructure(textFieldValue: TextFieldValue, dir: StructuredNavigationDirection, level: Int): Int? {
+fun findStructure(textFieldValue: TextFieldValue, dir: StructuredNavigationDirection, level: Int?): Int? {
     val currentPosition = textFieldValue.selection.end
-    val pattern = Regex("""^(\*{$level}) """, RegexOption.MULTILINE)
+
+    val pattern = if (level == null) Regex("""\n^(\*+) """, RegexOption.MULTILINE) else Regex("""^(\*{$level}) """, RegexOption.MULTILINE)
+
+    // To offset the \n match in case of anyHeadingMode
+    val offset = if (level == null) 1 else 0
 
     return when (dir) {
         StructuredNavigationDirection.UP -> {
             val searchText = textFieldValue.text.substring(0, currentPosition)
-            pattern.findAll(searchText).lastOrNull()?.range?.start
+            pattern.findAll(searchText).lastOrNull()?.range?.start?.plus(offset)
         }
         StructuredNavigationDirection.DOWN -> {
             if (currentPosition == textFieldValue.text.length) {
                 null
             } else {
                 val searchText = textFieldValue.text.substring(currentPosition + 1)
-                pattern.find(searchText)?.range?.start?.plus(currentPosition + 1)
+                pattern.find(searchText)?.range?.start?.plus(currentPosition + 1 + offset)
             }
         }
     }
