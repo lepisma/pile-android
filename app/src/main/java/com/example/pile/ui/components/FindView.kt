@@ -2,25 +2,33 @@ package com.example.pile.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
 import com.example.pile.OrgNodeType
 import com.example.pile.isDailyNode
+import compose.icons.FontAwesomeIcons
+import compose.icons.fontawesomeicons.Solid
+import compose.icons.fontawesomeicons.solid.Thumbtack
 
 /* Main search view that comes up as the first page */
 @ExperimentalMaterial3Api
@@ -31,6 +39,7 @@ fun FindView(
     createAndOpenNode: (nodeTitle: String, nodeType: OrgNodeType, refLink: String?, tags: List<String>?) -> Unit
 ) {
     var text by remember { mutableStateOf("") }
+    var showPinnedDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -57,6 +66,14 @@ fun FindView(
                 }
             }
 
+            if (showPinnedDialog) {
+                PinnedDialog(
+                    nodes,
+                    { showPinnedDialog = false },
+                    openNode
+                )
+            }
+
             if (text != "") {
                 CreateNodeButton(text) { nodeTitle, nodeType ->
                     createAndOpenNode(
@@ -67,12 +84,25 @@ fun FindView(
                     )
                 }
             }
-            FindField(
-                text = text,
-                onTextEntry = { text = it },
-                label = "Find or Create",
-                placeholder = "Node Name"
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                FindField(
+                    text = text,
+                    onTextEntry = { text = it },
+                    label = "Find or Create",
+                    placeholder = "Node Name"
+                )
+                FilledTonalIconButton(onClick = { showPinnedDialog = true }) {
+                    Icon(
+                        FontAwesomeIcons.Solid.Thumbtack,
+                        modifier = Modifier.size(18.dp),
+                        contentDescription = "Pinned Nodes"
+                    )
+                }
+            }
         }
     }
 }

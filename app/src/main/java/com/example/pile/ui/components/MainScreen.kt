@@ -52,7 +52,6 @@ import compose.icons.fontawesomeicons.solid.Book
 import compose.icons.fontawesomeicons.solid.Bookmark
 import compose.icons.fontawesomeicons.solid.CalendarDay
 import compose.icons.fontawesomeicons.solid.Glasses
-import compose.icons.fontawesomeicons.solid.Thumbtack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
@@ -117,7 +116,6 @@ fun MainScreen(
                     listOf(
                         Pair("Notes", FontAwesomeIcons.Solid.Book),
                         Pair("Journal", FontAwesomeIcons.Solid.CalendarDay),
-                        Pair("Pinned", FontAwesomeIcons.Solid.Thumbtack),
                         Pair("Bookmarks", FontAwesomeIcons.Solid.Bookmark),
                         Pair("Search", FontAwesomeIcons.Solid.Glasses)
                     ).forEachIndexed { index, (label, icon) ->
@@ -150,9 +148,8 @@ fun MainScreen(
                     when (selectedNavIndex) {
                         0 -> FindView(nodeList, openNode, createAndOpenNode)
                         1 -> JournalView(nodeList, openNode, createAndOpenNode)
-                        2 -> PinnedView(nodeList, openNode)
-                        3 -> BookmarksView(nodeList, openNode)
-                        4 -> SearchView()
+                        2 -> BookmarksView(nodeList, openNode)
+                        3 -> SearchView()
                     }
 
                     if (showCaptureSheet) {
