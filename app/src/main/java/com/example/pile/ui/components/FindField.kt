@@ -1,5 +1,6 @@
 package com.example.pile.ui.components
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -39,7 +40,7 @@ fun FindField(
             { Text(text = placeholder) }
         } else null,
         modifier = Modifier
-            // .fillMaxWidth()
+            .fillMaxWidth()
             .padding(top = 20.dp),
         shape = RoundedCornerShape(60.dp),
         leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
