@@ -32,6 +32,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -148,7 +149,7 @@ fun NodeScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    colors = TopAppBarDefaults.smallTopAppBarColors(),
+                    colors = topAppBarColors(),
                     title = {
                         Text(node.title, color = Color.Gray, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     },
