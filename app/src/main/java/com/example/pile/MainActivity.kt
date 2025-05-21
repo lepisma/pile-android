@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
             applicationContext,
             PileDatabase::class.java, "pile-database"
         )
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
             .build()
         nodeDao = db.nodeDao()
         viewModel = SharedViewModel(nodeDao) { file, text ->

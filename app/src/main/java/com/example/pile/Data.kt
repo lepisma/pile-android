@@ -48,7 +48,8 @@ data class OrgNode(
     val fileString: String,
     val file: DocumentFile? = null,
     val pinned: Boolean = false,
-    val tags: List<String> = listOf()
+    val tags: List<String> = listOf(),
+    val lastModified: Long = 0
 )
 
 enum class OrgNodeType {
@@ -125,7 +126,7 @@ interface NodeDao {
     fun togglePinned(id: String, pinned: Boolean)
 }
 
-@Database(entities = [OrgNode::class], version = 4)
+@Database(entities = [OrgNode::class], version = 5)
 @TypeConverters(LocalDateTimeConverter::class, DocumentFileConverter::class, TagsConverter::class)
 abstract class PileDatabase : RoomDatabase() {
     abstract fun nodeDao(): NodeDao
@@ -166,6 +167,12 @@ val MIGRATION_2_3: Migration = object : Migration(2, 3) {
 val MIGRATION_3_4: Migration = object : Migration(3, 4) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE nodes ADD COLUMN tags TEXT NOT NULL DEFAULT ''")
+    }
+}
+
+val MIGRATION_4_5: Migration = object : Migration(4, 5) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE nodes ADD COLUMN lastModified INTEGER NOT NULL DEFAULT 0")
     }
 }
 
@@ -369,7 +376,15 @@ fun parseFileOrgNode(context: Context, file: DocumentFile): OrgNode {
     // This is not correct since UUID is probably not the way org-id works
     val nodeId = parseId(preamble) ?: UUID.randomUUID().toString()
 
-    return OrgNode(nodeId, title, parseFileDatetime(file), file.uri.toString(), file, tags = tags)
+    return OrgNode(
+        nodeId,
+        title,
+        parseFileDatetime(file),
+        file.uri.toString(),
+        file,
+        tags = tags,
+        lastModified = file.lastModified()
+    )
 }
 
 suspend fun readFilesFromDirectory(context: Context, uri: Uri): List<OrgNode> = coroutineScope {

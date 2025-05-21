@@ -142,7 +142,7 @@ fun RecentNodeList(nodes: List<OrgNode>, onClick: (OrgNode) -> Unit) {
     ) {
         NodeList(
             nodes
-                .sortedByDescending { it.datetime }
+                .sortedByDescending { it.lastModified }
                 .filter { !isDailyNode(it) },
             "Recent",
             onClick
