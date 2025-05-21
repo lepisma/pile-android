@@ -23,6 +23,7 @@ import compose.icons.fontawesomeicons.Regular
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.regular.Bookmark
 import compose.icons.fontawesomeicons.solid.Bookmark
+import java.time.format.DateTimeFormatter
 
 /* View for one node */
 @Composable
@@ -54,6 +55,7 @@ fun OrgNodeItem(node: OrgNode, expandedView: Boolean, onClick: (OrgNode) -> Unit
                 OrgTags(tags = node.tags)
             }
         }
-        Text(node.datetime.toString(), fontSize = 10.sp, color = Color.Gray)
+        val dtFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy hh:mm a")
+        Text(node.datetime.format(dtFormatter), fontSize = 10.sp, color = Color.Gray)
     }
 }
