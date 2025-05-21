@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -16,7 +17,6 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -40,6 +40,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
 import com.example.pile.OrgNodeType
@@ -96,13 +98,28 @@ fun MainScreen(
             topBar = {
                 Box {
                     TopAppBar(
-                        title = { Text("") },
+                        title = {
+                            Text(
+                                text = "pile",
+                                fontStyle = FontStyle.Italic,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Gray
+                            )
+                        },
                         actions = {
-                            IconButton(onClick = { refreshDatabase() }, enabled = !isLoading) {
-                                Icon(
-                                    imageVector = Icons.Filled.Refresh,
-                                    contentDescription = "Refresh Database"
-                                )
+                            FilledTonalButton (
+                                onClick = { refreshDatabase() },
+                                modifier = Modifier.padding(16.dp),
+                                enabled = !isLoading
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Refresh,
+                                        contentDescription = "Refresh Database"
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Refresh")
+                                }
                             }
                         }
                     )
