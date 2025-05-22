@@ -44,7 +44,7 @@ fun FindView(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 20.dp)
+            .padding(horizontal = 20.dp, vertical = 20.dp),
     ) {
         if (nodes.isNotEmpty()) {
             Column(
@@ -143,8 +143,9 @@ fun RecentNodeList(nodes: List<OrgNode>, onClick: (OrgNode) -> Unit) {
         NodeList(
             nodes
                 .sortedByDescending { it.lastModified }
-                .filter { !isDailyNode(it) },
-            "Recent",
+                .filter { !isDailyNode(it) }
+                .take(5),
+            "Recently Modified",
             onClick
         )
     }
