@@ -47,6 +47,20 @@ class SharedViewModel(
             emptyList()
         )
 
+    val recentNodes: StateFlow<List<OrgNode>> = nodeDao.getRecentNodes(5)
+        .map { nodesFromDb ->
+            withContext(Dispatchers.Default) {
+                nodesFromDb.map { node ->
+                    node.copy(file = DocumentFile.fromTreeUri(applicationContext, node.fileString.toUri()))
+                }
+            }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
+
     fun setRootUri(uri: Uri) {
         rootUri = uri
     }

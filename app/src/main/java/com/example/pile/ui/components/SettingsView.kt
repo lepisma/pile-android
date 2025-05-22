@@ -13,11 +13,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.pile.viewmodel.SharedViewModel
 
 @Composable
-fun SettingsView(refreshDatabase: () -> Unit, isLoading: Boolean) {
+fun SettingsView(viewModel: SharedViewModel, isLoading: Boolean) {
     FilledTonalButton (
-        onClick = { refreshDatabase() },
+        onClick = { viewModel.refreshDatabase() },
         modifier = Modifier.padding(16.dp),
         enabled = !isLoading
     ) {

@@ -9,6 +9,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -16,16 +17,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.example.pile.OrgNode
 import com.example.pile.OrgNodeType
 import com.example.pile.isDailyNode
+import com.example.pile.viewmodel.SharedViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JournalView(
-    nodes: List<OrgNode>,
+    viewModel: SharedViewModel,
     openNodeById: (String) -> Unit,
     createAndOpenNode: (nodeTitle: String, nodeType: OrgNodeType, refLink: String?, tags: List<String>?) -> Unit
 ) {
@@ -33,6 +34,7 @@ fun JournalView(
     val currentDate = LocalDate.now()
     val context = LocalContext.current
 
+    val nodes by viewModel.nodes.collectAsState()
     val dailyNodes = nodes.filter { isDailyNode(it) }
 
     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {

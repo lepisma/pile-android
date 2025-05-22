@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
 import com.example.pile.OrgNodeType
 import com.example.pile.isDailyNode
+import com.example.pile.viewmodel.SharedViewModel
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Thumbtack
@@ -39,12 +41,15 @@ import compose.icons.fontawesomeicons.solid.Thumbtack
 @ExperimentalMaterial3Api
 @Composable
 fun FindView(
-    nodes: List<OrgNode>,
+    viewModel: SharedViewModel,
     openNodeById: (String) -> Unit,
     createAndOpenNode: (nodeTitle: String, nodeType: OrgNodeType, refLink: String?, tags: List<String>?) -> Unit
 ) {
     var text by remember { mutableStateOf("") }
     var showPinnedDialog by remember { mutableStateOf(false) }
+
+    val nodes by viewModel.nodes.collectAsState()
+    val recentNodes by viewModel.recentNodes.collectAsState()
 
     Column(
         modifier = Modifier
@@ -68,7 +73,7 @@ fun FindView(
                     )
                     Spacer(Modifier.weight(1f))
                     RandomNodeList(nodes, openNodeById)
-                    RecentNodeList(nodes, openNodeById)
+                    RecentNodeList(recentNodes, openNodeById)
                 } else {
                     NodeList(
                         nodes = nodes
@@ -155,10 +160,7 @@ fun RecentNodeList(nodes: List<OrgNode>, onClick: (String) -> Unit) {
         shape = RoundedCornerShape(10.dp)
     ) {
         NodeList(
-            nodes
-                .sortedByDescending { it.lastModified }
-                .filter { !isDailyNode(it) }
-                .take(5),
+            nodes,
             "Recently Modified",
             onClick
         )

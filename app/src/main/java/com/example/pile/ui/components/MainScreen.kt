@@ -68,7 +68,6 @@ fun MainScreen(
     val toCapture = captureLinkInitial != null
 
     val isLoading by viewModel.isLoading.collectAsState()
-    val nodes by viewModel.nodes.collectAsState()
 
     var selectedNavIndex by remember { mutableIntStateOf(0) }
     var showCaptureSheet by remember { mutableStateOf(toCapture) }
@@ -134,10 +133,10 @@ fun MainScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     when (selectedNavIndex) {
-                        0 -> FindView(nodes, openNodeById, createAndOpenNode)
-                        1 -> JournalView(nodes, openNodeById, createAndOpenNode)
+                        0 -> FindView(viewModel, openNodeById, createAndOpenNode)
+                        1 -> JournalView(viewModel, openNodeById, createAndOpenNode)
                         2 -> SearchView()
-                        3 -> SettingsView({ viewModel.refreshDatabase() }, isLoading)
+                        3 -> SettingsView(viewModel, isLoading)
                     }
 
                     if (showCaptureSheet) {
