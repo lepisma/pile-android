@@ -73,7 +73,7 @@ fun FindNodeDialog(
                                 .sortedBy { text.length / it.title.length }
                                 .take(5),
                             heading = null,
-                            onClick = { onClick(it) }
+                            onClick = { /* TODO onClick(it) */ }
                         )
                         CreateNodeButton(text) { title, nodeType -> onCreateClick(title, nodeType) }
                     }

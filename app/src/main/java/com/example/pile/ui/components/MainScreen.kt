@@ -29,7 +29,9 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -38,9 +40,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.example.pile.OrgNode
 import com.example.pile.OrgNodeType
 import com.example.pile.ui.theme.PileTheme
+import com.example.pile.viewmodel.SharedViewModel
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Regular
 import compose.icons.fontawesomeicons.Solid
@@ -57,18 +59,18 @@ import org.jsoup.Jsoup
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    nodeList: List<OrgNode>,
-    isLoading: Boolean,
-    selectedNavIndex: Int,
-    setSelectedNavIndex: (Int) -> Unit,
-    openNode: (OrgNode) -> Unit,
+    viewModel: SharedViewModel,
+    openNodeById: (String) -> Unit,
     createAndOpenNode: (nodeTitle: String, nodeType: OrgNodeType, refLink: String?, tags: List<String>?) -> Unit,
-    refreshDatabase: () -> Unit,
     captureLinkInitial: String?
 ) {
     val context = LocalContext.current
     val toCapture = captureLinkInitial != null
 
+    val isLoading by viewModel.isLoading.collectAsState()
+    val nodes by viewModel.nodes.collectAsState()
+
+    var selectedNavIndex by remember { mutableIntStateOf(0) }
     var showCaptureSheet by remember { mutableStateOf(toCapture) }
     val captureSheetState = rememberModalBottomSheetState()
 
@@ -107,7 +109,7 @@ fun MainScreen(
                     ).forEachIndexed { index, (label, icon) ->
                         NavigationBarItem(
                             selected = (selectedNavIndex == index),
-                            onClick = { setSelectedNavIndex(index) },
+                            onClick = { selectedNavIndex = index },
                             icon = {
                                 Icon(
                                     icon,
@@ -132,10 +134,10 @@ fun MainScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     when (selectedNavIndex) {
-                        0 -> FindView(nodeList, openNode, createAndOpenNode)
-                        1 -> JournalView(nodeList, openNode, createAndOpenNode)
+                        0 -> FindView(nodes, openNodeById, createAndOpenNode)
+                        1 -> JournalView(nodes, openNodeById, createAndOpenNode)
                         2 -> SearchView()
-                        3 -> SettingsView(refreshDatabase, isLoading)
+                        3 -> SettingsView({ viewModel.refreshDatabase() }, isLoading)
                     }
 
                     if (showCaptureSheet) {

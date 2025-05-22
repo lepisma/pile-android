@@ -3,6 +3,7 @@ package com.example.pile
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.room.Dao
 import androidx.room.Database
@@ -25,6 +26,7 @@ import com.example.pile.orgmode.readOrgPreamble
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.time.LocalDateTime
@@ -111,7 +113,7 @@ interface NodeDao {
     fun insertAll(vararg nodes: OrgNode)
 
     @Query("SELECT * FROM nodes")
-    fun getAllNodes(): List<OrgNode>
+    fun getAllNodes(): Flow<List<OrgNode>>
 
     @Update
     fun updateNode(node: OrgNode)
@@ -399,31 +401,6 @@ suspend fun readFilesFromDirectory(context: Context, uri: Uri): List<OrgNode> = 
     }.awaitAll()
 }
 
-suspend fun refreshDatabase(context: Context, uri: Uri, nodeDao: NodeDao) {
-    val newNodes = readFilesFromDirectory(context, uri).associateBy { it.id }
-    val existingNodes = nodeDao.getAllNodes().associateBy { it.id }
-
-    for (newNode in newNodes.values) {
-        existingNodes[newNode.id]?.let { existingNode ->
-            val updatedNode = newNode.copy(pinned = existingNode.pinned)
-            nodeDao.updateNode(updatedNode)
-        } ?: run {
-            nodeDao.insert(newNode)
-        }
-    }
-
-    val nodesToDelete = existingNodes.filterKeys { it !in newNodes.keys }
-    nodesToDelete.values.forEach { nodeDao.deleteNode(it) }
-}
-
-suspend fun loadNodes(context: Context, nodeDao: NodeDao): List<OrgNode> = coroutineScope {
-    val nodes = nodeDao.getAllNodes()
-    // `file` field has to be recovered
-    return@coroutineScope nodes.map { node ->
-        node.copy(file = DocumentFile.fromTreeUri(context, Uri.parse(node.fileString)))
-    }
-}
-
 fun traverseOrgFiles(dir: DocumentFile, fileList: MutableList<DocumentFile>) {
     for (file in dir.listFiles()) {
         if (file.isDirectory) {
@@ -451,7 +428,7 @@ fun loadRootPath(context: Context): Uri? {
     val saved = context.getSharedPreferences("pile", Context.MODE_PRIVATE).getString("root-path", null)
 
     return if (saved != null) {
-        val uri = Uri.parse(saved)
+        val uri = saved.toUri()
         val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
         context.contentResolver.takePersistableUriPermission(uri, takeFlags)
         uri

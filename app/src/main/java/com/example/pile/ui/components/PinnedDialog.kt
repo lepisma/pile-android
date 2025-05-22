@@ -13,7 +13,7 @@ import com.example.pile.OrgNode
 
 
 @Composable
-fun PinnedDialog(nodes: List<OrgNode>, onDismiss: () -> Unit, openNode: (OrgNode) -> Unit) {
+fun PinnedDialog(nodes: List<OrgNode>, onDismiss: () -> Unit, openNodeById: (String) -> Unit) {
     Dialog(onDismissRequest = { onDismiss() }) {
         Box {
             Card {
@@ -26,7 +26,7 @@ fun PinnedDialog(nodes: List<OrgNode>, onDismiss: () -> Unit, openNode: (OrgNode
                         NodeList(
                             nodes = pinnedNodes,
                             heading = "Pinned Nodes",
-                            onClick = openNode
+                            onClick = openNodeById
                         )
                     } else {
                         Text(text = "No pinned nodes")

@@ -26,7 +26,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun JournalView(
     nodes: List<OrgNode>,
-    openNode: (OrgNode) -> Unit,
+    openNodeById: (String) -> Unit,
     createAndOpenNode: (nodeTitle: String, nodeType: OrgNodeType, refLink: String?, tags: List<String>?) -> Unit
 ) {
     var text by remember { mutableStateOf("") }
@@ -52,7 +52,7 @@ fun JournalView(
                         val dateIsToday = date == currentDate
 
                         if (dateNode != null) {
-                            openNode(dateNode)
+                            openNodeById(dateNode.id)
                         } else if (dateIsToday) {
                             val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
                             createAndOpenNode(date.format(formatter), OrgNodeType.DAILY, null, null)
@@ -71,7 +71,7 @@ fun JournalView(
                         .filter { text.lowercase() in it.title.lowercase() }
                         .take(5),
                     heading = null,
-                    onClick = openNode
+                    onClick = openNodeById
                 )
             }
         }

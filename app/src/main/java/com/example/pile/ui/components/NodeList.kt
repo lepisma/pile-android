@@ -17,7 +17,7 @@ import com.example.pile.OrgNode
 fun NodeList(
     nodes: List<OrgNode>,
     heading: String?,
-    onClick: (OrgNode) -> Unit,
+    onClick: (String) -> Unit,
     expandedView: Boolean = false
 ) {
     Column(
@@ -36,7 +36,7 @@ fun NodeList(
         LazyColumn {
             items(nodes) { node ->
                 OrgNodeItem(node, expandedView = expandedView) {
-                    onClick(node)
+                    onClick(node.id)
                 }
             }
         }

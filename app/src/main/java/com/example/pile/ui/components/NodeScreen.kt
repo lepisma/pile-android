@@ -36,6 +36,7 @@ import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,7 +49,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
-import com.example.pile.OrgNodeType
 import com.example.pile.orgmode.parseNodeLinks
 import com.example.pile.orgmode.parseTags
 import com.example.pile.readFile
@@ -117,18 +117,20 @@ fun findStructure(textFieldValue: TextFieldValue, dir: StructuredNavigationDirec
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NodeScreen(
-    node: OrgNode,
-    nodes: List<OrgNode>,
+    nodeId: String,
     viewModel: SharedViewModel,
     goBack: () -> Unit,
-    openNodeById: (String) -> Unit,
-    createNewNode: (String, OrgNodeType, (OrgNode) -> Unit) -> Unit,
-    onNodeUpdated: (OrgNode) -> Unit
+    openNodeById: (String) -> Unit
 ) {
     var isEditMode by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
+
+    val nodes by viewModel.nodes.collectAsState()
+    val node: OrgNode = remember(nodes, nodeId) {
+        nodes.find { it.id == nodeId }!!
+    }
 
     val context = LocalContext.current
 
@@ -165,7 +167,7 @@ fun NodeScreen(
                         rememberTopAppBarState()
                     ),
                     actions = {
-                        IconButton(onClick = { viewModel.togglePinned(node) { onNodeUpdated(it) } }) {
+                        IconButton(onClick = { viewModel.togglePinned(node) }) {
                             Icon(
                                 imageVector = FontAwesomeIcons.Solid.Thumbtack,
                                 modifier = Modifier.size(18.dp),
@@ -253,10 +255,10 @@ fun NodeScreen(
                         floatingActionButton = {
                             FloatingActionButton(onClick = {
                                 node.file?.let { documentFile ->
-                                    viewModel.writeFile(documentFile, currentTextFieldValue.text)
+                                    viewModel.write(documentFile, currentTextFieldValue.text)
                                     // Re-parse the note to get updated tags
                                     val newTags = parseTags(currentTextFieldValue.text)
-                                    viewModel.updateTags(node, newTags) { onNodeUpdated(it) }
+                                    viewModel.updateTags(node, newTags)
                                 }
                             }) {
                                 Icon(
@@ -304,7 +306,7 @@ fun NodeScreen(
                                             showLinkDialog = false
                                         },
                                         onCreateClick = { title, nodeType ->
-                                            createNewNode(title, nodeType) { newNode ->
+                                            viewModel.createNode(title, nodeType) { newNode ->
                                                 currentTextFieldValue = insertText(currentTextFieldValue, "[[id:${newNode.id}][${newNode.title}]]")
                                                 showLinkDialog = false
                                             }
@@ -326,7 +328,7 @@ fun NodeScreen(
                                                 nodes.find { orgNode -> orgNode.id == it }
                                             },
                                             "Linked Nodes",
-                                            { openNodeById(it.id) },
+                                            openNodeById,
                                             expandedView = false
                                         )
                                     }

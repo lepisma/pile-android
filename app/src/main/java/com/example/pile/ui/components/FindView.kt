@@ -40,7 +40,7 @@ import compose.icons.fontawesomeicons.solid.Thumbtack
 @Composable
 fun FindView(
     nodes: List<OrgNode>,
-    openNode: (OrgNode) -> Unit,
+    openNodeById: (String) -> Unit,
     createAndOpenNode: (nodeTitle: String, nodeType: OrgNodeType, refLink: String?, tags: List<String>?) -> Unit
 ) {
     var text by remember { mutableStateOf("") }
@@ -67,15 +67,15 @@ fun FindView(
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                     Spacer(Modifier.weight(1f))
-                    RandomNodeList(nodes, openNode)
-                    RecentNodeList(nodes, openNode)
+                    RandomNodeList(nodes, openNodeById)
+                    RecentNodeList(nodes, openNodeById)
                 } else {
                     NodeList(
                         nodes = nodes
                             .filter { text.lowercase() in it.title.lowercase() }
                             .sortedBy { text.length / it.title.length },
                         heading = null,
-                        onClick = { openNode(it) }
+                        onClick = openNodeById
                     )
                 }
             }
@@ -84,7 +84,7 @@ fun FindView(
                 PinnedDialog(
                     nodes,
                     { showPinnedDialog = false },
-                    openNode
+                    openNodeById
                 )
             }
 
@@ -126,7 +126,7 @@ fun FindView(
 }
 
 @Composable
-fun RandomNodeList(nodes: List<OrgNode>, onClick: (OrgNode) -> Unit) {
+fun RandomNodeList(nodes: List<OrgNode>, onClick: (String) -> Unit) {
     val randomNodes = remember {
         nodes
             .shuffled()
@@ -146,7 +146,7 @@ fun RandomNodeList(nodes: List<OrgNode>, onClick: (OrgNode) -> Unit) {
 }
 
 @Composable
-fun RecentNodeList(nodes: List<OrgNode>, onClick: (OrgNode) -> Unit) {
+fun RecentNodeList(nodes: List<OrgNode>, onClick: (String) -> Unit) {
     ElevatedCard(
         elevation = CardDefaults.cardElevation(
             defaultElevation = 2.dp

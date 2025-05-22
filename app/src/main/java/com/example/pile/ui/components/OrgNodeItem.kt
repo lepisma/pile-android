@@ -27,11 +27,11 @@ import java.time.format.DateTimeFormatter
 
 /* View for one node */
 @Composable
-fun OrgNodeItem(node: OrgNode, expandedView: Boolean, onClick: (OrgNode) -> Unit) {
+fun OrgNodeItem(node: OrgNode, expandedView: Boolean, onClick: (String) -> Unit) {
     Column(modifier = Modifier
         .padding(vertical = 5.dp)
         .fillMaxWidth()
-        .clickable { onClick(node) }
+        .clickable { onClick(node.id) }
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (isLiteratureNode(node)) {

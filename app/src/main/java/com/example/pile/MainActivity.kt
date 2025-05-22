@@ -11,10 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -33,11 +30,8 @@ import kotlinx.coroutines.withContext
 class MainActivity : ComponentActivity() {
     private lateinit var nodeDao: NodeDao
     private lateinit var viewModel: SharedViewModel
-
-    private var navController: NavHostController? = null
-    private var nodeList = mutableStateListOf<OrgNode>()
-
     private lateinit var folderPickerLauncher: ActivityResultLauncher<Intent>
+    private var navController: NavHostController? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,10 +46,11 @@ class MainActivity : ComponentActivity() {
             .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
             .build()
         nodeDao = db.nodeDao()
-        viewModel = SharedViewModel(nodeDao) { file, text ->
-            writeFile(this, file, text)
-            Toast.makeText(this, "File Saved", Toast.LENGTH_SHORT).show()
-        }
+        viewModel = SharedViewModel(
+            nodeDao = nodeDao,
+            rootUri = currentRootUri,
+            applicationContext = this
+        )
 
         folderPickerLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -65,6 +60,7 @@ class MainActivity : ComponentActivity() {
                 data?.data?.also { uri ->
                     saveRootPath(this, uri)
                     currentRootUri = uri
+                    viewModel.setRootUri(uri)
                 }
             } else {
                 Toast.makeText(this, "Folder selection cancelled", Toast.LENGTH_SHORT).show()
@@ -79,10 +75,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             navController = rememberNavController()
-            var isLoading by remember { mutableStateOf(true) }
-            var currentNode by remember { mutableStateOf<OrgNode?>(null) }
-            var selectedNavIndex by remember { mutableIntStateOf(0) }
-
             val startDestination = if (currentRootUri != null) "main-screen" else "landing-screen"
 
             NavHost(navController = navController!!, startDestination = startDestination) {
@@ -119,15 +111,9 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 ) {
+                    // Once currentRootUri is set, we navigate to main-screen
                     LaunchedEffect(currentRootUri) {
                         currentRootUri?.let { uri ->
-                            isLoading = true
-                            nodeList.clear()
-                            nodeList.addAll(withContext(Dispatchers.IO) {
-                                loadNodes(this@MainActivity, nodeDao)
-                            })
-                            isLoading = false
-
                             if (navController!!.currentDestination?.route == "landing-screen") {
                                 navController!!.navigate("main-screen") {
                                     popUpTo("landing-screen") { inclusive = true }
@@ -137,33 +123,18 @@ class MainActivity : ComponentActivity() {
                     }
 
                     MainScreen(
-                        nodeList = nodeList,
-                        isLoading = isLoading,
-                        selectedNavIndex = selectedNavIndex,
-                        setSelectedNavIndex = { selectedNavIndex = it },
-                        openNode = { navController!!.navigate("nodeScreen/${it.id}") },
+                        viewModel = viewModel,
+                        openNodeById = { navController!!.navigate("nodeScreen/${it}") },
                         createAndOpenNode = { title, nodeType, nodeRef, tags ->
                             CoroutineScope(Dispatchers.IO).launch {
                                 currentRootUri?.let { uri ->
                                     createNewNode(this@MainActivity, title, uri, nodeType, nodeRef, tags)?.let { node ->
                                         nodeDao.insert(node)
                                         withContext(Dispatchers.Main) {
-                                            nodeList.add(node)
                                             navController!!.navigate("nodeScreen/${node.id}")
                                         }
                                     }
                                 }
-                            }
-                        },
-                        refreshDatabase = {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                isLoading = true
-                                currentRootUri?.let { uri ->
-                                    refreshDatabase(this@MainActivity, uri, nodeDao)
-                                }
-                                nodeList.clear()
-                                nodeList.addAll(loadNodes(this@MainActivity, nodeDao))
-                                isLoading = false
                             }
                         },
                         captureLinkInitial = captureLink
@@ -183,33 +154,12 @@ class MainActivity : ComponentActivity() {
                     }
                 ) { navBackStackEntry ->
                     val nodeId = navBackStackEntry.arguments?.getString("nodeId")
-                    currentNode = nodeList.find { it.id == nodeId }
-                    if (currentNode != null) {
+                    if (nodeId != null) {
                         NodeScreen(
-                            node = currentNode!!,
-                            nodes = nodeList,
+                            nodeId = nodeId,
                             viewModel = viewModel,
-                            goBack = { navController!!.popBackStack() },
-                            openNodeById = {
-                                navController!!.navigate("nodeScreen/${it}")
-                            },
-                            createNewNode = { title, nodeType, callback ->
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    currentRootUri?.let { uri ->
-                                        createNewNode(this@MainActivity, title, uri, nodeType)?.let { node ->
-                                            nodeDao.insert(node)
-                                            withContext(Dispatchers.Main) {
-                                                nodeList.add(node)
-                                                callback(node)
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            onNodeUpdated = { updatedNode ->
-                                currentNode = updatedNode
-                                nodeList.replaceAll { if (it.id == updatedNode.id) updatedNode else it }
-                            }
+                            openNodeById = { navController!!.navigate("nodeScreen/${it}") },
+                            goBack = { navController!!.popBackStack() }
                         )
                     }
                 }
