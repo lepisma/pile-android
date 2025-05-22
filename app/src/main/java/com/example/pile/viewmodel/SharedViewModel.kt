@@ -84,7 +84,7 @@ class SharedViewModel(
             emptyList()
         )
 
-    val recentNodes: StateFlow<List<OrgNode>> = nodeDao.getRecentNodes(5)
+    val recentNodes: StateFlow<List<OrgNode>> = nodeDao.getRecentNodes(7)
         .map { nodesFromDb ->
             withContext(Dispatchers.Default) {
                 nodesFromDb.map { node ->
