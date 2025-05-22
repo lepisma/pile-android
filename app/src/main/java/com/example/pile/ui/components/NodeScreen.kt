@@ -36,7 +36,7 @@ import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -127,38 +127,43 @@ fun NodeScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
-    val nodes by viewModel.nodes.collectAsState()
-    val node: OrgNode = remember(nodes, nodeId) {
-        nodes.find { it.id == nodeId }!!
-    }
-
+    var node by remember { mutableStateOf<OrgNode?>(null) }
     val context = LocalContext.current
 
-    val fileContent = node.file?.let { readFile(context, it) } ?: "NA"
-
-    var currentTextFieldValue by remember {
-        mutableStateOf(
-            TextFieldValue(
-                text = fileContent,
-                selection = TextRange(fileContent.length)
-            )
-        )
+    LaunchedEffect(nodeId) {
+        node = viewModel.getNode(nodeId)
     }
 
-    var showLinkDialog by remember { mutableStateOf(false) }
+    node?.let { node ->
+        val fileContent = node.file?.let { readFile(context, it) } ?: "NA"
 
-    PileTheme {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    colors = topAppBarColors(),
-                    title = {
-                        Text(node.title, color = Color.Gray, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { goBack() }) {
-                            Icon(
-                                imageVector = Icons.Filled.ArrowBack,
+        var currentTextFieldValue by remember {
+            mutableStateOf(
+                TextFieldValue(
+                    text = fileContent,
+                    selection = TextRange(fileContent.length)
+                )
+            )
+        }
+
+        var showLinkDialog by remember { mutableStateOf(false) }
+        PileTheme {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        colors = topAppBarColors(),
+                        title = {
+                            Text(
+                                node.title,
+                                color = Color.Gray,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = { goBack() }) {
+                                Icon(
+                                    imageVector = Icons.Filled.ArrowBack,
                                 contentDescription = "Back"
                             )
                         }
@@ -206,7 +211,12 @@ fun NodeScreen(
                             DropdownMenuItem(
                                 text = { Text("Delete") },
                                 onClick = { menuExpanded = false },
-                                leadingIcon = { Icon(imageVector = Icons.Filled.Delete, contentDescription = "Delete") }
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Filled.Delete,
+                                        contentDescription = "Delete"
+                                    )
+                                }
                             )
                             DropdownMenuItem(
                                 text = { Text("Share") },
@@ -214,7 +224,12 @@ fun NodeScreen(
                                     shareText(context, currentTextFieldValue.text)
                                     menuExpanded = false
                                 },
-                                leadingIcon = { Icon(imageVector = Icons.Filled.Share, contentDescription = "Share") })
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Filled.Share,
+                                        contentDescription = "Share"
+                                    )
+                                })
                         }
                     }
                 )
@@ -235,7 +250,10 @@ fun NodeScreen(
                             IconButton(enabled = true, onClick = {
                                 val currentTime = LocalDateTime.now()
                                 val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-                                currentTextFieldValue = insertText(currentTextFieldValue, "[${currentTime.format(formatter)}]")
+                                currentTextFieldValue = insertText(
+                                    currentTextFieldValue,
+                                    "[${currentTime.format(formatter)}]"
+                                )
                             }) {
                                 Icon(
                                     Icons.Filled.DateRange,
@@ -246,9 +264,12 @@ fun NodeScreen(
                                 val jumpPosition = findStructure(currentTextFieldValue, dir, level)
 
                                 if (jumpPosition != null) {
-                                    currentTextFieldValue = currentTextFieldValue.copy(selection = TextRange(jumpPosition))
+                                    currentTextFieldValue = currentTextFieldValue.copy(
+                                        selection = TextRange(jumpPosition)
+                                    )
                                 } else {
-                                    Toast.makeText(context, "Nowhere to jump", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Nowhere to jump", Toast.LENGTH_SHORT)
+                                        .show()
                                 }
                             }
                         },
@@ -297,9 +318,12 @@ fun NodeScreen(
                                 NodeEditField(currentTextFieldValue) { currentTextFieldValue = it }
                                 if (showLinkDialog) {
                                     FindNodeDialog(
-                                        nodes,
+                                        viewModel,
                                         onClick = {
-                                            currentTextFieldValue = insertText(currentTextFieldValue, "[[id:${it.id}][${it.title}]]")
+                                            currentTextFieldValue = insertText(
+                                                currentTextFieldValue,
+                                                "[[id:${it.id}][${it.title}]]"
+                                            )
                                             showLinkDialog = false
                                         },
                                         onDismiss = {
@@ -307,7 +331,10 @@ fun NodeScreen(
                                         },
                                         onCreateClick = { title, nodeType ->
                                             viewModel.createNode(title, nodeType) { newNode ->
-                                                currentTextFieldValue = insertText(currentTextFieldValue, "[[id:${newNode.id}][${newNode.title}]]")
+                                                currentTextFieldValue = insertText(
+                                                    currentTextFieldValue,
+                                                    "[[id:${newNode.id}][${newNode.title}]]"
+                                                )
                                                 showLinkDialog = false
                                             }
                                         }
@@ -321,12 +348,11 @@ fun NodeScreen(
                                         sheetState = sheetState
                                     ) {
                                         // TODO: Get backlinks too
-                                        val linkedNodeIds = parseNodeLinks(currentTextFieldValue.text)
+                                        val linkedNodeIds =
+                                            parseNodeLinks(currentTextFieldValue.text)
 
                                         NodeList(
-                                            linkedNodeIds.mapNotNull {
-                                                nodes.find { orgNode -> orgNode.id == it }
-                                            },
+                                            emptyList(), // TODO: Fix this
                                             "Linked Nodes",
                                             openNodeById,
                                             expandedView = false
@@ -339,5 +365,7 @@ fun NodeScreen(
                 }
             }
         }
+
+    }
     }
 }

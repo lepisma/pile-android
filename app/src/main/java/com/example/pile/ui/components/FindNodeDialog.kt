@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,12 +22,12 @@ import androidx.compose.ui.window.Dialog
 import com.example.pile.OrgNode
 import com.example.pile.OrgNodeType
 import com.example.pile.isDailyNode
+import com.example.pile.viewmodel.SharedViewModel
 
 /**
  * Dialog that allows finding nodes and creating new ones. For me main view, you should be relying
  * on FindView. This is a minimal version to be embedded in, say, editing environment.
  *
- * @param nodes List of all nodes.
  * @param onClick Function that runs when you click on any shown node.
  * @param onDismiss Function that runs on dismissal.
  * @param onCreateClick Function that runs after you click on create button. It takes name of the
@@ -35,11 +36,13 @@ import com.example.pile.isDailyNode
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FindNodeDialog(
-    nodes: List<OrgNode>,
+    viewModel: SharedViewModel,
     onClick: (OrgNode) -> Unit,
     onDismiss: () -> Unit,
     onCreateClick: (nodeTitle: String, nodeType: OrgNodeType) -> Unit
 ) {
+    val nodes by viewModel.nodes.collectAsState()
+
     Dialog(onDismissRequest = { onDismiss() }) {
         Box(
             modifier = Modifier.fillMaxSize(),

@@ -118,6 +118,9 @@ interface NodeDao {
     @Query("SELECT * FROM nodes ORDER BY lastModified DESC LIMIT :limit")
     fun getRecentNodes(limit: Int): Flow<List<OrgNode>>
 
+    @Query("SELECT * FROM nodes WHERE id = :id")
+    fun getNodeById(id: String): OrgNode?
+
     @Update
     fun updateNode(node: OrgNode)
 

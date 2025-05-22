@@ -14,10 +14,12 @@ import com.example.pile.createNewNode
 import com.example.pile.readFilesFromDirectory
 import com.example.pile.writeFile
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -61,8 +63,41 @@ class SharedViewModel(
             emptyList()
         )
 
+    private val _randomNodesTrigger = MutableStateFlow(Unit)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val randomNodes: StateFlow<List<OrgNode>> = _randomNodesTrigger
+        .flatMapLatest { _ ->
+            nodeDao.getAllNodes()
+                .map { nodesFromDb ->
+                    withContext(Dispatchers.Default) {
+                        nodesFromDb.shuffled()
+                            .take(3)
+                            .map { node ->
+                                node.copy(file = DocumentFile.fromTreeUri(applicationContext, node.fileString.toUri()))
+                            }
+                    }
+                }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
+
+    fun generateNewRandomNodes() {
+        _randomNodesTrigger.value = Unit
+    }
+
     fun setRootUri(uri: Uri) {
         rootUri = uri
+    }
+
+    suspend fun getNode(id: String): OrgNode? {
+        return withContext(Dispatchers.IO) {
+            val nodeFromDb = nodeDao.getNodeById(id)
+            nodeFromDb?.copy(file = DocumentFile.fromTreeUri(applicationContext, nodeFromDb.fileString.toUri()))
+        }
     }
 
     fun createNode(title: String, nodeType: OrgNodeType, onCompletion: (OrgNode) -> Unit) {

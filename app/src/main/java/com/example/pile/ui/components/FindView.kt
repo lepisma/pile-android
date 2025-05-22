@@ -31,7 +31,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
 import com.example.pile.OrgNodeType
-import com.example.pile.isDailyNode
 import com.example.pile.viewmodel.SharedViewModel
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
@@ -50,6 +49,9 @@ fun FindView(
 
     val nodes by viewModel.nodes.collectAsState()
     val recentNodes by viewModel.recentNodes.collectAsState()
+    val randomNodes by viewModel.randomNodes.collectAsState()
+
+    viewModel.generateNewRandomNodes()
 
     Column(
         modifier = Modifier
@@ -72,7 +74,7 @@ fun FindView(
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                     Spacer(Modifier.weight(1f))
-                    RandomNodeList(nodes, openNodeById)
+                    RandomNodeList(randomNodes, openNodeById)
                     RecentNodeList(recentNodes, openNodeById)
                 } else {
                     NodeList(
@@ -132,13 +134,6 @@ fun FindView(
 
 @Composable
 fun RandomNodeList(nodes: List<OrgNode>, onClick: (String) -> Unit) {
-    val randomNodes = remember {
-        nodes
-            .shuffled()
-            .filter { !isDailyNode(it) }
-            .take(3)
-    }
-
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -146,7 +141,7 @@ fun RandomNodeList(nodes: List<OrgNode>, onClick: (String) -> Unit) {
         border = BorderStroke(0.dp, Color.Transparent),
         shape = RoundedCornerShape(10.dp)
     ) {
-        NodeList(randomNodes,"Random", onClick)
+        NodeList(nodes,"Random", onClick)
     }
 }
 
