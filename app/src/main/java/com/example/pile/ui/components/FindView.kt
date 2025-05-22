@@ -67,11 +67,17 @@ fun FindView(
                 if (text == "") {
                     Text(
                         text = "Pile",
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = Color.Gray,
+                        style = MaterialTheme.typography.displayMedium,
+                        color = MaterialTheme.colorScheme.outline,
                         fontWeight = FontWeight.Bold,
                         fontStyle = FontStyle.Italic,
                         modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    Text(
+                        text = "Welcome to your org-roam pile",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
                     )
                     Spacer(Modifier.weight(1f))
                     RandomNodeList(randomNodes, openNodeById)
