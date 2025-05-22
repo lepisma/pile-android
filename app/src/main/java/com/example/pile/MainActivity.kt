@@ -48,9 +48,9 @@ class MainActivity : ComponentActivity() {
         nodeDao = db.nodeDao()
         viewModel = SharedViewModel(
             nodeDao = nodeDao,
-            rootUri = currentRootUri,
             applicationContext = this
         )
+        currentRootUri?.let { viewModel.setRootUri(it) }
 
         folderPickerLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()

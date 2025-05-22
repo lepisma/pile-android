@@ -21,15 +21,49 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.pile.ui.formatUriForDisplay
 import com.example.pile.viewmodel.SharedViewModel
 
 
 @Composable
 fun SettingsView(viewModel: SharedViewModel) {
     val isLoading by viewModel.isLoading.collectAsState()
+    val nodeCount by viewModel.nodeCount.collectAsState()
+    val rootUri by viewModel.rootUri.collectAsState()
+
+    val context = LocalContext.current
 
     Column {
+        ElevatedCard(
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp)
+            ) {
+                Text(
+                    text = "Working Directory",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(bottom = 20.dp)
+                )
+                Row {
+                    Text(
+                        text = "Syncing from: "
+                    )
+                    Text(
+                        text = formatUriForDisplay(context, rootUri),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
         ElevatedCard(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface
@@ -38,10 +72,16 @@ fun SettingsView(viewModel: SharedViewModel) {
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
                 Text(
-                    text = "Database Maintenance",
+                    text = "Database",
                     style = MaterialTheme.typography.headlineSmall,
                     color = Color.Gray,
                     modifier = Modifier.padding(bottom = 20.dp)
+                )
+                Text(
+                    text = "Total ${nodeCount} nodes in database",
+                    fontStyle = FontStyle.Italic,
+                    modifier = Modifier.padding(bottom = 5.dp),
+                    color = Color.Gray
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,

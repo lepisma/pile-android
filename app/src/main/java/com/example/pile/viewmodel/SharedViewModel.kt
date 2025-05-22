@@ -28,13 +28,25 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/*
+ View Model unifying data operations across 3 places:
+ 1. SQLite database
+ 2. Root directory where files are synced
+ 3. Cache storage for keeping things like root directory path
+ */
 class SharedViewModel(
     private val nodeDao: NodeDao,
-    private var rootUri: Uri?,
     private val applicationContext: Context
 ) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _rootUri: MutableStateFlow<Uri?> = MutableStateFlow(null)
+    val rootUri: StateFlow<Uri?> = _rootUri.asStateFlow()
+
+    fun setRootUri(uri: Uri) {
+        _rootUri.value = uri
+    }
 
     // Helper function to manage loading state
     fun CoroutineScope.launchWithLoading(block: suspend () -> Unit) {
@@ -49,6 +61,13 @@ class SharedViewModel(
             }
         }
     }
+
+    val nodeCount: StateFlow<Int> = nodeDao.countNodes()
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            0
+        )
 
     val recentNodes: StateFlow<List<OrgNode>> = nodeDao.getRecentNodes(5)
         .map { nodesFromDb ->
@@ -118,10 +137,6 @@ class SharedViewModel(
         _searchQuery.value = query
     }
 
-    fun setRootUri(uri: Uri) {
-        rootUri = uri
-    }
-
     suspend fun getNode(id: String): OrgNode? {
         return withContext(Dispatchers.IO) {
             val nodeFromDb = nodeDao.getNodeById(id)
@@ -131,7 +146,7 @@ class SharedViewModel(
 
     fun createNode(title: String, nodeType: OrgNodeType, onCompletion: (OrgNode) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            rootUri?.let { uri ->
+            _rootUri.value?.let { uri ->
                 createNewNode(applicationContext, title, uri, nodeType)?.let { node ->
                     nodeDao.insert(node)
                     withContext(Dispatchers.Main) {
@@ -151,14 +166,14 @@ class SharedViewModel(
     }
 
     fun syncDatabase() {
-        if (rootUri == null) {
+        if (_rootUri.value == null) {
             notify("Root directory not set, aborting sync")
         } else {
             viewModelScope.launchWithLoading {
                 withContext(Dispatchers.IO) {
                     // TODO: Currently performing full sync, fix this to make it faster
                     nodeDao.deleteAll()
-                    val nodes = readFilesFromDirectory(applicationContext, rootUri!!)
+                    val nodes = readFilesFromDirectory(applicationContext, _rootUri.value!!)
                     nodeDao.insertAll(*nodes.toTypedArray())
                 }
             }

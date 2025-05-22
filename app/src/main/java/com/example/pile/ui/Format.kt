@@ -1,5 +1,8 @@
 package com.example.pile.ui
 
+import android.content.Context
+import android.net.Uri
+import android.provider.DocumentsContract
 import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
@@ -11,6 +14,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
+import androidx.documentfile.provider.DocumentFile
+import java.net.URLDecoder
 
 
 /**
@@ -266,4 +271,57 @@ fun formatTagPattern(annotatedString: AnnotatedString, colorScheme: ColorScheme)
             }
         }
     }
+}
+
+/**
+ * Formats a given Android Uri (especially SAF Uris) into a human-readable string.
+ *
+ * @param context The application context, needed to query document information.
+ * @param uri The Uri to format. Can be null.
+ * @return A pretty-formatted string representing the Uri, or a default message if null/unparseable.
+ */
+fun formatUriForDisplay(context: Context, uri: Uri?): String {
+    if (uri == null) {
+        return "No URI set"
+    }
+
+    val documentFile = DocumentFile.fromTreeUri(context, uri)
+    val displayName = documentFile?.name
+
+    if (uri.scheme == "content" && DocumentsContract.isTreeUri(uri)) {
+        val documentId = DocumentsContract.getTreeDocumentId(uri)
+        val parts = documentId.split(":", limit = 2) // Split into volume and path
+
+        val volumeName = if (parts.isNotEmpty()) parts[0] else ""
+        val path = if (parts.size > 1) parts[1] else ""
+
+        val decodedPath = try {
+            URLDecoder.decode(path, "UTF-8")
+        } catch (e: Exception) {
+            path
+        }
+
+        // Map common volume names
+        val friendlyVolumeName = when (volumeName) {
+            "primary" -> "Internal Storage"
+            else -> {
+                "SD Card"
+            }
+        }
+
+        return if (decodedPath.isNotEmpty()) {
+            "$friendlyVolumeName/$decodedPath"
+        } else {
+            friendlyVolumeName
+        }
+    } else if (uri.scheme == "file") {
+        return uri.path?.let {
+            try {
+                URLDecoder.decode(it, "UTF-8")
+            } catch (e: Exception) {
+                it
+            }
+        } ?: uri.toString()
+    }
+    return displayName ?: uri.toString()
 }

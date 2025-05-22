@@ -112,6 +112,9 @@ interface NodeDao {
     @Insert
     fun insertAll(vararg nodes: OrgNode)
 
+    @Query("SELECT count(*) FROM nodes")
+    fun countNodes(): Flow<Int>
+
     @Query("SELECT * FROM nodes")
     fun getAllNodes(): Flow<List<OrgNode>>
 
