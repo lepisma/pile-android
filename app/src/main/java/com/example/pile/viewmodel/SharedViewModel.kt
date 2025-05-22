@@ -11,7 +11,6 @@ import com.example.pile.NodeDao
 import com.example.pile.OrgNode
 import com.example.pile.OrgNodeType
 import com.example.pile.createNewNode
-import com.example.pile.readFilesFromDirectory
 import com.example.pile.writeFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,7 +18,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -32,22 +33,6 @@ class SharedViewModel(
 ) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
-    // Reactive list of all nodes
-    val nodes: StateFlow<List<OrgNode>> = nodeDao.getAllNodes()
-        .map { nodesFromDb ->
-            withContext(Dispatchers.Default) {
-                nodesFromDb.map { node ->
-                    // We need to recover file object from Uri to make well-formed OrgNodes
-                    node.copy(file = DocumentFile.fromTreeUri(applicationContext, node.fileString.toUri()))
-                }
-            }
-        }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            emptyList()
-        )
 
     val recentNodes: StateFlow<List<OrgNode>> = nodeDao.getRecentNodes(5)
         .map { nodesFromDb ->
@@ -89,6 +74,35 @@ class SharedViewModel(
         _randomNodesTrigger.value = Unit
     }
 
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    val searchResults: StateFlow<List<OrgNode>> = _searchQuery
+        .debounce(300)
+        .flatMapLatest { query ->
+            if (query.isBlank()) {
+                flowOf(emptyList())
+            } else {
+                nodeDao.searchNodesByTitle(query)
+                    .map { nodesFromDb ->
+                        withContext(Dispatchers.Default) {
+                            nodesFromDb.map { node ->
+                                node.copy(file = DocumentFile.fromTreeUri(applicationContext, node.fileString.toUri()))
+                            }
+                        }
+                    }
+            }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
+
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+
     fun setRootUri(uri: Uri) {
         rootUri = uri
     }
@@ -116,20 +130,20 @@ class SharedViewModel(
     fun refreshDatabase() {
         viewModelScope.launch(Dispatchers.IO) {
             rootUri?.let { uri ->
-                val newNodes = readFilesFromDirectory(applicationContext, uri).associateBy { it.id }
-                val existingNodes = nodes.value.associateBy { it.id }
-
-                for (newNode in newNodes.values) {
-                    existingNodes[newNode.id]?.let { existingNode ->
-                        val updatedNode = newNode.copy(pinned = existingNode.pinned)
-                        nodeDao.updateNode(updatedNode)
-                    } ?: run {
-                        nodeDao.insert(newNode)
-                    }
-                }
-
-                val nodesToDelete = existingNodes.filterKeys { it !in newNodes.keys }
-                nodesToDelete.values.forEach { nodeDao.deleteNode(it) }
+//                val newNodes = readFilesFromDirectory(applicationContext, uri).associateBy { it.id }
+//                val existingNodes = nodes.value.associateBy { it.id }
+//
+//                for (newNode in newNodes.values) {
+//                    existingNodes[newNode.id]?.let { existingNode ->
+//                        val updatedNode = newNode.copy(pinned = existingNode.pinned)
+//                        nodeDao.updateNode(updatedNode)
+//                    } ?: run {
+//                        nodeDao.insert(newNode)
+//                    }
+//                }
+//
+//                val nodesToDelete = existingNodes.filterKeys { it !in newNodes.keys }
+//                nodesToDelete.values.forEach { nodeDao.deleteNode(it) }
             }
         }
     }

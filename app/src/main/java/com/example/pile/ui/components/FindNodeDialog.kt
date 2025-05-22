@@ -41,7 +41,8 @@ fun FindNodeDialog(
     onDismiss: () -> Unit,
     onCreateClick: (nodeTitle: String, nodeType: OrgNodeType) -> Unit
 ) {
-    val nodes by viewModel.nodes.collectAsState()
+    val searchResults by viewModel.searchResults.collectAsState()
+    val recentNodes by viewModel.recentNodes.collectAsState()
 
     Dialog(onDismissRequest = { onDismiss() }) {
         Box(
@@ -60,10 +61,9 @@ fun FindNodeDialog(
                         ) {
                             LazyColumn {
                                 items(
-                                    nodes
+                                    recentNodes
                                         .sortedByDescending { it.datetime }
                                         .filter { !isDailyNode(it) }
-                                        .take(5)
                                 ) { node ->
                                     OrgNodeItem(node, expandedView = false) { onClick(node) }
                                 }
@@ -71,10 +71,7 @@ fun FindNodeDialog(
                         }
                     } else {
                         NodeList(
-                            nodes = nodes
-                                .filter { text.lowercase() in it.title.lowercase() }
-                                .sortedBy { text.length / it.title.length }
-                                .take(5),
+                            nodes = searchResults,
                             heading = null,
                             onClick = { /* TODO onClick(it) */ }
                         )
@@ -82,7 +79,10 @@ fun FindNodeDialog(
                     }
                     FindField(
                         text = text,
-                        onTextEntry = { text = it },
+                        onTextEntry = {
+                            text = it
+                            viewModel.setSearchQuery(it)
+                        },
                         label = "Insert",
                         placeholder = "Node Name"
                     )

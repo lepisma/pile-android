@@ -34,7 +34,8 @@ fun JournalView(
     val currentDate = LocalDate.now()
     val context = LocalContext.current
 
-    val nodes by viewModel.nodes.collectAsState()
+    // TODO Fix this
+    val nodes by viewModel.recentNodes.collectAsState()
     val dailyNodes = nodes.filter { isDailyNode(it) }
 
     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {

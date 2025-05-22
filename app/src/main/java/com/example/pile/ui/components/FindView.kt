@@ -47,9 +47,9 @@ fun FindView(
     var text by remember { mutableStateOf("") }
     var showPinnedDialog by remember { mutableStateOf(false) }
 
-    val nodes by viewModel.nodes.collectAsState()
     val recentNodes by viewModel.recentNodes.collectAsState()
     val randomNodes by viewModel.randomNodes.collectAsState()
+    val searchResults by viewModel.searchResults.collectAsState()
 
     viewModel.generateNewRandomNodes()
 
@@ -58,7 +58,7 @@ fun FindView(
             .fillMaxSize()
             .padding(horizontal = 20.dp, vertical = 20.dp),
     ) {
-        if (nodes.isNotEmpty()) {
+        if (recentNodes.isNotEmpty()) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -78,9 +78,7 @@ fun FindView(
                     RecentNodeList(recentNodes, openNodeById)
                 } else {
                     NodeList(
-                        nodes = nodes
-                            .filter { text.lowercase() in it.title.lowercase() }
-                            .sortedBy { text.length / it.title.length },
+                        nodes = searchResults,
                         heading = null,
                         onClick = openNodeById
                     )
@@ -89,7 +87,7 @@ fun FindView(
 
             if (showPinnedDialog) {
                 PinnedDialog(
-                    nodes,
+                    emptyList(),
                     { showPinnedDialog = false },
                     openNodeById
                 )
@@ -123,7 +121,10 @@ fun FindView(
                 }
                 FindField(
                     text = text,
-                    onTextEntry = { text = it },
+                    onTextEntry = {
+                        text = it
+                        viewModel.setSearchQuery(it)
+                    },
                     label = "Find or Create",
                     placeholder = "Node Name"
                 )
