@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -17,14 +18,18 @@ fun PinnedDialog(nodes: List<OrgNode>, onDismiss: () -> Unit, openNode: (OrgNode
         Box {
             Card {
                 Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
-                    if (nodes.isNotEmpty()) {
+                    val pinnedNodes = nodes
+                        .filter { it.pinned }
+                        .sortedBy { it.title }
+
+                    if (pinnedNodes.isNotEmpty()) {
                         NodeList(
-                            nodes = nodes
-                                .filter { it.pinned }
-                                .sortedBy { it.title },
+                            nodes = pinnedNodes,
                             heading = "Pinned Nodes",
                             onClick = openNode
                         )
+                    } else {
+                        Text(text = "No pinned nodes")
                     }
                 }
             }
