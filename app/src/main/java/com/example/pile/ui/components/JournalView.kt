@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNodeType
-import com.example.pile.isDailyNode
 import com.example.pile.viewmodel.SharedViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -34,12 +33,10 @@ fun JournalView(
     val currentDate = LocalDate.now()
     val context = LocalContext.current
 
-    // TODO Fix this
-    val nodes by viewModel.recentNodes.collectAsState()
-    val dailyNodes = nodes.filter { isDailyNode(it) }
+    val dailyNodes by viewModel.dailyNodes.collectAsState()
 
     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
-        if (nodes.isNotEmpty()) {
+        if (dailyNodes.isNotEmpty()) {
             if (text == "") {
                 ElevatedCard(
                     elevation = CardDefaults.cardElevation(

@@ -134,7 +134,7 @@ fun MainScreen(
                 ) {
                     when (selectedNavIndex) {
                         0 -> FindView(viewModel, openNodeById, createAndOpenNode)
-                        1 -> { } // JournalView(viewModel, openNodeById, createAndOpenNode)
+                        1 -> JournalView(viewModel, openNodeById, createAndOpenNode)
                         2 -> SearchView()
                         3 -> SettingsView(viewModel)
                     }

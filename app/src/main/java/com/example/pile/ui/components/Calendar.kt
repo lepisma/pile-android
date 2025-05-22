@@ -27,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -36,7 +35,6 @@ import kotlin.math.max
 
 @Composable
 fun Calendar(dates: List<LocalDate>, onClick: (LocalDate) -> Unit) {
-    val context = LocalContext.current
     val currentDate = LocalDate.now()
 
     var selectedYearMonth by remember {
@@ -116,7 +114,7 @@ fun Calendar(dates: List<LocalDate>, onClick: (LocalDate) -> Unit) {
     val daysInMonth = selectedYearMonth.lengthOfMonth()
 
     LazyVerticalGrid(columns = GridCells.Fixed(7)) {
-        items(DayOfWeek.values()) { day ->
+        items(DayOfWeek.entries.toTypedArray()) { day ->
             Box(
                 modifier = Modifier
                     .height(50.dp)

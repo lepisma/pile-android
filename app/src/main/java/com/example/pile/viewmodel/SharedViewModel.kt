@@ -16,6 +16,7 @@ import com.example.pile.writeFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -69,6 +70,20 @@ class SharedViewModel(
             0
         )
 
+    val dailyNodes: StateFlow<List<OrgNode>> = nodeDao.getDailyNodes()
+        .map { nodesFromDb ->
+            withContext(Dispatchers.Default) {
+                nodesFromDb.map { node ->
+                    node.copy(file = DocumentFile.fromTreeUri(applicationContext, node.fileString.toUri()))
+                }
+            }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
+
     val recentNodes: StateFlow<List<OrgNode>> = nodeDao.getRecentNodes(5)
         .map { nodesFromDb ->
             withContext(Dispatchers.Default) {
@@ -111,6 +126,7 @@ class SharedViewModel(
 
     private val _searchQuery = MutableStateFlow("")
 
+    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     val searchResults: StateFlow<List<OrgNode>> = _searchQuery
         .debounce(300)
         .flatMapLatest { query ->
