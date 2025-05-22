@@ -9,11 +9,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -28,7 +26,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,8 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.pile.OrgNode
 import com.example.pile.OrgNodeType
@@ -53,7 +48,7 @@ import compose.icons.fontawesomeicons.regular.Bookmark
 import compose.icons.fontawesomeicons.solid.Book
 import compose.icons.fontawesomeicons.solid.CalendarDay
 import compose.icons.fontawesomeicons.solid.Glasses
-import compose.icons.fontawesomeicons.solid.Wrench
+import compose.icons.fontawesomeicons.solid.Screwdriver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
@@ -97,32 +92,6 @@ fun MainScreen(
         Scaffold (
             topBar = {
                 Box {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                text = "pile",
-                                fontStyle = FontStyle.Italic,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Gray
-                            )
-                        },
-                        actions = {
-                            FilledTonalButton (
-                                onClick = { refreshDatabase() },
-                                modifier = Modifier.padding(16.dp),
-                                enabled = !isLoading
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Refresh,
-                                        contentDescription = "Refresh Database"
-                                    )
-                                    Spacer(Modifier.width(8.dp))
-                                    Text("Refresh")
-                                }
-                            }
-                        }
-                    )
                     if (isLoading) {
                         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     }
@@ -134,7 +103,7 @@ fun MainScreen(
                         Pair("Notes", FontAwesomeIcons.Solid.Book),
                         Pair("Journal", FontAwesomeIcons.Solid.CalendarDay),
                         Pair("Search", FontAwesomeIcons.Solid.Glasses),
-                        Pair("Settings", FontAwesomeIcons.Solid.Wrench)
+                        Pair("Settings", FontAwesomeIcons.Solid.Screwdriver)
                     ).forEachIndexed { index, (label, icon) ->
                         NavigationBarItem(
                             selected = (selectedNavIndex == index),
@@ -166,7 +135,7 @@ fun MainScreen(
                         0 -> FindView(nodeList, openNode, createAndOpenNode)
                         1 -> JournalView(nodeList, openNode, createAndOpenNode)
                         2 -> SearchView()
-                        3 -> { }
+                        3 -> SettingsView(refreshDatabase, isLoading)
                     }
 
                     if (showCaptureSheet) {
