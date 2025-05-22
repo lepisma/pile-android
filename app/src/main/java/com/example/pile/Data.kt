@@ -252,7 +252,8 @@ private fun createNewLiteratureNode(context: Context, noteTitle: String, rootUri
                     datetime = datetime,
                     fileString = it.uri.toString(),
                     file = it,
-                    tags = nodeTags ?: listOf()
+                    tags = nodeTags ?: listOf(),
+                    lastModified = System.currentTimeMillis()
                 )
             }
         }
@@ -276,7 +277,8 @@ private fun createNewConceptNode(context: Context, noteTitle: String, rootUri: U
                 datetime = datetime,
                 fileString = it.uri.toString(),
                 file = it,
-                tags = nodeTags ?: listOf()
+                tags = nodeTags ?: listOf(),
+                lastModified = System.currentTimeMillis()
             )
         }
     }
@@ -306,7 +308,8 @@ private fun createNewDailyNode(context: Context, noteTitle: String, rootUri: Uri
                     datetime = datetime,
                     fileString = it.uri.toString(),
                     file = it,
-                    tags = nodeTags ?: listOf()
+                    tags = nodeTags ?: listOf(),
+                    lastModified = System.currentTimeMillis()
                 )
             }
         }
