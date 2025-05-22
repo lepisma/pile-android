@@ -11,7 +11,9 @@ import com.example.pile.NodeDao
 import com.example.pile.OrgNode
 import com.example.pile.OrgNodeType
 import com.example.pile.createNewNode
+import com.example.pile.readFilesFromDirectory
 import com.example.pile.writeFile
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +35,20 @@ class SharedViewModel(
 ) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    // Helper function to manage loading state
+    fun CoroutineScope.launchWithLoading(block: suspend () -> Unit) {
+        launch {
+            _isLoading.value = true
+            try {
+                block()
+            } catch (e: Exception) {
+                println("Error during operation: ${e.message}")
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
 
     val recentNodes: StateFlow<List<OrgNode>> = nodeDao.getRecentNodes(5)
         .map { nodesFromDb ->
@@ -75,7 +91,6 @@ class SharedViewModel(
     }
 
     private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     val searchResults: StateFlow<List<OrgNode>> = _searchQuery
         .debounce(300)
@@ -127,30 +142,36 @@ class SharedViewModel(
         }
     }
 
-    fun refreshDatabase() {
-        viewModelScope.launch(Dispatchers.IO) {
-            rootUri?.let { uri ->
-//                val newNodes = readFilesFromDirectory(applicationContext, uri).associateBy { it.id }
-//                val existingNodes = nodes.value.associateBy { it.id }
-//
-//                for (newNode in newNodes.values) {
-//                    existingNodes[newNode.id]?.let { existingNode ->
-//                        val updatedNode = newNode.copy(pinned = existingNode.pinned)
-//                        nodeDao.updateNode(updatedNode)
-//                    } ?: run {
-//                        nodeDao.insert(newNode)
-//                    }
-//                }
-//
-//                val nodesToDelete = existingNodes.filterKeys { it !in newNodes.keys }
-//                nodesToDelete.values.forEach { nodeDao.deleteNode(it) }
+    fun resetDatabase() {
+        viewModelScope.launchWithLoading {
+            withContext(Dispatchers.IO) {
+                nodeDao.deleteAll()
             }
         }
     }
 
+    fun syncDatabase() {
+        if (rootUri == null) {
+            notify("Root directory not set, aborting sync")
+        } else {
+            viewModelScope.launchWithLoading {
+                withContext(Dispatchers.IO) {
+                    // TODO: Currently performing full sync, fix this to make it faster
+                    nodeDao.deleteAll()
+                    val nodes = readFilesFromDirectory(applicationContext, rootUri!!)
+                    nodeDao.insertAll(*nodes.toTypedArray())
+                }
+            }
+        }
+    }
+
+    private fun notify(message: String) {
+        Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
+    }
+
     fun write(file: DocumentFile, text: String) {
         writeFile(applicationContext, file, text)
-        Toast.makeText(applicationContext, "File Saved", Toast.LENGTH_SHORT).show()
+        notify("File Saved")
     }
 
     fun togglePinned(node: OrgNode) {
