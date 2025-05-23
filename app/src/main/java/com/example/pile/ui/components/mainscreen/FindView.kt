@@ -1,5 +1,6 @@
 package com.example.pile.ui.components.mainscreen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontStyle
@@ -41,10 +44,12 @@ import com.example.pile.data.OrgNodeType
 import com.example.pile.ui.components.CreateNodeButton
 import com.example.pile.ui.components.FindField
 import com.example.pile.ui.components.NodeList
+import com.example.pile.ui.theme.rememberSimpleFadedCardBackgrounds
 import com.example.pile.viewmodel.SharedViewModel
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Thumbtack
+import kotlin.math.absoluteValue
 
 /* Main search view that comes up as the first page */
 @ExperimentalMaterial3Api
@@ -171,7 +176,7 @@ fun RandomNodeList(nodes: List<OrgNode>, onClick: (String) -> Unit) {
             state = rememberCarouselState { nodes.count() },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 16.dp, bottom = 16.dp),
+                .padding(top = 10.dp, bottom = 10.dp),
             itemWidth = cardWidth,
             itemSpacing = itemSpacing,
             contentPadding = PaddingValues(horizontal = contentHorizontalPadding)
@@ -183,18 +188,27 @@ fun RandomNodeList(nodes: List<OrgNode>, onClick: (String) -> Unit) {
 
 @Composable
 fun OrgNodeCard(node: OrgNode, cardWidth: Dp, cardHeight: Dp) {
-    ElevatedCard (
+    val allTextures = rememberSimpleFadedCardBackgrounds()
+
+    val textureBrush = remember(node.id, allTextures) {
+        val index = node.id.hashCode().absoluteValue % allTextures.size
+        allTextures[index]
+    }
+    val cardShape = RoundedCornerShape(10.dp)
+
+    Card (
         modifier = Modifier
             .width(cardWidth)
-            .height(cardHeight),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 5.dp
-        )
+            .height(cardHeight)
+            .padding(10.dp),
+        shape = cardShape,
+        colors = CardDefaults.elevatedCardColors(containerColor = Color.Transparent)
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(cardHeight)
+                .fillMaxSize()
+                .background(textureBrush)
+                .clip(cardShape)
                 .padding(20.dp)
         ) {
             Text(
