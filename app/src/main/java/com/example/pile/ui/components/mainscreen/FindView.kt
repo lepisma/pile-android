@@ -1,6 +1,7 @@
 package com.example.pile.ui.components.mainscreen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -21,8 +24,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
-import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,13 +42,20 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.pile.data.OrgNode
 import com.example.pile.data.OrgNodeType
+import com.example.pile.data.isDailyNode
+import com.example.pile.data.isLiteratureNode
+import com.example.pile.data.isUnsortedNode
 import com.example.pile.ui.components.CreateNodeButton
 import com.example.pile.ui.components.FindField
 import com.example.pile.ui.components.NodeList
 import com.example.pile.ui.theme.rememberSimpleFadedCardBackgrounds
 import com.example.pile.viewmodel.SharedViewModel
 import compose.icons.FontAwesomeIcons
+import compose.icons.fontawesomeicons.Regular
 import compose.icons.fontawesomeicons.Solid
+import compose.icons.fontawesomeicons.regular.Bookmark
+import compose.icons.fontawesomeicons.regular.Calendar
+import compose.icons.fontawesomeicons.solid.Bookmark
 import compose.icons.fontawesomeicons.solid.Thumbtack
 import kotlin.math.absoluteValue
 
@@ -164,7 +172,7 @@ fun RandomNodeList(nodes: List<OrgNode>, onClick: (String) -> Unit) {
     val cardWidth = (screenWidth * 0.7f)
     val cardHeight = 120.dp
     val itemSpacing = 8.dp
-    val contentHorizontalPadding = 36.dp
+    val contentHorizontalPadding = 16.dp
 
     if (nodes.isNotEmpty()) {
         Text(
@@ -173,22 +181,27 @@ fun RandomNodeList(nodes: List<OrgNode>, onClick: (String) -> Unit) {
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(horizontal = 36.dp)
         )
-        HorizontalUncontainedCarousel(
-            state = rememberCarouselState { nodes.count() },
+        LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 10.dp, bottom = 10.dp),
-            itemWidth = cardWidth,
-            itemSpacing = itemSpacing,
-            contentPadding = PaddingValues(horizontal = contentHorizontalPadding)
-        ) { i ->
-            OrgNodeCard(node = nodes[i], cardWidth = cardWidth, cardHeight = cardHeight)
+            contentPadding = PaddingValues(horizontal = contentHorizontalPadding),
+            horizontalArrangement = Arrangement.spacedBy(itemSpacing)
+        ) {
+            items(nodes) { node ->
+                OrgNodeCard(
+                    node = node,
+                    cardWidth = cardWidth,
+                    cardHeight = cardHeight,
+                    onClick = onClick
+                )
+            }
         }
     }
 }
 
 @Composable
-fun OrgNodeCard(node: OrgNode, cardWidth: Dp, cardHeight: Dp) {
+fun OrgNodeCard(node: OrgNode, cardWidth: Dp, cardHeight: Dp, onClick: (String) -> Unit) {
     val allTextures = rememberSimpleFadedCardBackgrounds()
 
     val textureBrush = remember(node.id, allTextures) {
@@ -201,8 +214,9 @@ fun OrgNodeCard(node: OrgNode, cardWidth: Dp, cardHeight: Dp) {
         modifier = Modifier
             .width(cardWidth)
             .height(cardHeight)
-            .padding(10.dp),
+            .padding(5.dp),
         shape = cardShape,
+        onClick = { onClick(node.id) },
         colors = CardDefaults.elevatedCardColors(containerColor = Color.Transparent)
     ) {
         Box(
@@ -212,14 +226,39 @@ fun OrgNodeCard(node: OrgNode, cardWidth: Dp, cardHeight: Dp) {
                 .clip(cardShape)
                 .padding(20.dp)
         ) {
-            Text(
-                text = node.title,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.align(Alignment.BottomStart)
-            )
+            Column {
+                Box(
+                    modifier = Modifier.padding(bottom = 10.dp)
+                ) {
+                    if (isLiteratureNode(node)) {
+                        Icon(
+                            imageVector = if (isUnsortedNode(node)) FontAwesomeIcons.Regular.Bookmark else FontAwesomeIcons.Solid.Bookmark,
+                            modifier = Modifier
+                                .size(18.dp)
+                                .padding(end = 5.dp),
+                            contentDescription = "Literature Node",
+                            tint = Color.Gray
+                        )
+                    } else if (isDailyNode(node)) {
+                        Icon(
+                            imageVector = FontAwesomeIcons.Regular.Calendar,
+                            modifier = Modifier
+                                .size(18.dp)
+                                .padding(end = 5.dp),
+                            contentDescription = "Daily Node",
+                            tint = Color.Gray
+                        )
+                    }
+                }
+                Spacer(Modifier.weight(1f))
+                Text(
+                    text = node.title,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
         }
     }
 }
