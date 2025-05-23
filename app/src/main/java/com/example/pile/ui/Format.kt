@@ -2,7 +2,9 @@ package com.example.pile.ui
 
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.provider.DocumentsContract
+import androidx.annotation.RequiresApi
 import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
@@ -16,7 +18,44 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
 import androidx.documentfile.provider.DocumentFile
 import java.net.URLDecoder
+import java.time.Duration
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
+@RequiresApi(Build.VERSION_CODES.S)
+fun formatRelativeTime(lastModifiedMillis: Long): String {
+    val nowInstant = Instant.now()
+    val lastModifiedInstant = Instant.ofEpochMilli(lastModifiedMillis)
+
+    val zoneId = ZoneId.systemDefault()
+    val lastModifiedZoned = lastModifiedInstant.atZone(zoneId)
+    val nowZoned = nowInstant.atZone(zoneId)
+
+    val duration = Duration.between(lastModifiedInstant, nowInstant)
+    val seconds = duration.toSeconds()
+    val minutes = duration.toMinutes()
+    val hours = duration.toHours()
+
+    val daysBetween = ChronoUnit.DAYS.between(lastModifiedZoned.toLocalDate(), nowZoned.toLocalDate())
+
+    return when {
+        seconds < 60 -> "few seconds ago"
+        minutes < 60 -> "$minutes minutes ago"
+        hours < 24 -> "$hours hours ago"
+        daysBetween == 1L -> "Yesterday"
+        daysBetween > 1 && daysBetween <= 7 -> "$daysBetween days ago"
+        lastModifiedZoned.year == nowZoned.year -> {
+            val formatter = DateTimeFormatter.ofPattern("MMM dd")
+            lastModifiedZoned.format(formatter)
+        }
+        else -> {
+            val formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy")
+            lastModifiedZoned.format(formatter)
+        }
+    }
+}
 
 /**
  * Replace portions from annotated string and style them.

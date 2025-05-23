@@ -84,7 +84,7 @@ class SharedViewModel(
             emptyList()
         )
 
-    val recentNodes: StateFlow<List<OrgNode>> = nodeDao.getRecentNodes(7)
+    val recentNodes: StateFlow<List<OrgNode>> = nodeDao.getRecentNodes(5)
         .map { nodesFromDb ->
             withContext(Dispatchers.Default) {
                 nodesFromDb.map { node ->
@@ -107,7 +107,7 @@ class SharedViewModel(
                 .map { nodesFromDb ->
                     withContext(Dispatchers.Default) {
                         nodesFromDb.shuffled()
-                            .take(3)
+                            .take(5)
                             .map { node ->
                                 node.copy(file = DocumentFile.fromTreeUri(applicationContext, node.fileString.toUri()))
                             }

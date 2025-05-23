@@ -1,5 +1,7 @@
 package com.example.pile.ui.components.mainscreen
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +20,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -48,6 +49,7 @@ import com.example.pile.data.isUnsortedNode
 import com.example.pile.ui.components.CreateNodeButton
 import com.example.pile.ui.components.FindField
 import com.example.pile.ui.components.NodeList
+import com.example.pile.ui.formatRelativeTime
 import com.example.pile.ui.theme.rememberSimpleFadedCardBackgrounds
 import com.example.pile.viewmodel.SharedViewModel
 import compose.icons.FontAwesomeIcons
@@ -56,7 +58,11 @@ import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.regular.Bookmark
 import compose.icons.fontawesomeicons.regular.Calendar
 import compose.icons.fontawesomeicons.solid.Bookmark
+import compose.icons.fontawesomeicons.solid.CalendarDay
 import compose.icons.fontawesomeicons.solid.Thumbtack
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import kotlin.math.absoluteValue
 
 /* Main search view that comes up as the first page */
@@ -97,13 +103,14 @@ fun FindView(
                         modifier = Modifier.padding(horizontal = 36.dp)
                     )
                     Text(
-                        text = "Welcome to your org-roam pile",
+                        text = "Welcome to your second brain",
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.padding(horizontal = 36.dp, vertical = 10.dp)
                     )
                     Spacer(Modifier.weight(1f))
                     RandomNodeList(randomNodes, openNodeById)
+                    Spacer(Modifier.padding(10.dp))
                     RecentNodeList(recentNodes, openNodeById)
                 } else {
                     NodeList(
@@ -147,6 +154,18 @@ fun FindView(
                         FontAwesomeIcons.Solid.Thumbtack,
                         modifier = Modifier.size(18.dp),
                         contentDescription = "Pinned Nodes"
+                    )
+                }
+                IconButton(
+                    enabled = false,
+                    onClick = {  },
+                    modifier = Modifier
+                        .padding(end = 10.dp, top = 20.dp),
+                ) {
+                    Icon(
+                        FontAwesomeIcons.Solid.CalendarDay,
+                        modifier = Modifier.size(18.dp),
+                        contentDescription = "Journal"
                     )
                 }
                 FindField(
@@ -193,6 +212,7 @@ fun RandomNodeList(nodes: List<OrgNode>, onClick: (String) -> Unit) {
                     node = node,
                     cardWidth = cardWidth,
                     cardHeight = cardHeight,
+                    showModification = false,
                     onClick = onClick
                 )
             }
@@ -200,8 +220,9 @@ fun RandomNodeList(nodes: List<OrgNode>, onClick: (String) -> Unit) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
-fun OrgNodeCard(node: OrgNode, cardWidth: Dp, cardHeight: Dp, onClick: (String) -> Unit) {
+fun OrgNodeCard(node: OrgNode, cardWidth: Dp, cardHeight: Dp, showModification: Boolean, onClick: (String) -> Unit) {
     val allTextures = rememberSimpleFadedCardBackgrounds()
 
     val textureBrush = remember(node.id, allTextures) {
@@ -258,6 +279,14 @@ fun OrgNodeCard(node: OrgNode, cardWidth: Dp, cardHeight: Dp, onClick: (String) 
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+                Spacer(Modifier.padding(5.dp))
+                if (showModification) {
+                    Text(
+                        text = "Modified ${formatRelativeTime(node.lastModified)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
             }
         }
     }
@@ -265,19 +294,37 @@ fun OrgNodeCard(node: OrgNode, cardWidth: Dp, cardHeight: Dp, onClick: (String) 
 
 @Composable
 fun RecentNodeList(nodes: List<OrgNode>, onClick: (String) -> Unit) {
-    ElevatedCard(
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp),
-        shape = RoundedCornerShape(10.dp)
-    ) {
-        NodeList(
-            nodes,
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+
+    val cardWidth = (screenWidth * 0.7f)
+    val cardHeight = 150.dp
+    val itemSpacing = 8.dp
+    val contentHorizontalPadding = 16.dp
+
+    if (nodes.isNotEmpty()) {
+        Text(
             "Recently Modified",
-            onClick
+            color = Color.Gray,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(horizontal = 36.dp)
         )
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp, bottom = 10.dp),
+            contentPadding = PaddingValues(horizontal = contentHorizontalPadding),
+            horizontalArrangement = Arrangement.spacedBy(itemSpacing)
+        ) {
+            items(nodes) { node ->
+                OrgNodeCard(
+                    node = node,
+                    cardWidth = cardWidth,
+                    cardHeight = cardHeight,
+                    showModification = true,
+                    onClick = onClick
+                )
+            }
+        }
     }
 }
