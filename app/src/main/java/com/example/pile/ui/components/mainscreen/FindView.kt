@@ -66,6 +66,7 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.absoluteValue
 
 /* Main search view that comes up as the first page */
+@RequiresApi(Build.VERSION_CODES.S)
 @ExperimentalMaterial3Api
 @Composable
 fun FindView(
@@ -182,6 +183,7 @@ fun FindView(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RandomNodeList(nodes: List<OrgNode>, onClick: (String) -> Unit) {
