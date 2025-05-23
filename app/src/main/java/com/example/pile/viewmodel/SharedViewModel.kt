@@ -200,7 +200,7 @@ class SharedViewModel(
         Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
     }
 
-    fun write(file: DocumentFile, text: String) {
+    private fun write(file: DocumentFile, text: String) {
         writeFile(applicationContext, file, text)
         notify("File Saved")
     }
@@ -211,11 +211,22 @@ class SharedViewModel(
         }
     }
 
-    fun updateTags(node: OrgNode, tags: List<String>) {
-        val updatedNode = node.copy(tags = tags)
-
-        viewModelScope.launch(Dispatchers.IO) {
-            nodeDao.updateNode(updatedNode)
+    /**
+     * Update a new node in the database AND in the file system. The assumption is to have the same
+     * id as the node to be updated.
+     */
+    fun updateNode(newNode: OrgNode, newText: String? = null) {
+        newNode.file?.let { documentFile ->
+            if (newText != null) {
+                write(documentFile, newText)
+                viewModelScope.launch(Dispatchers.IO) {
+                    nodeDao.updateNode(newNode.copy(lastModified = System.currentTimeMillis()))
+                }
+            } else {
+                viewModelScope.launch(Dispatchers.IO) {
+                    nodeDao.updateNode(newNode)
+                }
+            }
         }
     }
 }

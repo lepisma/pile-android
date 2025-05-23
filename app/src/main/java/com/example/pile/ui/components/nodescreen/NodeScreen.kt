@@ -281,12 +281,8 @@ fun NodeScreen(
                         },
                         floatingActionButton = {
                             FloatingActionButton(onClick = {
-                                node.file?.let { documentFile ->
-                                    viewModel.write(documentFile, currentTextFieldValue.text)
-                                    // Re-parse the note to get updated tags
-                                    val newTags = parseTags(currentTextFieldValue.text)
-                                    viewModel.updateTags(node, newTags)
-                                }
+                                val newNode = node.copy(tags = parseTags(currentTextFieldValue.text))
+                                viewModel.updateNode(newNode, newText = currentTextFieldValue.text)
                             }) {
                                 Icon(
                                     Icons.Filled.CheckCircle,
