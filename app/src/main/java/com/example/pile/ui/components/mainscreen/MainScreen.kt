@@ -52,7 +52,7 @@ import compose.icons.fontawesomeicons.regular.Bookmark
 import compose.icons.fontawesomeicons.solid.Book
 import compose.icons.fontawesomeicons.solid.CalendarDay
 import compose.icons.fontawesomeicons.solid.Glasses
-import compose.icons.fontawesomeicons.solid.Screwdriver
+import compose.icons.fontawesomeicons.solid.Hammer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
@@ -107,7 +107,7 @@ fun MainScreen(
                         Pair("Notes", FontAwesomeIcons.Solid.Book),
                         Pair("Journal", FontAwesomeIcons.Solid.CalendarDay),
                         Pair("Search", FontAwesomeIcons.Solid.Glasses),
-                        Pair("Settings", FontAwesomeIcons.Solid.Screwdriver)
+                        Pair("Settings", FontAwesomeIcons.Solid.Hammer)
                     ).forEachIndexed { index, (label, icon) ->
                         NavigationBarItem(
                             selected = (selectedNavIndex == index),
