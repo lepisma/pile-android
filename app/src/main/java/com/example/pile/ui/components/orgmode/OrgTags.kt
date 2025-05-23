@@ -18,7 +18,7 @@ fun OrgTags(tags: List<String>) {
                 onClick = { /*TODO*/ },
                 label = { Text("#$it") },
                 modifier = Modifier.padding(end = 5.dp),
-                border = SuggestionChipDefaults.suggestionChipBorder(borderColor = Color.DarkGray)
+                border = SuggestionChipDefaults.suggestionChipBorder(enabled = true, borderColor = Color.DarkGray)
             )
         }
     }

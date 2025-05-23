@@ -1,13 +1,16 @@
 package com.example.pile.ui.components.mainscreen
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -15,8 +18,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
+import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,8 +30,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.pile.data.OrgNode
 import com.example.pile.data.OrgNodeType
@@ -142,16 +149,63 @@ fun FindView(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RandomNodeList(nodes: List<OrgNode>, onClick: (String) -> Unit) {
-    OutlinedCard(
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+
+    val cardWidth = (screenWidth * 0.6f)
+    val cardHeight = 120.dp
+    val itemSpacing = 8.dp
+    val contentHorizontalPadding = 16.dp
+
+    if (nodes.isNotEmpty()) {
+        Text(
+            "Random Notes",
+            color = Color.Gray,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+        HorizontalUncontainedCarousel(
+            state = rememberCarouselState { nodes.count() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp, bottom = 16.dp),
+            itemWidth = cardWidth,
+            itemSpacing = itemSpacing,
+            contentPadding = PaddingValues(horizontal = contentHorizontalPadding)
+        ) { i ->
+            OrgNodeCard(node = nodes[i], cardWidth = cardWidth, cardHeight = cardHeight)
+        }
+    }
+}
+
+@Composable
+fun OrgNodeCard(node: OrgNode, cardWidth: Dp, cardHeight: Dp) {
+    ElevatedCard (
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 20.dp),
-        border = BorderStroke(0.dp, Color.Transparent),
-        shape = RoundedCornerShape(10.dp)
+            .width(cardWidth)
+            .height(cardHeight),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 5.dp
+        )
     ) {
-        NodeList(nodes,"Random", onClick)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(cardHeight)
+                .padding(20.dp)
+        ) {
+            Text(
+                text = node.title,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.align(Alignment.BottomStart)
+            )
+        }
     }
 }
 
