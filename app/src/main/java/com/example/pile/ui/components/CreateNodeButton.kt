@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.FilledTonalButton
@@ -27,7 +28,12 @@ import compose.icons.fontawesomeicons.regular.Bookmark
  */
 @Composable
 fun CreateNodeButton(nodeName: String, onClick: (nodeTitle: String, nodeType: OrgNodeType) -> Unit) {
-    FilledTonalButton(modifier = Modifier.fillMaxWidth(), onClick = { onClick(nodeName, OrgNodeType.CONCEPT) }) {
+    FilledTonalButton(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        onClick = { onClick(nodeName, OrgNodeType.CONCEPT) }
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Start,

@@ -71,7 +71,7 @@ fun FindView(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 20.dp),
+            .padding(vertical = 20.dp),
     ) {
         if (recentNodes.isNotEmpty()) {
             Column(
@@ -86,13 +86,13 @@ fun FindView(
                         color = MaterialTheme.colorScheme.outline,
                         fontWeight = FontWeight.Bold,
                         fontStyle = FontStyle.Italic,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier.padding(horizontal = 36.dp)
                     )
                     Text(
                         text = "Welcome to your org-roam pile",
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+                        modifier = Modifier.padding(horizontal = 36.dp, vertical = 10.dp)
                     )
                     Spacer(Modifier.weight(1f))
                     RandomNodeList(randomNodes, openNodeById)
@@ -126,7 +126,8 @@ fun FindView(
             }
             Row(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
@@ -160,17 +161,17 @@ fun RandomNodeList(nodes: List<OrgNode>, onClick: (String) -> Unit) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
 
-    val cardWidth = (screenWidth * 0.6f)
+    val cardWidth = (screenWidth * 0.7f)
     val cardHeight = 120.dp
     val itemSpacing = 8.dp
-    val contentHorizontalPadding = 16.dp
+    val contentHorizontalPadding = 36.dp
 
     if (nodes.isNotEmpty()) {
         Text(
             "Random Notes",
             color = Color.Gray,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(horizontal = 36.dp)
         )
         HorizontalUncontainedCarousel(
             state = rememberCarouselState { nodes.count() },
@@ -229,7 +230,9 @@ fun RecentNodeList(nodes: List<OrgNode>, onClick: (String) -> Unit) {
         elevation = CardDefaults.cardElevation(
             defaultElevation = 2.dp
         ),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
         shape = RoundedCornerShape(10.dp)
     ) {
         NodeList(
