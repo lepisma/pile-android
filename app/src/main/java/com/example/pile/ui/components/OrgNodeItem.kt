@@ -15,9 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.pile.OrgNode
-import com.example.pile.isLiteratureNode
-import com.example.pile.isUnsortedNode
+import com.example.pile.data.OrgNode
+import com.example.pile.data.isLiteratureNode
+import com.example.pile.data.isUnsortedNode
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Regular
 import compose.icons.fontawesomeicons.Solid

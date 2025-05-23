@@ -1,9 +1,11 @@
 package com.example.pile
 
+import com.example.pile.data.generateInitialContent
+import com.example.pile.data.isLiteratureNodePath
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
 
-class DataKtTest {
+class DatabaseKtTest {
     @Test
     fun testIsLiterature_FileStringParsing() {
         val litPath = "content://com.android.externalstorage.documents/tree/primary%3ADocuments%2Fnotes/document/primary%3ADocuments%2Fnotes%2Fliterature%2F20230607233110-lima_less_is_more_for_alignment.org"

@@ -1,4 +1,4 @@
-package com.example.pile.ui.components
+package com.example.pile.ui.components.mainscreen
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -40,7 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.example.pile.OrgNodeType
+import com.example.pile.data.OrgNodeType
 import com.example.pile.ui.theme.PileTheme
 import com.example.pile.viewmodel.SharedViewModel
 import compose.icons.FontAwesomeIcons

@@ -1,4 +1,4 @@
-package com.example.pile.ui.components
+package com.example.pile.ui.components.mainscreen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,7 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.example.pile.OrgNode
+import com.example.pile.data.OrgNode
+import com.example.pile.ui.components.NodeList
 
 
 @Composable

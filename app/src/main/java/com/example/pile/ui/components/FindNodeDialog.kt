@@ -19,9 +19,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.example.pile.OrgNode
-import com.example.pile.OrgNodeType
-import com.example.pile.isDailyNode
+import com.example.pile.data.OrgNode
+import com.example.pile.data.OrgNodeType
+import com.example.pile.data.isDailyNode
 import com.example.pile.viewmodel.SharedViewModel
 
 /**

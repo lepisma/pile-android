@@ -1,4 +1,4 @@
-package com.example.pile.ui.components
+package com.example.pile.ui.components.mainscreen
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer

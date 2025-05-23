@@ -1,4 +1,4 @@
-package com.example.pile.ui.components
+package com.example.pile.ui.components.mainscreen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
@@ -29,8 +29,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.pile.OrgNode
-import com.example.pile.OrgNodeType
+import com.example.pile.data.OrgNode
+import com.example.pile.data.OrgNodeType
+import com.example.pile.ui.components.CreateNodeButton
+import com.example.pile.ui.components.FindField
+import com.example.pile.ui.components.NodeList
 import com.example.pile.viewmodel.SharedViewModel
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid

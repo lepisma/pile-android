@@ -1,4 +1,4 @@
-package com.example.pile.ui.components
+package com.example.pile.ui.components.mainscreen
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
@@ -22,7 +22,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.pile.OrgNodeType
+import com.example.pile.data.OrgNodeType
+import com.example.pile.ui.components.Calendar
+import com.example.pile.ui.components.FindField
+import com.example.pile.ui.components.NodeList
 import com.example.pile.viewmodel.SharedViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

@@ -1,23 +1,8 @@
-package com.example.pile
+package com.example.pile.data
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
-import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
-import androidx.room.Dao
-import androidx.room.Database
-import androidx.room.Delete
-import androidx.room.Entity
-import androidx.room.Insert
-import androidx.room.PrimaryKey
-import androidx.room.Query
-import androidx.room.RoomDatabase
-import androidx.room.TypeConverter
-import androidx.room.TypeConverters
-import androidx.room.Update
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.pile.orgmode.parseFileDatetime
 import com.example.pile.orgmode.parseId
 import com.example.pile.orgmode.parseTags
@@ -26,172 +11,11 @@ import com.example.pile.orgmode.readOrgPreamble
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
-
-/**
- * Data class representing each node in the zettelkasten. As of now this maps to file based nodes
- * and not Org header based ones.
- *
- * @property pinned Pile-Android specific flag to tell if this node is pinned. This can be moved to
- *                  files later.
- * @property tags   Org mode file tags.
- */
-@Entity(tableName = "nodes")
-data class OrgNode(
-    @PrimaryKey
-    val id: String,
-    val title: String,
-    val datetime: LocalDateTime,
-    val fileString: String,
-    val file: DocumentFile? = null,
-    val pinned: Boolean = false,
-    val tags: List<String> = listOf(),
-    val lastModified: Long = 0
-)
-
-enum class OrgNodeType {
-    CONCEPT, LITERATURE, DAILY
-}
-
-object TagsConverter {
-    @TypeConverter
-    @JvmStatic
-    fun toTags(value: String): List<String> {
-        return value.split(",").map { it -> it.trim() }
-    }
-
-    @TypeConverter
-    @JvmStatic
-    fun fromTags(tags: List<String>): String {
-        if (tags.isEmpty()) {
-            return ""
-        }
-
-        return tags.joinToString(", ")
-    }
-}
-
-object LocalDateTimeConverter {
-    @TypeConverter
-    @JvmStatic
-    fun toLocalDateTime(value: String?): LocalDateTime? {
-        return value?.let { LocalDateTime.parse(it) }
-    }
-
-    @TypeConverter
-    @JvmStatic
-    fun fromLocalDateTime(date: LocalDateTime?): String? {
-        return date?.toString()
-    }
-}
-
-object DocumentFileConverter {
-    @TypeConverter
-    @JvmStatic
-    fun toDocumentFile(value: String?): DocumentFile? {
-        return null
-    }
-
-    @TypeConverter
-    @JvmStatic
-    fun fromDocumentFile(value: DocumentFile?): String? {
-        return value?.toString()
-    }
-}
-
-@Dao
-interface NodeDao {
-    @Insert
-    fun insert(node: OrgNode)
-
-    @Insert
-    fun insertAll(vararg nodes: OrgNode)
-
-    @Query("SELECT count(*) FROM nodes")
-    fun countNodes(): Flow<Int>
-
-    @Query("SELECT * FROM nodes")
-    fun getAllNodes(): Flow<List<OrgNode>>
-
-    @Query("SELECT * FROM nodes ORDER BY lastModified DESC LIMIT :limit")
-    fun getRecentNodes(limit: Int): Flow<List<OrgNode>>
-
-    @Query("SELECT * FROM nodes WHERE id = :id")
-    fun getNodeById(id: String): OrgNode?
-
-    @Query("SELECT * FROM nodes WHERE title LIKE '____-__-__' AND STRFTIME('%Y-%m-%d', title) = title")
-    fun getDailyNodes(): Flow<List<OrgNode>>
-
-    @Query("SELECT * FROM nodes WHERE LOWER(title) LIKE '%' || LOWER(:query) || '%' ORDER BY title ASC")
-    fun searchNodesByTitle(query: String): Flow<List<OrgNode>>
-
-    @Update
-    fun updateNode(node: OrgNode)
-
-    @Delete
-    fun deleteNode(node: OrgNode)
-
-    @Query("DELETE FROM nodes")
-    fun deleteAll()
-
-    @Query("UPDATE nodes SET pinned = :pinned WHERE id = :id")
-    fun togglePinned(id: String, pinned: Boolean)
-}
-
-@Database(entities = [OrgNode::class], version = 5)
-@TypeConverters(LocalDateTimeConverter::class, DocumentFileConverter::class, TagsConverter::class)
-abstract class PileDatabase : RoomDatabase() {
-    abstract fun nodeDao(): NodeDao
-}
-
-val MIGRATION_1_2: Migration = object : Migration(1, 2) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE nodes ADD COLUMN bookmarked INTEGER NOT NULL DEFAULT 0")
-    }
-}
-
-val MIGRATION_2_3: Migration = object : Migration(2, 3) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        // This is assuming we don't have field renaming capability in the SQLite version
-        database.execSQL("""
-            CREATE TABLE nodes_new (
-                id TEXT NOT NULL PRIMARY KEY,
-                title TEXT NOT NULL,
-                datetime TEXT NOT NULL,
-                fileString TEXT NOT NULL,
-                file TEXT,
-                pinned INTEGER NOT NULL DEFAULT 0
-            )
-        """.trimIndent())
-
-        database.execSQL("""
-            INSERT INTO nodes_new (id, title, datetime, fileString, file, pinned)
-            SELECT id, title, datetime, fileString, file, bookmarked
-            FROM nodes
-        """.trimIndent())
-
-        database.execSQL("DROP TABLE nodes")
-
-        database.execSQL("ALTER TABLE nodes_new RENAME TO nodes")
-    }
-}
-
-val MIGRATION_3_4: Migration = object : Migration(3, 4) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE nodes ADD COLUMN tags TEXT NOT NULL DEFAULT ''")
-    }
-}
-
-val MIGRATION_4_5: Migration = object : Migration(4, 5) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE nodes ADD COLUMN lastModified INTEGER NOT NULL DEFAULT 0")
-    }
-}
 
 fun readFile(context: Context, file: DocumentFile): String {
     val contentResolver = context.contentResolver
@@ -342,35 +166,16 @@ fun createNewNode(
     nodeRef: String? = null,
     nodeTags: List<String>? = null): OrgNode? {
     return when (nodeType) {
-        OrgNodeType.LITERATURE -> createNewLiteratureNode(context, noteTitle, rootUri, nodeRef, nodeTags)
+        OrgNodeType.LITERATURE -> createNewLiteratureNode(
+            context,
+            noteTitle,
+            rootUri,
+            nodeRef,
+            nodeTags
+        )
         OrgNodeType.DAILY -> createNewDailyNode(context, noteTitle, rootUri, nodeTags)
         else -> createNewConceptNode(context, noteTitle, rootUri, nodeTags)
     }
-}
-
-/*
- Tell whether this is a daily note node only based on the file title. This would improve and become
- more robust later.
- */
-fun isDailyNode(node: OrgNode): Boolean = node.title.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))
-
-fun isLiteratureNodePath(path: String): Boolean {
-    val pattern = Regex("%2Fliterature%2F\\d{14}-")
-    return pattern.containsMatchIn(path)
-}
-
-fun isLiteratureNode(node: OrgNode): Boolean {
-    if (node.file?.parentFile?.name == "literature") {
-        return true
-    }
-
-    return isLiteratureNodePath(node.fileString)
-}
-
-// Tell if the node is a literature node which is not sorted (using Raindrop's terminology). These
-// are links that have not been read or skimmed.
-fun isUnsortedNode(node: OrgNode): Boolean {
-    return node.tags.contains("unsorted")
 }
 
 fun createAndWriteToFile(context: Context, directory: DocumentFile, fileName: String, text: String) {
@@ -426,31 +231,5 @@ fun traverseOrgFiles(dir: DocumentFile, fileList: MutableList<DocumentFile>) {
         } else if (file.isFile && file.name?.endsWith(".org") == true) {
             fileList.add(file)
         }
-    }
-}
-
-fun saveRootPath(context: Context, uri: Uri) {
-    val sharedPref = context.getSharedPreferences("pile", Context.MODE_PRIVATE)
-    with (sharedPref.edit()) {
-        putString("root-path", uri.toString())
-        apply()
-    }
-
-    /* Also take persistent permissions */
-    val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-    context.contentResolver.takePersistableUriPermission(uri, takeFlags)
-}
-
-/* Return the saved root path if any */
-fun loadRootPath(context: Context): Uri? {
-    val saved = context.getSharedPreferences("pile", Context.MODE_PRIVATE).getString("root-path", null)
-
-    return if (saved != null) {
-        val uri = saved.toUri()
-        val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-        context.contentResolver.takePersistableUriPermission(uri, takeFlags)
-        uri
-    } else {
-        null
     }
 }
