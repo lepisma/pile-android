@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pile.data.OrgNode
+import com.example.pile.data.isDailyNode
 import com.example.pile.data.isLiteratureNode
 import com.example.pile.data.isUnsortedNode
 import com.example.pile.ui.components.orgmode.OrgTags
@@ -23,6 +24,7 @@ import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Regular
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.regular.Bookmark
+import compose.icons.fontawesomeicons.regular.Calendar
 import compose.icons.fontawesomeicons.solid.Bookmark
 import java.time.format.DateTimeFormatter
 
@@ -42,6 +44,15 @@ fun OrgNodeItem(node: OrgNode, expandedView: Boolean, onClick: (String) -> Unit)
                         .size(14.dp)
                         .padding(end = 5.dp),
                     contentDescription = "Literature Node",
+                    tint = Color.Gray
+                )
+            } else if (isDailyNode(node)) {
+                Icon(
+                    imageVector = FontAwesomeIcons.Regular.Calendar,
+                    modifier = Modifier
+                        .size(14.dp)
+                        .padding(end = 5.dp),
+                    contentDescription = "Daily Node",
                     tint = Color.Gray
                 )
             }
