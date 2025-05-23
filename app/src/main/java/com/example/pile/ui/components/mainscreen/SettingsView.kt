@@ -62,6 +62,24 @@ fun SettingsView(viewModel: SharedViewModel) {
                         fontWeight = FontWeight.Bold
                     )
                 }
+                Row {
+                    Text(
+                        text = "Picking literature notes from: "
+                    )
+                    Text(
+                        text = "/literature",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Row {
+                    Text(
+                        text = "Picking dailies from: "
+                    )
+                    Text(
+                        text = "/daily",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
         ElevatedCard(
@@ -78,7 +96,7 @@ fun SettingsView(viewModel: SharedViewModel) {
                     modifier = Modifier.padding(bottom = 20.dp)
                 )
                 Text(
-                    text = "Total ${nodeCount} nodes in database",
+                    text = "Total ${nodeCount} notes in database",
                     fontStyle = FontStyle.Italic,
                     modifier = Modifier.padding(bottom = 5.dp),
                     color = Color.Gray
