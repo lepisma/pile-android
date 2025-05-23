@@ -1,4 +1,4 @@
-package com.example.pile.ui.components
+package com.example.pile.ui.components.orgmode
 
 import android.util.Log
 import android.widget.Toast

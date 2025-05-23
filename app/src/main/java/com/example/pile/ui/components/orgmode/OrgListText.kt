@@ -1,4 +1,4 @@
-package com.example.pile.ui.components
+package com.example.pile.ui.components.orgmode
 
 import android.graphics.Paint
 import android.graphics.Typeface

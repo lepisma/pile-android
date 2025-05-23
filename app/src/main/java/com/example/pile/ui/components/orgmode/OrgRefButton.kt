@@ -1,4 +1,4 @@
-package com.example.pile.ui.components
+package com.example.pile.ui.components.orgmode
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row

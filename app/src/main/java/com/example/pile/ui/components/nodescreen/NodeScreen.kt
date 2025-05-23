@@ -49,15 +49,15 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.pile.data.OrgNode
+import com.example.pile.data.readFile
 import com.example.pile.orgmode.parseNodeLinks
 import com.example.pile.orgmode.parseTags
-import com.example.pile.data.readFile
 import com.example.pile.ui.components.FindNodeDialog
 import com.example.pile.ui.components.NodeEditField
 import com.example.pile.ui.components.NodeList
-import com.example.pile.ui.components.OrgPreview
 import com.example.pile.ui.components.StructuredNavigationButton
 import com.example.pile.ui.components.StructuredNavigationDirection
+import com.example.pile.ui.components.orgmode.OrgPreview
 import com.example.pile.ui.theme.PileTheme
 import com.example.pile.viewmodel.SharedViewModel
 import compose.icons.FontAwesomeIcons

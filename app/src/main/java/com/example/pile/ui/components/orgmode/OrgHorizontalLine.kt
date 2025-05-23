@@ -1,4 +1,4 @@
-package com.example.pile.ui.components
+package com.example.pile.ui.components.orgmode
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Divider

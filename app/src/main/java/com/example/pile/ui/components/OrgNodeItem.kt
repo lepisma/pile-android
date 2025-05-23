@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import com.example.pile.data.OrgNode
 import com.example.pile.data.isLiteratureNode
 import com.example.pile.data.isUnsortedNode
+import com.example.pile.ui.components.orgmode.OrgTags
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Regular
 import compose.icons.fontawesomeicons.Solid
