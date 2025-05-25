@@ -24,6 +24,7 @@ import com.example.pile.data.MIGRATION_1_2
 import com.example.pile.data.MIGRATION_2_3
 import com.example.pile.data.MIGRATION_3_4
 import com.example.pile.data.MIGRATION_4_5
+import com.example.pile.data.Migration_5_6
 import com.example.pile.data.NodeDao
 import com.example.pile.data.PileDatabase
 import com.example.pile.data.createNewNode
@@ -55,7 +56,13 @@ class MainActivity : ComponentActivity() {
             applicationContext,
             PileDatabase::class.java, "pile-database"
         )
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+            .addMigrations(
+                MIGRATION_1_2,
+                MIGRATION_2_3,
+                MIGRATION_3_4,
+                MIGRATION_4_5,
+                Migration_5_6(applicationContext)
+            )
             .build()
         nodeDao = db.nodeDao()
         viewModel = SharedViewModel(

@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.pile.data.OrgNodeType
+import com.example.pile.ui.components.mainscreen.home.HomeView
 import com.example.pile.ui.theme.PileTheme
 import com.example.pile.viewmodel.SharedViewModel
 import compose.icons.FontAwesomeIcons
@@ -50,7 +51,6 @@ import compose.icons.fontawesomeicons.Regular
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.regular.Bookmark
 import compose.icons.fontawesomeicons.solid.Book
-import compose.icons.fontawesomeicons.solid.CalendarDay
 import compose.icons.fontawesomeicons.solid.Glasses
 import compose.icons.fontawesomeicons.solid.Hammer
 import kotlinx.coroutines.Dispatchers
@@ -105,7 +105,6 @@ fun MainScreen(
                 NavigationBar {
                     listOf(
                         Pair("Notes", FontAwesomeIcons.Solid.Book),
-                        Pair("Journal", FontAwesomeIcons.Solid.CalendarDay),
                         Pair("Search", FontAwesomeIcons.Solid.Glasses),
                         Pair("Settings", FontAwesomeIcons.Solid.Hammer)
                     ).forEachIndexed { index, (label, icon) ->
@@ -136,10 +135,9 @@ fun MainScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     when (selectedNavIndex) {
-                        0 -> FindView(viewModel, openNodeById, createAndOpenNode)
-                        1 -> JournalView(viewModel, openNodeById, createAndOpenNode)
-                        2 -> SearchView()
-                        3 -> SettingsView(viewModel)
+                        0 -> HomeView(viewModel, openNodeById, createAndOpenNode)
+                        1 -> SearchView()
+                        2 -> SettingsView(viewModel)
                     }
 
                     if (showCaptureSheet) {

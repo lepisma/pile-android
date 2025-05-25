@@ -1,5 +1,7 @@
 package com.example.pile.data
 
+import android.content.Context
+import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.room.Dao
 import androidx.room.Database
@@ -61,6 +63,29 @@ object DocumentFileConverter {
     }
 }
 
+object NodeTypeConverter {
+    @TypeConverter
+    @JvmStatic
+    fun toNodeType(value: String?): OrgNodeType? {
+        if (value == null) {
+            return null
+        }
+
+        return when (value) {
+            "CONCEPT" -> OrgNodeType.CONCEPT
+            "LITERATURE" -> OrgNodeType.LITERATURE
+            "DAILY" -> OrgNodeType.DAILY
+            else -> null
+        }
+    }
+
+    @TypeConverter
+    @JvmStatic
+    fun fromNodeType(value: OrgNodeType?): String? {
+        return value?.toString()
+    }
+}
+
 @Dao
 interface NodeDao {
     @Insert
@@ -100,7 +125,7 @@ interface NodeDao {
     fun togglePinned(id: String, pinned: Boolean)
 }
 
-@Database(entities = [OrgNode::class], version = 5)
+@Database(entities = [OrgNode::class], version = 6)
 @TypeConverters(LocalDateTimeConverter::class, DocumentFileConverter::class, TagsConverter::class)
 abstract class PileDatabase : RoomDatabase() {
     abstract fun nodeDao(): NodeDao
@@ -147,5 +172,34 @@ val MIGRATION_3_4: Migration = object : Migration(3, 4) {
 val MIGRATION_4_5: Migration = object : Migration(4, 5) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE nodes ADD COLUMN lastModified INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+class Migration_5_6(
+    private val applicationContext: Context
+) : Migration(5, 6) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE nodes ADD COLUMN ref TEXT")
+        database.execSQL("ALTER TABLE nodes ADD COLUMN nodeType TEXT NOT NULL DEFAULT 'CONCEPT'")
+
+        // We need to parse existing nodes to get these values
+        val cursor = database.query("SELECT id, fileString FROM nodes")
+        cursor.use {
+            while (it.moveToNext()) {
+                val nodeId = it.getString(it.getColumnIndexOrThrow("id"))
+                val fileString = it.getString(it.getColumnIndexOrThrow("fileString"))
+                val file = DocumentFile.fromTreeUri(applicationContext, fileString.toUri())
+
+                try {
+                    val node = parseFileOrgNode(applicationContext, file!!)
+                    database.execSQL(
+                        "UPDATE nodes SET nodeType = ?, ref = ? WHERE id = ?",
+                        arrayOf(node.nodeType.toString(), node.ref, nodeId)
+                        )
+                } catch (e: Exception) {
+                    println("Error parsing node from ${fileString}: ${e.message}")
+                }
+            }
+        }
     }
 }

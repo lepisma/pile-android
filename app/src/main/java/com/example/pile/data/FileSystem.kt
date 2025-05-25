@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import com.example.pile.orgmode.parseFileDatetime
 import com.example.pile.orgmode.parseId
+import com.example.pile.orgmode.parseOrgRef
 import com.example.pile.orgmode.parseTags
 import com.example.pile.orgmode.parseTitle
 import com.example.pile.orgmode.readOrgPreamble
@@ -83,7 +84,9 @@ private fun createNewLiteratureNode(context: Context, noteTitle: String, rootUri
                     fileString = it.uri.toString(),
                     file = it,
                     tags = nodeTags ?: listOf(),
-                    lastModified = System.currentTimeMillis()
+                    lastModified = System.currentTimeMillis(),
+                    nodeType = OrgNodeType.LITERATURE,
+                    ref = nodeRef
                 )
             }
         }
@@ -108,7 +111,9 @@ private fun createNewConceptNode(context: Context, noteTitle: String, rootUri: U
                 fileString = it.uri.toString(),
                 file = it,
                 tags = nodeTags ?: listOf(),
-                lastModified = System.currentTimeMillis()
+                lastModified = System.currentTimeMillis(),
+                nodeType = OrgNodeType.CONCEPT,
+                ref = null
             )
         }
     }
@@ -139,7 +144,9 @@ private fun createNewDailyNode(context: Context, noteTitle: String, rootUri: Uri
                     fileString = it.uri.toString(),
                     file = it,
                     tags = nodeTags ?: listOf(),
-                    lastModified = System.currentTimeMillis()
+                    lastModified = System.currentTimeMillis(),
+                    nodeType = OrgNodeType.DAILY,
+                    ref = null
                 )
             }
         }
@@ -198,17 +205,33 @@ fun parseFileOrgNode(context: Context, file: DocumentFile): OrgNode {
     val preamble = readOrgPreamble(context, file)
     val title = parseTitle(preamble)
     val tags = parseTags(preamble)
+    val ref = parseOrgRef(preamble)
+
     // This is not correct since UUID is probably not the way org-id works
     val nodeId = parseId(preamble) ?: UUID.randomUUID().toString()
+    val fileString = file.uri.toString()
+
+    // This will need more work after I allow configuring paths for literature and daily nodes
+    val nodeType = if (title.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))) {
+        // Any node with Date like pattern in title is a daily note
+        OrgNodeType.DAILY
+    } else if (ref != null) {
+        // A node with ref set is literature note
+        OrgNodeType.LITERATURE
+    } else {
+        OrgNodeType.CONCEPT
+    }
 
     return OrgNode(
-        nodeId,
-        title,
-        parseFileDatetime(file),
-        file.uri.toString(),
-        file,
+        id = nodeId,
+        title = title,
+        datetime = parseFileDatetime(file),
+        fileString = fileString,
+        file = file,
         tags = tags,
-        lastModified = file.lastModified()
+        lastModified = file.lastModified(),
+        ref = ref,
+        nodeType = nodeType
     )
 }
 

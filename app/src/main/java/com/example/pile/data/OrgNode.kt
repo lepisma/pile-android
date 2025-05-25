@@ -12,6 +12,8 @@ import java.time.LocalDateTime
  * @property pinned Pile-Android specific flag to tell if this node is pinned. This can be moved to
  *                  files later.
  * @property tags   Org mode file tags.
+ * @property datetime Created (local) datetime for the node
+ * @property lastModified Milliseconds since epoch representing last modified time
  */
 @Entity(tableName = "nodes")
 data class OrgNode(
@@ -23,30 +25,17 @@ data class OrgNode(
     val file: DocumentFile? = null,
     val pinned: Boolean = false,
     val tags: List<String> = listOf(),
-    val lastModified: Long = 0
+    val lastModified: Long = 0,
+    val nodeType: OrgNodeType,
+    val ref: String? = null
 )
 
 enum class OrgNodeType {
     CONCEPT, LITERATURE, DAILY
 }
 
-/*
- Tell whether this is a daily note node only based on the file title. This would improve and become
- more robust later.
- */
-fun isDailyNode(node: OrgNode): Boolean = node.title.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))
-fun isLiteratureNodePath(path: String): Boolean {
-    val pattern = Regex("%2Fliterature%2F\\d{14}-")
-    return pattern.containsMatchIn(path)
-}
-
-fun isLiteratureNode(node: OrgNode): Boolean {
-    if (node.file?.parentFile?.name == "literature") {
-        return true
-    }
-
-    return isLiteratureNodePath(node.fileString)
-}
+fun isDailyNode(node: OrgNode): Boolean = node.nodeType == OrgNodeType.DAILY
+fun isLiteratureNode(node: OrgNode): Boolean = node.nodeType == OrgNodeType.LITERATURE
 
 // Tell if the node is a literature node which is not sorted (using Raindrop's terminology). These
 // are links that have not been read or skimmed.
