@@ -106,7 +106,31 @@ class SharedViewModel(
             nodeDao.getAllNodes()
                 .map { nodesFromDb ->
                     withContext(Dispatchers.Default) {
-                        nodesFromDb.shuffled()
+                        nodesFromDb
+                            .filter { node -> node.nodeType == OrgNodeType.CONCEPT }
+                            .shuffled()
+                            .take(5)
+                            .map { node ->
+                                node.copy(file = DocumentFile.fromTreeUri(applicationContext, node.fileString.toUri()))
+                            }
+                    }
+                }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val randomLiteratureNodes: StateFlow<List<OrgNode>> = _randomNodesTrigger
+        .flatMapLatest { _ ->
+            nodeDao.getAllNodes()
+                .map { nodesFromDb ->
+                    withContext(Dispatchers.Default) {
+                        nodesFromDb
+                            .filter { node -> node.nodeType == OrgNodeType.LITERATURE }
+                            .shuffled()
                             .take(5)
                             .map { node ->
                                 node.copy(file = DocumentFile.fromTreeUri(applicationContext, node.fileString.toUri()))
