@@ -79,7 +79,7 @@ fun OrgNodeCard(
     val screenWidth = configuration.screenWidthDp.dp
 
     val cardWidth = (screenWidth * 0.7f)
-    val cardHeight = if (compact) 120.dp else 150.dp
+    val cardHeight = if (compact) 100.dp else 150.dp
 
     Card(
         modifier = modifier
@@ -135,7 +135,7 @@ fun OrgNodeCard(
                 Spacer(Modifier.weight(1f))
                 Text(
                     text = node.title,
-                    maxLines = 3,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface
