@@ -106,7 +106,7 @@ interface NodeDao {
     @Query("SELECT * FROM nodes WHERE id = :id")
     fun getNodeById(id: String): OrgNode?
 
-    @Query("SELECT * FROM nodes WHERE title LIKE '____-__-__' AND STRFTIME('%Y-%m-%d', title) = title")
+    @Query("SELECT * FROM nodes WHERE nodeType = 'DAILY'")
     fun getDailyNodes(): Flow<List<OrgNode>>
 
     @Query("SELECT * FROM nodes WHERE LOWER(title) LIKE '%' || LOWER(:query) || '%' ORDER BY title ASC")
