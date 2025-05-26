@@ -52,7 +52,7 @@ fun JournalStrip(dailyNodes: List<OrgNode>, openNodeById: (String) -> Unit, modi
                 val node = dailyNodes.find { it.datetime.toLocalDate() == date }
 
                 ElevatedCard(
-                    enabled = node != null,
+                    enabled = isToday || node != null,
                     modifier = Modifier
                         .width(50.dp)
                         .height(50.dp),
