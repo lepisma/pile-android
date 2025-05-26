@@ -23,7 +23,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.pile.data.OrgNode
+import com.example.pile.data.OrgNodeType
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -31,7 +33,12 @@ import java.util.Locale
  * Calendar strip that allows working with org-roam daily entries
  */
 @Composable
-fun JournalStrip(dailyNodes: List<OrgNode>, openNodeById: (String) -> Unit, modifier: Modifier = Modifier) {
+fun JournalStrip(
+    dailyNodes: List<OrgNode>,
+    openNodeById: (String) -> Unit,
+    createAndOpenNode: (String, OrgNodeType, String?, List<String>?) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val today = LocalDate.now()
     val lastWeek = (0L until 7).map { i ->
         val date = today.minusDays(6 - i)
@@ -71,6 +78,9 @@ fun JournalStrip(dailyNodes: List<OrgNode>, openNodeById: (String) -> Unit, modi
                     onClick = {
                         if (node != null) {
                             openNodeById(node.id)
+                        } else if (isToday) {
+                            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                            createAndOpenNode(date.format(formatter), OrgNodeType.DAILY, null, null)
                         }
                     },
                 ) {

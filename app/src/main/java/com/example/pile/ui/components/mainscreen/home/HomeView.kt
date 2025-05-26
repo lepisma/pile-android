@@ -101,7 +101,12 @@ fun HomeView(
                         compact = false,
                         onClick = openNodeById
                     )
-                    JournalStrip(dailyNodes, openNodeById, modifier = Modifier.padding(horizontal = 20.dp))
+                    JournalStrip(
+                        dailyNodes,
+                        openNodeById,
+                        createAndOpenNode,
+                        modifier = Modifier.padding(horizontal = 20.dp)
+                    )
                 } else {
                     NodeList(
                         nodes = searchResults,
