@@ -9,9 +9,6 @@ import com.example.pile.orgmode.parseOrgRef
 import com.example.pile.orgmode.parseTags
 import com.example.pile.orgmode.parseTitle
 import com.example.pile.orgmode.readOrgPreamble
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.time.LocalDateTime
@@ -74,17 +71,17 @@ private fun createNewLiteratureNode(context: Context, noteTitle: String, rootUri
         val directory = root.findFile("literature") ?: root.createDirectory("literature")
 
         directory?.let { dir ->
-            createAndWriteToFile(context, dir, fileName, initialContent)
+            val createdFile = createAndWriteToFile(context, dir, fileName, initialContent)
 
-            dir.findFile(fileName)?.let {
+            createdFile?.let { file ->
                 return OrgNode(
                     id = nodeId,
                     title = noteTitle,
                     datetime = datetime,
-                    fileString = it.uri.toString(),
-                    file = it,
+                    fileString = file.uri.toString(),
+                    file = file,
                     tags = nodeTags ?: listOf(),
-                    lastModified = System.currentTimeMillis(),
+                    lastModified = file.lastModified(),
                     nodeType = OrgNodeType.LITERATURE,
                     ref = nodeRef
                 )
@@ -101,17 +98,17 @@ private fun createNewConceptNode(context: Context, noteTitle: String, rootUri: U
         val fileName = generateFileName(noteTitle, datetime)
         val initialContent = generateInitialContent(noteTitle, nodeId, null, nodeTags)
 
-        createAndWriteToFile(context, root, fileName, initialContent)
+        val createdFile = createAndWriteToFile(context, root, fileName, initialContent)
 
-        root.findFile(fileName)?.let {
+        createdFile?.let { file ->
             return OrgNode(
                 id = nodeId,
                 title = noteTitle,
                 datetime = datetime,
-                fileString = it.uri.toString(),
-                file = it,
+                fileString = file.uri.toString(),
+                file = file,
                 tags = nodeTags ?: listOf(),
-                lastModified = System.currentTimeMillis(),
+                lastModified = file.lastModified(),
                 nodeType = OrgNodeType.CONCEPT,
                 ref = null
             )
@@ -134,17 +131,17 @@ private fun createNewDailyNode(context: Context, noteTitle: String, rootUri: Uri
         val directory = root.findFile("daily") ?: root.createDirectory("daily")
 
         directory?.let { dir ->
-            createAndWriteToFile(context, dir, fileName, initialContent)
+            val createdFile = createAndWriteToFile(context, dir, fileName, initialContent)
 
-            dir.findFile(fileName)?.let {
+            createdFile?.let { file ->
                 return OrgNode(
                     id = nodeId,
                     title = noteTitle,
                     datetime = datetime,
-                    fileString = it.uri.toString(),
-                    file = it,
+                    fileString = file.uri.toString(),
+                    file = file,
                     tags = nodeTags ?: listOf(),
-                    lastModified = System.currentTimeMillis(),
+                    lastModified = file.lastModified(),
                     nodeType = OrgNodeType.DAILY,
                     ref = null
                 )
@@ -185,14 +182,15 @@ fun createNewNode(
     }
 }
 
-fun createAndWriteToFile(context: Context, directory: DocumentFile, fileName: String, text: String) {
-    val newFile = directory.createFile("application/octet-stream", fileName)
+fun createAndWriteToFile(context: Context, directory: DocumentFile, fileName: String, text: String): DocumentFile? {
+    val newFile = directory.createFile("text/plain", fileName)
 
     newFile?.uri?.let { uri ->
         context.contentResolver.openOutputStream(uri)?.use { outputStream ->
             outputStream.write(text.toByteArray())
         }
     }
+    return newFile
 }
 
 fun writeFile(context: Context, file: DocumentFile, text: String) {
@@ -235,19 +233,20 @@ fun parseFileOrgNode(context: Context, file: DocumentFile): OrgNode {
     )
 }
 
-suspend fun readFilesFromDirectory(context: Context, uri: Uri): List<OrgNode> = coroutineScope {
+/**
+ * List all org node files from the given directory
+ */
+fun nodeFilesFromDirectory(context: Context, uri: Uri): List<DocumentFile> {
     val fileList: MutableList<DocumentFile> = mutableListOf()
     val root = DocumentFile.fromTreeUri(context, uri)
     if (root != null) {
         traverseOrgFiles(root, fileList)
     }
 
-    return@coroutineScope fileList.map { file ->
-        async { parseFileOrgNode(context, file) }
-    }.awaitAll()
+    return fileList
 }
 
-fun traverseOrgFiles(dir: DocumentFile, fileList: MutableList<DocumentFile>) {
+private fun traverseOrgFiles(dir: DocumentFile, fileList: MutableList<DocumentFile>) {
     for (file in dir.listFiles()) {
         if (file.isDirectory) {
             traverseOrgFiles(file, fileList)

@@ -86,6 +86,15 @@ object NodeTypeConverter {
     }
 }
 
+/**
+ * Information regarding a node that's relevant for working with file system
+ */
+data class FileInfo(
+    val id: String,
+    val fileString: String,
+    val lastModified: Long
+)
+
 @Dao
 interface NodeDao {
     @Insert
@@ -96,6 +105,9 @@ interface NodeDao {
 
     @Query("SELECT count(*) FROM nodes")
     fun countNodes(): Flow<Int>
+
+    @Query("SELECT id, fileString, lastModified FROM nodes")
+    fun getFileInfo(): List<FileInfo>
 
     @Query("SELECT * FROM nodes")
     fun getAllNodes(): Flow<List<OrgNode>>
@@ -117,6 +129,9 @@ interface NodeDao {
 
     @Delete
     fun deleteNode(node: OrgNode)
+
+    @Query("DELETE FROM nodes WHERE id = :id")
+    fun deleteNodeById(id: String)
 
     @Query("DELETE FROM nodes")
     fun deleteAll()

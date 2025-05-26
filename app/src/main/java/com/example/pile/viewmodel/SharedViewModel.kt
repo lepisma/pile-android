@@ -2,6 +2,7 @@ package com.example.pile.viewmodel
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
@@ -11,7 +12,8 @@ import com.example.pile.data.NodeDao
 import com.example.pile.data.OrgNode
 import com.example.pile.data.OrgNodeType
 import com.example.pile.data.createNewNode
-import com.example.pile.data.readFilesFromDirectory
+import com.example.pile.data.nodeFilesFromDirectory
+import com.example.pile.data.parseFileOrgNode
 import com.example.pile.data.writeFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -210,11 +212,57 @@ class SharedViewModel(
             notify("Root directory not set, aborting sync")
         } else {
             viewModelScope.launchWithLoading {
+                Log.d("DB", "Starting database sync")
+                val startTime = System.currentTimeMillis()
+
                 withContext(Dispatchers.IO) {
-                    // TODO: Currently performing full sync, fix this to make it faster
-                    nodeDao.deleteAll()
-                    val nodes = readFilesFromDirectory(applicationContext, _rootUri.value!!)
-                    nodeDao.insertAll(*nodes.toTypedArray())
+                    val dbFileInfoMap = nodeDao.getFileInfo().associateBy { it -> it.fileString }
+
+                    val dirFilesStartTime = System.currentTimeMillis()
+                    val dirFiles = nodeFilesFromDirectory(applicationContext, _rootUri.value!!)
+                    val dirFilesEndTime = System.currentTimeMillis()
+                    Log.d("DB", "Scanned directory for files in ${dirFilesEndTime - dirFilesStartTime} ms. Found: ${dirFiles.size} files.")
+
+                    val nodesToDelete: MutableSet<String> = dbFileInfoMap.keys.toMutableSet()
+
+                    var updateCount = 0
+                    var insertCount = 0
+
+                    for (file in dirFiles) {
+                        val fileString = file.uri.toString()
+                        if (dbFileInfoMap.contains(fileString)) {
+                            // File already stored in db as node
+                            val fileInfo = dbFileInfoMap.get(fileString)!!
+                            if (fileInfo.lastModified < file.lastModified()) {
+                                // File in directory seems to be modified more recently than the
+                                // snapshot stored in database. Let's update it.
+                                val node = parseFileOrgNode(applicationContext, file)
+                                nodeDao.updateNode(node)
+                                updateCount += 1
+                            }
+
+                            nodesToDelete.remove(fileInfo.fileString)
+                        } else {
+                            // At this point, we need to do a full parse and insert node in the database
+                            val node = parseFileOrgNode(applicationContext, file)
+                            nodeDao.insert(node)
+                            insertCount += 1
+                        }
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        notify("Inserted ${insertCount} new notes, updated ${updateCount} notes")
+                    }
+
+                    // Delete all the nodes from db that are not reflected in the filesystem
+                    for (fileString in nodesToDelete) {
+                        nodeDao.deleteNodeById(dbFileInfoMap.get(fileString)!!.id)
+                    }
+                    if (nodesToDelete.count() > 0) {
+                        withContext(Dispatchers.Main) {
+                            notify("Deleted ${nodesToDelete.count()} notes")
+                        }
+                    }
                 }
             }
         }
