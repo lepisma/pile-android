@@ -2,7 +2,6 @@ package com.example.pile.viewmodel
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
@@ -212,17 +211,9 @@ class SharedViewModel(
             notify("Root directory not set, aborting sync")
         } else {
             viewModelScope.launchWithLoading {
-                Log.d("DB", "Starting database sync")
-                val startTime = System.currentTimeMillis()
-
                 withContext(Dispatchers.IO) {
-                    val dbFileInfoMap = nodeDao.getFileInfo().associateBy { it -> it.fileString }
-
-                    val dirFilesStartTime = System.currentTimeMillis()
+                    val dbFileInfoMap = nodeDao.getFileInfo().associateBy { it.fileString }
                     val dirFiles = nodeFilesFromDirectory(applicationContext, _rootUri.value!!)
-                    val dirFilesEndTime = System.currentTimeMillis()
-                    Log.d("DB", "Scanned directory for files in ${dirFilesEndTime - dirFilesStartTime} ms. Found: ${dirFiles.size} files.")
-
                     val nodesToDelete: MutableSet<String> = dbFileInfoMap.keys.toMutableSet()
 
                     var updateCount = 0
@@ -233,10 +224,11 @@ class SharedViewModel(
                         if (dbFileInfoMap.contains(fileString)) {
                             // File already stored in db as node
                             val fileInfo = dbFileInfoMap.get(fileString)!!
-                            if (fileInfo.lastModified < file.lastModified()) {
+                            if (fileInfo.lastModified < file.lastModified) {
                                 // File in directory seems to be modified more recently than the
                                 // snapshot stored in database. Let's update it.
-                                val node = parseFileOrgNode(applicationContext, file)
+                                val docFile = DocumentFile.fromSingleUri(applicationContext, file.uri)
+                                val node = parseFileOrgNode(applicationContext, docFile!!)
                                 nodeDao.updateNode(node)
                                 updateCount += 1
                             }
@@ -244,7 +236,8 @@ class SharedViewModel(
                             nodesToDelete.remove(fileInfo.fileString)
                         } else {
                             // At this point, we need to do a full parse and insert node in the database
-                            val node = parseFileOrgNode(applicationContext, file)
+                            val docFile = DocumentFile.fromSingleUri(applicationContext, file.uri)
+                            val node = parseFileOrgNode(applicationContext, docFile!!)
                             nodeDao.insert(node)
                             insertCount += 1
                         }

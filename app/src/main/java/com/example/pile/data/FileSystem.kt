@@ -1,7 +1,10 @@
 package com.example.pile.data
 
+import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
+import android.provider.DocumentsContract
+import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import com.example.pile.orgmode.parseFileDatetime
 import com.example.pile.orgmode.parseId
@@ -234,24 +237,87 @@ fun parseFileOrgNode(context: Context, file: DocumentFile): OrgNode {
 }
 
 /**
+ * Data class to bypass DocumentFile for faster directory scanning
+ */
+data class OptimizedFileInfo(
+    val uri: Uri,
+    val name: String,
+    val isDirectory: Boolean,
+    val lastModified: Long
+)
+
+/**
  * List all org node files from the given directory
  */
-fun nodeFilesFromDirectory(context: Context, uri: Uri): List<DocumentFile> {
-    val fileList: MutableList<DocumentFile> = mutableListOf()
-    val root = DocumentFile.fromTreeUri(context, uri)
-    if (root != null) {
-        traverseOrgFiles(root, fileList)
+fun nodeFilesFromDirectory(context: Context, uri: Uri): List<OptimizedFileInfo> {
+    val fileList: MutableList<OptimizedFileInfo> = mutableListOf()
+    val contentResolver = context.contentResolver
+
+    try {
+        val rootDocumentId = DocumentsContract.getTreeDocumentId(uri)
+        val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(uri, rootDocumentId)
+
+        traverseOrgFiles(contentResolver, childrenUri, fileList)
+    } catch (e: Exception) {
+        Log.e("FS", "Error initializing SAF traversal for URI: $uri", e)
     }
 
     return fileList
 }
 
-private fun traverseOrgFiles(dir: DocumentFile, fileList: MutableList<DocumentFile>) {
-    for (file in dir.listFiles()) {
-        if (file.isDirectory) {
-            traverseOrgFiles(file, fileList)
-        } else if (file.isFile && file.name?.endsWith(".org") == true) {
-            fileList.add(file)
+private fun traverseOrgFiles(
+    contentResolver: ContentResolver,
+    currentUri: Uri,
+    fileList: MutableList<OptimizedFileInfo>
+) {
+    val projection = arrayOf(
+        DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+        DocumentsContract.Document.COLUMN_MIME_TYPE,
+        DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+        DocumentsContract.Document.COLUMN_LAST_MODIFIED
+    )
+
+    var cursor: android.database.Cursor? = null
+
+    try {
+        cursor = contentResolver.query(
+            currentUri,
+            projection,
+            null,
+            null,
+            null
+        )
+
+        cursor?.use {
+            while (it.moveToNext()) {
+                val documentId = it.getString(it.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DOCUMENT_ID))
+                val mimeType = it.getString(it.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_MIME_TYPE))
+                val displayName = it.getString(it.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME))
+                val lastModified = it.getLong(it.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_LAST_MODIFIED))
+
+                val childUri = DocumentsContract.buildDocumentUriUsingTree(currentUri, documentId)
+
+                if (DocumentsContract.Document.MIME_TYPE_DIR == mimeType) {
+                    traverseOrgFiles(
+                        contentResolver,
+                        DocumentsContract.buildChildDocumentsUriUsingTree(childUri, documentId),
+                        fileList
+                    )
+                } else if (displayName.endsWith(".org", ignoreCase = true)) {
+                    fileList.add(
+                        OptimizedFileInfo(
+                            uri = childUri,
+                            name = displayName,
+                            isDirectory = false,
+                            lastModified = lastModified
+                        )
+                    )
+                }
+            }
         }
+    } catch (e: Exception) {
+        Log.e("FS", "Error traversing SAF tree at URI: $currentUri - ${e.message}", e)
+    } finally {
+        cursor?.close()
     }
 }
