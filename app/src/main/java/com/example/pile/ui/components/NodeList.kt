@@ -18,10 +18,11 @@ fun NodeList(
     nodes: List<OrgNode>,
     heading: String?,
     onClick: (String) -> Unit,
-    expandedView: Boolean = false
+    expandedView: Boolean = false,
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {

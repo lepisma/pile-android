@@ -43,7 +43,7 @@ fun HomeView(
     openNodeById: (String) -> Unit,
     createAndOpenNode: (nodeTitle: String, nodeType: OrgNodeType, refLink: String?, tags: List<String>?) -> Unit
 ) {
-    var text by remember { mutableStateOf("") }
+    var searchText by remember { mutableStateOf("") }
     var showPinnedDialog by remember { mutableStateOf(false) }
 
     val recentNodes by viewModel.recentNodes.collectAsState()
@@ -65,7 +65,7 @@ fun HomeView(
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                if (text == "") {
+                if (searchText == "") {
                     Text(
                         text = "Pile",
                         style = MaterialTheme.typography.displayMedium,
@@ -108,11 +108,29 @@ fun HomeView(
                         modifier = Modifier.padding(horizontal = 20.dp)
                     )
                 } else {
-                    NodeList(
-                        nodes = searchResults,
-                        heading = null,
-                        onClick = openNodeById
+                    Text(
+                        text = "Search by title",
+                        style = MaterialTheme.typography.displaySmall,
+                        color = MaterialTheme.colorScheme.outline,
+                        fontWeight = FontWeight.Bold,
+                        fontStyle = FontStyle.Italic,
+                        modifier = Modifier.padding(horizontal = 36.dp)
                     )
+                    if (searchResults.isEmpty()) {
+                        Text(
+                            text = "No matches found",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.padding(horizontal = 36.dp, vertical = 10.dp)
+                        )
+                    } else {
+                        NodeList(
+                            nodes = searchResults,
+                            heading = null,
+                            onClick = openNodeById,
+                            modifier = Modifier.padding(horizontal = 20.dp)
+                        )
+                    }
                 }
             }
 
@@ -124,8 +142,8 @@ fun HomeView(
                 )
             }
 
-            if (text != "") {
-                CreateNodeButton(text) { nodeTitle, nodeType ->
+            if (searchText != "") {
+                CreateNodeButton(searchText) { nodeTitle, nodeType ->
                     createAndOpenNode(
                         nodeTitle,
                         nodeType,
@@ -152,9 +170,9 @@ fun HomeView(
                     )
                 }
                 FindField(
-                    text = text,
+                    text = searchText,
                     onTextEntry = {
-                        text = it
+                        searchText = it
                         viewModel.setSearchQuery(it)
                     },
                     label = "Find or Create",
