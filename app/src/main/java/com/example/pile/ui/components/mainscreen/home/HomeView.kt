@@ -49,6 +49,7 @@ fun HomeView(
     val recentNodes by viewModel.recentNodes.collectAsState()
     val randomNodes by viewModel.randomNodes.collectAsState()
     val randomLiteratureNodes by viewModel.randomLiteratureNodes.collectAsState()
+    val dailyNodes by viewModel.dailyNodes.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
 
     viewModel.generateNewRandomNodes()
@@ -100,7 +101,7 @@ fun HomeView(
                         compact = false,
                         onClick = openNodeById
                     )
-                    JournalStrip(modifier = Modifier.padding(horizontal = 20.dp))
+                    JournalStrip(dailyNodes, openNodeById, modifier = Modifier.padding(horizontal = 20.dp))
                 } else {
                     NodeList(
                         nodes = searchResults,
