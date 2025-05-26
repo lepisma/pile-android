@@ -75,7 +75,7 @@ fun FindNodeDialog(
                             heading = null,
                             onClick = { /* TODO onClick(it) */ }
                         )
-                        CreateNodeButton(text) { title, nodeType -> onCreateClick(title, nodeType) }
+                        NewNodeButton(text) { title, nodeType -> onCreateClick(title, nodeType) }
                     }
                     FindField(
                         text = text,

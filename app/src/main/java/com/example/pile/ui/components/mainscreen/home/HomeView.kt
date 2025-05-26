@@ -26,8 +26,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.pile.data.OrgNodeType
-import com.example.pile.ui.components.CreateNodeButton
 import com.example.pile.ui.components.FindField
+import com.example.pile.ui.components.NewNodeButton
 import com.example.pile.ui.components.NodeList
 import com.example.pile.viewmodel.SharedViewModel
 import compose.icons.FontAwesomeIcons
@@ -143,7 +143,7 @@ fun HomeView(
             }
 
             if (searchText != "") {
-                CreateNodeButton(searchText) { nodeTitle, nodeType ->
+                NewNodeButton(searchText) { nodeTitle, nodeType ->
                     createAndOpenNode(
                         nodeTitle,
                         nodeType,
