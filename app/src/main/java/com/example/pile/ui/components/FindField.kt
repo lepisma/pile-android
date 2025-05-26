@@ -33,6 +33,7 @@ fun FindField(
     TextField(
         value = text,
         onValueChange = onTextEntry,
+        maxLines = 1,
         label = if (label != null) {
             { Text(text = label) }
         } else null,
