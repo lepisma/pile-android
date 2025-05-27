@@ -235,7 +235,7 @@ class SharedViewModel(
                         val fileString = file.uri.toString()
                         if (dbFileInfoMap.contains(fileString)) {
                             // File already stored in db as node
-                            val fileInfo = dbFileInfoMap.get(fileString)!!
+                            val fileInfo = dbFileInfoMap[fileString]!!
                             if (fileInfo.lastModified < file.lastModified) {
                                 // File in directory seems to be modified more recently than the
                                 // snapshot stored in database. Let's update it.
@@ -256,14 +256,14 @@ class SharedViewModel(
                     }
 
                     withContext(Dispatchers.Main) {
-                        notify("Inserted ${insertCount} new notes, updated ${updateCount} notes")
+                        notify("Inserted $insertCount new notes, updated $updateCount notes")
                     }
 
                     // Delete all the nodes from db that are not reflected in the filesystem
                     for (fileString in nodesToDelete) {
                         nodeDao.deleteNodeById(dbFileInfoMap.get(fileString)!!.id)
                     }
-                    if (nodesToDelete.count() > 0) {
+                    if (nodesToDelete.isNotEmpty()) {
                         withContext(Dispatchers.Main) {
                             notify("Deleted ${nodesToDelete.count()} notes")
                         }
