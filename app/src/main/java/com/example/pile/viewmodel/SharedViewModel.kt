@@ -326,7 +326,9 @@ class SharedViewModel(
                 }
             }
 
-            updateNodeTags(newNode.id, tags = newNode.tags)
+            viewModelScope.launch(Dispatchers.IO) {
+                updateNodeTags(newNode.id, tags = newNode.tags)
+            }
         }
     }
 }
