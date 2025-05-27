@@ -261,11 +261,11 @@ class SharedViewModel(
 
                     // Delete all the nodes from db that are not reflected in the filesystem
                     for (fileString in nodesToDelete) {
-                        nodeDao.deleteNodeById(dbFileInfoMap.get(fileString)!!.id)
+                        // nodeDao.deleteNodeById(dbFileInfoMap.get(fileString)!!.id)
                     }
                     if (nodesToDelete.count() > 0) {
                         withContext(Dispatchers.Main) {
-                            notify("Deleted ${nodesToDelete.count()} notes")
+                            notify("(Dry Run) Deleted ${nodesToDelete.count()} notes")
                         }
                     }
                 }
