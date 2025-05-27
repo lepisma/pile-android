@@ -25,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.pile.data.OrgNodeType
 import com.example.pile.ui.components.FindField
 import com.example.pile.ui.components.NewNodeButton
 import com.example.pile.ui.components.NodeList
@@ -40,8 +39,7 @@ import compose.icons.fontawesomeicons.solid.Thumbtack
 @Composable
 fun HomeView(
     viewModel: SharedViewModel,
-    openNodeById: (String) -> Unit,
-    createAndOpenNode: (nodeTitle: String, nodeType: OrgNodeType, refLink: String?, tags: List<String>?) -> Unit
+    openNodeById: (String) -> Unit
 ) {
     var searchText by remember { mutableStateOf("") }
     var showPinnedDialog by remember { mutableStateOf(false) }
@@ -49,7 +47,6 @@ fun HomeView(
     val recentNodes by viewModel.recentNodes.collectAsState()
     val randomNodes by viewModel.randomNodes.collectAsState()
     val randomLiteratureNodes by viewModel.randomLiteratureNodes.collectAsState()
-    val dailyNodes by viewModel.dailyNodes.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
 
     viewModel.generateNewRandomNodes()
@@ -102,9 +99,8 @@ fun HomeView(
                         onClick = openNodeById
                     )
                     JournalStrip(
-                        dailyNodes,
+                        viewModel,
                         openNodeById,
-                        createAndOpenNode,
                         modifier = Modifier.padding(horizontal = 20.dp)
                     )
                 } else {
@@ -144,12 +140,14 @@ fun HomeView(
 
             if (searchText != "") {
                 NewNodeButton(searchText) { nodeTitle, nodeType ->
-                    createAndOpenNode(
-                        nodeTitle,
-                        nodeType,
-                        null,
-                        null
-                    )
+                    viewModel.createNode(
+                        title = nodeTitle,
+                        nodeType = nodeType,
+                        ref = null,
+                        tags = null
+                    ) { node ->
+                        openNodeById(node.id)
+                    }
                 }
             }
             Row(

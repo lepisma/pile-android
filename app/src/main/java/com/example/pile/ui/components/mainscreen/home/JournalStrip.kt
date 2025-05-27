@@ -17,13 +17,15 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.pile.data.OrgNode
 import com.example.pile.data.OrgNodeType
+import com.example.pile.viewmodel.SharedViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
@@ -34,11 +36,12 @@ import java.util.Locale
  */
 @Composable
 fun JournalStrip(
-    dailyNodes: List<OrgNode>,
+    viewModel: SharedViewModel,
     openNodeById: (String) -> Unit,
-    createAndOpenNode: (String, OrgNodeType, String?, List<String>?) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val dailyNodes by viewModel.dailyNodes.collectAsState()
+
     val today = LocalDate.now()
     val lastWeek = (0L until 7).map { i ->
         val date = today.minusDays(6 - i)
@@ -80,7 +83,14 @@ fun JournalStrip(
                             openNodeById(node.id)
                         } else if (isToday) {
                             val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                            createAndOpenNode(date.format(formatter), OrgNodeType.DAILY, null, null)
+                            viewModel.createNode(
+                                title = date.format(formatter),
+                                nodeType = OrgNodeType.DAILY,
+                                ref = null,
+                                tags = null
+                            ) { node ->
+                                openNodeById(node.id)
+                            }
                         }
                     },
                 ) {

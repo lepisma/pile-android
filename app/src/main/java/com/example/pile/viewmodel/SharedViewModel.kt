@@ -197,10 +197,27 @@ class SharedViewModel(
         }
     }
 
-    fun createNode(title: String, nodeType: OrgNodeType, onCompletion: (OrgNode) -> Unit) {
+    /**
+     * Create new node in the filesystem AND the database with given metadata. On completion, run
+     * the onCompletion block.
+     */
+    fun createNode(
+        title: String,
+        nodeType: OrgNodeType,
+        ref: String? = null,
+        tags: List<String>? = null,
+        onCompletion: (OrgNode) -> Unit
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             _rootUri.value?.let { uri ->
-                createNewNode(applicationContext, title, uri, nodeType)?.let { node ->
+                createNewNode(
+                    applicationContext,
+                    title,
+                    uri,
+                    nodeType,
+                    nodeRef = ref,
+                    nodeTags = tags
+                )?.let { node ->
                     nodeDao.insert(node)
                     withContext(Dispatchers.Main) {
                         onCompletion(node)

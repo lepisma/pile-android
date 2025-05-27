@@ -31,17 +31,12 @@ import com.example.pile.data.NodeDao
 import com.example.pile.data.NodeTagsDao
 import com.example.pile.data.PileDatabase
 import com.example.pile.data.TagDao
-import com.example.pile.data.createNewNode
 import com.example.pile.data.loadRootPath
 import com.example.pile.data.saveRootPath
 import com.example.pile.ui.components.landingscreen.LandingScreen
 import com.example.pile.ui.components.mainscreen.MainScreen
 import com.example.pile.ui.components.nodescreen.NodeScreen
 import com.example.pile.viewmodel.SharedViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
     private lateinit var nodeDao: NodeDao
@@ -160,19 +155,6 @@ class MainActivity : ComponentActivity() {
                     MainScreen(
                         viewModel = viewModel,
                         openNodeById = { navController!!.navigate("nodeScreen/${it}") },
-                        createAndOpenNode = { title, nodeType, nodeRef, tags ->
-                            CoroutineScope(Dispatchers.IO).launch {
-                                currentRootUri?.let { uri ->
-                                    createNewNode(this@MainActivity, title, uri, nodeType, nodeRef, tags)?.let { node ->
-                                        nodeDao.insert(node)
-                                        // TODO, need to update tags here also
-                                        withContext(Dispatchers.Main) {
-                                            navController!!.navigate("nodeScreen/${node.id}")
-                                        }
-                                    }
-                                }
-                            }
-                        },
                         captureLinkInitial = captureLink
                     )
                 }
