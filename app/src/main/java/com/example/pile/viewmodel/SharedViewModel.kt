@@ -7,9 +7,14 @@ import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.pile.data.LinkDao
 import com.example.pile.data.NodeDao
+import com.example.pile.data.NodeTag
+import com.example.pile.data.NodeTagsDao
 import com.example.pile.data.OrgNode
 import com.example.pile.data.OrgNodeType
+import com.example.pile.data.Tag
+import com.example.pile.data.TagDao
 import com.example.pile.data.createNewNode
 import com.example.pile.data.nodeFilesFromDirectory
 import com.example.pile.data.parseFileOrgNode
@@ -23,6 +28,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -38,6 +44,9 @@ import kotlinx.coroutines.withContext
  */
 class SharedViewModel(
     private val nodeDao: NodeDao,
+    private val tagDao: TagDao,
+    private val nodeTagsDao: NodeTagsDao,
+    private val linkDao: LinkDao,
     private val applicationContext: Context
 ) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
@@ -64,6 +73,15 @@ class SharedViewModel(
         }
     }
 
+    /**
+     * Convert node from nodes table to full node after recovering `file` and `tags`
+     */
+    private suspend fun recoverNode(nodeFromDb: OrgNode): OrgNode {
+        val file = DocumentFile.fromSingleUri(applicationContext, nodeFromDb.fileString.toUri())
+        val tags = nodeTagsDao.getTagsForNode(nodeFromDb.id).firstOrNull() ?: emptyList()
+        return nodeFromDb.copy(file = file, tags = tags.map { it.name })
+    }
+
     val nodeCount: StateFlow<Int> = nodeDao.countNodes()
         .stateIn(
             viewModelScope,
@@ -74,9 +92,7 @@ class SharedViewModel(
     val dailyNodes: StateFlow<List<OrgNode>> = nodeDao.getDailyNodes()
         .map { nodesFromDb ->
             withContext(Dispatchers.Default) {
-                nodesFromDb.map { node ->
-                    node.copy(file = DocumentFile.fromTreeUri(applicationContext, node.fileString.toUri()))
-                }
+                nodesFromDb.map { recoverNode(it) }
             }
         }
         .stateIn(
@@ -88,9 +104,7 @@ class SharedViewModel(
     val recentNodes: StateFlow<List<OrgNode>> = nodeDao.getRecentNodes(5)
         .map { nodesFromDb ->
             withContext(Dispatchers.Default) {
-                nodesFromDb.map { node ->
-                    node.copy(file = DocumentFile.fromTreeUri(applicationContext, node.fileString.toUri()))
-                }
+                nodesFromDb.map { recoverNode(it) }
             }
         }
         .stateIn(
@@ -111,9 +125,7 @@ class SharedViewModel(
                             .filter { node -> node.nodeType == OrgNodeType.CONCEPT }
                             .shuffled()
                             .take(5)
-                            .map { node ->
-                                node.copy(file = DocumentFile.fromTreeUri(applicationContext, node.fileString.toUri()))
-                            }
+                            .map { recoverNode(it) }
                     }
                 }
         }
@@ -133,9 +145,7 @@ class SharedViewModel(
                             .filter { node -> node.nodeType == OrgNodeType.LITERATURE }
                             .shuffled()
                             .take(5)
-                            .map { node ->
-                                node.copy(file = DocumentFile.fromTreeUri(applicationContext, node.fileString.toUri()))
-                            }
+                            .map { recoverNode(it) }
                     }
                 }
         }
@@ -161,9 +171,7 @@ class SharedViewModel(
                 nodeDao.searchNodesByTitle(query)
                     .map { nodesFromDb ->
                         withContext(Dispatchers.Default) {
-                            nodesFromDb.map { node ->
-                                node.copy(file = DocumentFile.fromTreeUri(applicationContext, node.fileString.toUri()))
-                            }
+                            nodesFromDb.map { recoverNode(it) }
                         }
                     }
             }
@@ -181,7 +189,11 @@ class SharedViewModel(
     suspend fun getNode(id: String): OrgNode? {
         return withContext(Dispatchers.IO) {
             val nodeFromDb = nodeDao.getNodeById(id)
-            nodeFromDb?.copy(file = DocumentFile.fromTreeUri(applicationContext, nodeFromDb.fileString.toUri()))
+            if (nodeFromDb != null) {
+                recoverNode(nodeFromDb)
+            } else {
+                null
+            }
         }
     }
 
@@ -276,6 +288,27 @@ class SharedViewModel(
         }
     }
 
+    private fun updateNodeTags(nodeId: String, tags: List<String>) {
+        nodeTagsDao.deleteTagsForNode(nodeId)
+
+        val nodeTags = mutableListOf<NodeTag>()
+
+        for (tagName in tags.distinct().filter { it.isNotBlank() }) {
+            var tag = tagDao.getTagByName(tagName)
+
+            if (tag == null) {
+                val tagId = tagDao.insert(Tag(name = tagName))
+                tag = Tag(id = tagId, name = tagName)
+            }
+
+            nodeTags.add(NodeTag(nodeId = nodeId, tagId = tag.id))
+        }
+
+        if (nodeTags.isNotEmpty()) {
+            nodeTagsDao.insertAll(*nodeTags.toTypedArray())
+        }
+    }
+
     /**
      * Update a new node in the database AND in the file system. The assumption is to have the same
      * id as the node to be updated.
@@ -285,13 +318,15 @@ class SharedViewModel(
             if (newText != null) {
                 write(documentFile, newText)
                 viewModelScope.launch(Dispatchers.IO) {
-                    nodeDao.updateNode(newNode.copy(lastModified = System.currentTimeMillis()))
+                    nodeDao.updateNode(newNode.copy(lastModified = documentFile.lastModified()))
                 }
             } else {
                 viewModelScope.launch(Dispatchers.IO) {
                     nodeDao.updateNode(newNode)
                 }
             }
+
+            updateNodeTags(newNode.id, tags = newNode.tags)
         }
     }
 }

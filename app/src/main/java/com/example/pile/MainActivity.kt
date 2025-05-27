@@ -20,13 +20,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
+import com.example.pile.data.LinkDao
 import com.example.pile.data.MIGRATION_1_2
 import com.example.pile.data.MIGRATION_2_3
 import com.example.pile.data.MIGRATION_3_4
 import com.example.pile.data.MIGRATION_4_5
+import com.example.pile.data.MIGRATION_6_7
 import com.example.pile.data.Migration_5_6
 import com.example.pile.data.NodeDao
+import com.example.pile.data.NodeTagsDao
 import com.example.pile.data.PileDatabase
+import com.example.pile.data.TagDao
 import com.example.pile.data.createNewNode
 import com.example.pile.data.loadRootPath
 import com.example.pile.data.saveRootPath
@@ -41,6 +45,10 @@ import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
     private lateinit var nodeDao: NodeDao
+    private lateinit var tagDao: TagDao
+    private lateinit var nodeTagsDao: NodeTagsDao
+    private lateinit var linkDao: LinkDao
+
     private lateinit var viewModel: SharedViewModel
     private lateinit var folderPickerLauncher: ActivityResultLauncher<Intent>
     private var navController: NavHostController? = null
@@ -61,12 +69,20 @@ class MainActivity : ComponentActivity() {
                 MIGRATION_2_3,
                 MIGRATION_3_4,
                 MIGRATION_4_5,
-                Migration_5_6(applicationContext)
+                Migration_5_6(applicationContext),
+                MIGRATION_6_7
             )
             .build()
         nodeDao = db.nodeDao()
+        tagDao = db.tagDao()
+        nodeTagsDao = db.nodeTagsDao()
+        linkDao = db.linkDao()
+
         viewModel = SharedViewModel(
             nodeDao = nodeDao,
+            tagDao = tagDao,
+            nodeTagsDao = nodeTagsDao,
+            linkDao = linkDao,
             applicationContext = this
         )
         currentRootUri?.let { viewModel.setRootUri(it) }
@@ -149,6 +165,7 @@ class MainActivity : ComponentActivity() {
                                 currentRootUri?.let { uri ->
                                     createNewNode(this@MainActivity, title, uri, nodeType, nodeRef, tags)?.let { node ->
                                         nodeDao.insert(node)
+                                        // TODO, need to update tags here also
                                         withContext(Dispatchers.Main) {
                                             navController!!.navigate("nodeScreen/${node.id}")
                                         }

@@ -2,6 +2,7 @@ package com.example.pile.data
 
 import androidx.documentfile.provider.DocumentFile
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import java.time.LocalDateTime
 
@@ -22,13 +23,38 @@ data class OrgNode(
     val title: String,
     val datetime: LocalDateTime,
     val fileString: String,
+    @Ignore
     val file: DocumentFile? = null,
     val pinned: Boolean = false,
+    @Ignore
     val tags: List<String> = listOf(),
     val lastModified: Long = 0,
     val nodeType: OrgNodeType,
     val ref: String? = null
-)
+)  {
+    constructor(
+        id: String,
+        title: String,
+        datetime: LocalDateTime,
+        fileString: String,
+        pinned: Boolean,
+        lastModified: Long,
+        nodeType: OrgNodeType,
+        ref: String?
+    ) : this(
+        id = id,
+        title = title,
+        datetime = datetime,
+        fileString = fileString,
+        file = null,
+        pinned = pinned,
+        tags = listOf(),
+        lastModified = lastModified,
+        nodeType = nodeType,
+        ref = ref
+    )
+}
+
 
 enum class OrgNodeType {
     CONCEPT, LITERATURE, DAILY
