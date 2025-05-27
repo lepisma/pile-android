@@ -64,7 +64,7 @@ fun SettingsView(viewModel: SharedViewModel) {
                 }
                 Row {
                     Text(
-                        text = "Picking literature notes from: "
+                        text = "Storing literature notes under: "
                     )
                     Text(
                         text = "/literature",
@@ -73,7 +73,7 @@ fun SettingsView(viewModel: SharedViewModel) {
                 }
                 Row {
                     Text(
-                        text = "Picking dailies from: "
+                        text = "Storing dailies under: "
                     )
                     Text(
                         text = "/daily",
