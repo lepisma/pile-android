@@ -186,7 +186,7 @@ fun createNewNode(
 }
 
 fun createAndWriteToFile(context: Context, directory: DocumentFile, fileName: String, text: String): DocumentFile? {
-    val newFile = directory.createFile("text/plain", fileName)
+    val newFile = directory.createFile("application/octet-stream", fileName)
 
     newFile?.uri?.let { uri ->
         context.contentResolver.openOutputStream(uri)?.use { outputStream ->
