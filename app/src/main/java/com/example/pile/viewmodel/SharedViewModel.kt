@@ -113,6 +113,18 @@ class SharedViewModel(
             emptyList()
         )
 
+    val pinnedNodes: StateFlow<List<OrgNode>> = nodeDao.getPinnedNodes()
+        .map { nodesFromDb ->
+            withContext(Dispatchers.Default) {
+                nodesFromDb.map { recoverNode(it) }
+            }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
+
     private val _randomNodesTrigger = MutableStateFlow(Unit)
 
     @OptIn(ExperimentalCoroutinesApi::class)

@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
@@ -169,7 +169,7 @@ fun NodeScreen(
                         navigationIcon = {
                             IconButton(onClick = { goBack() }) {
                                 Icon(
-                                    imageVector = Icons.Filled.ArrowBack,
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back"
                             )
                         }
@@ -178,7 +178,7 @@ fun NodeScreen(
                         rememberTopAppBarState()
                     ),
                     actions = {
-                        IconButton(onClick = { viewModel.togglePinned(node) }) {
+                        IconButton(onClick = { viewModel.togglePinned(node) }, enabled = false) {
                             Icon(
                                 imageVector = FontAwesomeIcons.Solid.Thumbtack,
                                 modifier = Modifier.size(18.dp),

@@ -146,6 +146,9 @@ interface NodeDao {
     @Query("SELECT * FROM nodes")
     fun getAllNodes(): Flow<List<OrgNode>>
 
+    @Query("SELECT * FROM nodes WHERE pinned = 1")
+    fun getPinnedNodes(): Flow<List<OrgNode>>
+
     @Query("SELECT * FROM nodes ORDER BY lastModified DESC LIMIT :limit")
     fun getRecentNodes(limit: Int): Flow<List<OrgNode>>
 

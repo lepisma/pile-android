@@ -31,6 +31,19 @@ sealed class OrgParagraph {
     data class OrgLogBook(override var text: String) : OrgParagraph()
 }
 
+/**
+ * Options specific to a file in pile
+ *
+ * These are specified using #+PILE: <key>:<value>, ... syntax. Boolean values are either t or nil
+ * (default, unless specified). More options could be present but the app only relies on the ones
+ * listed below at the moment.
+ *
+ * @property pinned  Specifies whether the note is pinned and so should be displayed preferentially.
+ */
+data class PileOptions(
+    var pinned: Boolean,
+)
+
 fun parseNodeLinks(orgText: String): List<String> {
     val pattern = Regex("\\[\\[id:([0-9a-fA-F\\-]+)](\\[(.*?)])?]")
 
@@ -170,6 +183,37 @@ fun parseFileDatetime(file: DocumentFile): LocalDateTime {
 
     // Else fallback to using last modified time
     return parseLastModified(file)
+}
+
+/**
+ * Parse pile options from the note's preamble
+ */
+fun parsePileOptions(preamble: String): PileOptions {
+    val options = PileOptions(pinned = false)
+
+    val optionsPattern = Regex("^#\\+PILE:\\s*(.*)", setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
+    val match = optionsPattern.find(preamble)
+    val optionsString = match?.groups?.get(1)?.value?.trim() ?: return options
+
+    optionsString.split(",").forEach {
+        val kv = it.split(":", limit = 2)
+
+        if (kv.size == 2) {
+            if (kv[0] == "pinned") {
+                when (kv[1]) {
+                    "t" -> options.pinned = true
+                    "nil" -> options.pinned = false
+                    else -> println("Error in parsing value of pinned option: ${it}")
+                }
+            } else {
+                println("Error in parsing option value: ${it}")
+            }
+        } else {
+            println("Error in parsing option value: ${it}")
+        }
+    }
+
+    return options
 }
 
 // Return list of file level Org Mode tags

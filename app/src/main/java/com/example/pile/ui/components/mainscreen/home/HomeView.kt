@@ -47,6 +47,7 @@ fun HomeView(
     val recentNodes by viewModel.recentNodes.collectAsState()
     val randomNodes by viewModel.randomNodes.collectAsState()
     val randomLiteratureNodes by viewModel.randomLiteratureNodes.collectAsState()
+    val pinnedNodes by viewModel.pinnedNodes.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
 
     viewModel.generateNewRandomNodes()
@@ -132,7 +133,7 @@ fun HomeView(
 
             if (showPinnedDialog) {
                 PinnedDialog(
-                    emptyList(),
+                    pinnedNodes,
                     { showPinnedDialog = false },
                     openNodeById
                 )

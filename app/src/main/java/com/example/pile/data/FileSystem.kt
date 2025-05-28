@@ -9,6 +9,7 @@ import androidx.documentfile.provider.DocumentFile
 import com.example.pile.orgmode.parseFileDatetime
 import com.example.pile.orgmode.parseId
 import com.example.pile.orgmode.parseOrgRef
+import com.example.pile.orgmode.parsePileOptions
 import com.example.pile.orgmode.parseTags
 import com.example.pile.orgmode.parseTitle
 import com.example.pile.orgmode.readOrgPreamble
@@ -207,6 +208,7 @@ fun parseFileOrgNode(context: Context, file: DocumentFile): OrgNode {
     val title = parseTitle(preamble)
     val tags = parseTags(preamble)
     val ref = parseOrgRef(preamble)
+    val pileOptions = parsePileOptions(preamble)
 
     // This is not correct since UUID is probably not the way org-id works
     val nodeId = parseId(preamble) ?: UUID.randomUUID().toString()
@@ -232,7 +234,8 @@ fun parseFileOrgNode(context: Context, file: DocumentFile): OrgNode {
         tags = tags,
         lastModified = file.lastModified(),
         ref = ref,
-        nodeType = nodeType
+        nodeType = nodeType,
+        pinned = pileOptions.pinned
     )
 }
 
