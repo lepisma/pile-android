@@ -82,6 +82,9 @@ class MainActivity : ComponentActivity() {
         )
         currentRootUri?.let { viewModel.setRootUri(it) }
 
+        // Sync database on start
+        viewModel.syncDatabase()
+
         folderPickerLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
