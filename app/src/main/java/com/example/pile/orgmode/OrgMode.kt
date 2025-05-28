@@ -309,6 +309,19 @@ fun readOrgPreamble(context: Context, file: DocumentFile): String {
 }
 
 /**
+ * Return exact path to the attachment by the name of `fileName` under the entry with id `id`
+ *
+ * The path is made up of nested directories by breaking up id in two pieces (first 2 chars and rest
+ * of the chars).
+ */
+fun orgAttachmentPath(attachDir: DocumentFile, id: String, fileName: String): DocumentFile? {
+    return attachDir
+        .findFile(id.substring(0, 2))
+        ?.findFile(id.substring(2))
+        ?.findFile(fileName)
+}
+
+/**
  * Return the attachment directory of given node, creating it if needed.
  *
  * This is based on the default org-attach setting where a sibling `./data/` dir is used for
