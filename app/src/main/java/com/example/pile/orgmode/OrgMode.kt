@@ -1,7 +1,11 @@
 package com.example.pile.orgmode
 
 import android.content.Context
+import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
+import com.example.pile.data.OrgNode
+import com.example.pile.data.isDailyNode
+import com.example.pile.data.isLiteratureNode
 import com.orgzly.org.parser.OrgParsedFile
 import com.orgzly.org.parser.OrgParser
 import java.io.BufferedReader
@@ -302,4 +306,34 @@ fun readOrgPreamble(context: Context, file: DocumentFile): String {
     }
 
     return stringBuilder.toString()
+}
+
+/**
+ * Return the attachment directory of given node, creating it if needed.
+ *
+ * This is based on the default org-attach setting where a sibling `./data/` dir is used for
+ * storing attachments.
+ */
+fun orgAttachDir(context: Context, rootUri: Uri, node: OrgNode): DocumentFile? {
+    val dirName = "data"
+
+    val rootDir = DocumentFile.fromTreeUri(context, rootUri)
+
+    if (rootDir == null || !rootDir.isDirectory) {
+        return null
+    }
+
+    // There is a chance of inconsistency here since nodes are read as literature nodes based on
+    // them having a reference rather than them being in the '/literature' subdirectory.
+    val dir = if (isLiteratureNode(node)) {
+        val subdir = rootDir.findFile("literature")
+        subdir?.findFile(dirName) ?: subdir?.createDirectory(dirName)
+    } else if (isDailyNode(node)) {
+        val subdir = rootDir.findFile("daily")
+        subdir?.findFile(dirName) ?: subdir?.createDirectory(dirName)
+    } else {
+        rootDir.findFile(dirName) ?: rootDir.createDirectory(dirName)
+    }
+
+    return dir
 }

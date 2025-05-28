@@ -19,6 +19,7 @@ import com.example.pile.data.createNewNode
 import com.example.pile.data.nodeFilesFromDirectory
 import com.example.pile.data.parseFileOrgNode
 import com.example.pile.data.writeFile
+import com.example.pile.orgmode.orgAttachDir
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -357,6 +358,18 @@ class SharedViewModel(
 
             viewModelScope.launch(Dispatchers.IO) {
                 updateNodeTags(newNode.id, tags = newNode.tags)
+            }
+        }
+    }
+
+    suspend fun getAttachmentsDir(node: OrgNode): DocumentFile? {
+        return _rootUri.value?.let {
+            withContext(Dispatchers.IO) {
+                orgAttachDir(
+                    context = applicationContext,
+                    rootUri = it,
+                    node = node
+                )
             }
         }
     }
