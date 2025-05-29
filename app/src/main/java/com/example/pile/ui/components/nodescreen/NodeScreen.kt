@@ -37,6 +37,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,7 +49,6 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.pile.data.OrgNode
 import com.example.pile.data.readFile
 import com.example.pile.orgmode.parseNodeLinks
 import com.example.pile.orgmode.parseTags
@@ -131,16 +131,16 @@ fun NodeScreen(
     var isEditMode by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
+    val currentNode by viewModel.currentNode.collectAsState()
     val sheetState = rememberModalBottomSheetState()
 
-    var node by remember { mutableStateOf<OrgNode?>(null) }
     val context = LocalContext.current
 
     LaunchedEffect(nodeId) {
-        node = viewModel.getNode(nodeId)
+        viewModel.setCurrentNodeId(nodeId)
     }
 
-    node?.let { node ->
+    currentNode?.let { node ->
         val fileContent = node.file?.let { readFile(context, it) } ?: "NA"
 
         var currentTextFieldValue by remember {
@@ -343,7 +343,7 @@ fun NodeScreen(
                                     )
                                 }
                             } else {
-                                OrgPreview(currentTextFieldValue.text, openNodeById)
+                                OrgPreview(currentTextFieldValue.text, viewModel, openNodeById)
                                 if (showBottomSheet) {
                                     ModalBottomSheet(
                                         onDismissRequest = { showBottomSheet = false },

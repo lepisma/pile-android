@@ -27,12 +27,13 @@ import com.example.pile.ui.formatInlineCodePattern
 import com.example.pile.ui.formatItalicPattern
 import com.example.pile.ui.formatLinkPattern
 import com.example.pile.ui.formatTagPattern
+import com.example.pile.viewmodel.SharedViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun OrgText(text: String, openNodeById: (String) -> Unit, modifier: Modifier = Modifier) {
+fun OrgText(text: String, viewModel: SharedViewModel, openNodeById: (String) -> Unit, modifier: Modifier = Modifier) {
     val coroutineScope = rememberCoroutineScope()
     var formattedString by remember { mutableStateOf<AnnotatedString?>(null) }
     val colorScheme = MaterialTheme.colorScheme
@@ -67,10 +68,20 @@ fun OrgText(text: String, openNodeById: (String) -> Unit, modifier: Modifier = M
                     localUriHandler.openUri(it.item)
                 }
                 formattedString!!.getStringAnnotations("ATTACHMENT", offset, offset).firstOrNull()?.let {
+                    val fileName = it.item
                     try {
-                        localUriHandler.openUri(it.item)
+                        coroutineScope.launch {
+                            withContext(Dispatchers.IO) {
+                                val filePath = viewModel.getAttachmentFile(fileName)
+                                if (filePath != null) {
+                                    localUriHandler.openUri(filePath.uri.toString())
+                                } else {
+                                    Toast.makeText(context, "Unable to get and open path for $fileName", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
                     } catch (e: Exception) {
-                        val errorMessage = "Failed to open link ${it.item}: $e"
+                        val errorMessage = "Failed to open ${fileName}: $e"
                         Log.d("FileInteractionError", errorMessage)
                         Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
                     }

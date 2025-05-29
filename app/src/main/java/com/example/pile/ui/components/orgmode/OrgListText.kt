@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.pile.orgmode.OrgListType
 import com.example.pile.orgmode.OrgParagraph
+import com.example.pile.viewmodel.SharedViewModel
 
 fun measureTextWidth(text: String, textStyle: TextStyle): Float {
     val paint = Paint()
@@ -29,7 +30,7 @@ fun measureTextWidth(text: String, textStyle: TextStyle): Float {
 
 // TODO: The width calculation is wrong
 @Composable
-fun OrgListText(orgList: OrgParagraph.OrgList, openNodeById: (String) -> Unit) {
+fun OrgListText(orgList: OrgParagraph.OrgList, viewModel: SharedViewModel, openNodeById: (String) -> Unit) {
     val maxBullet = if (orgList.type == OrgListType.UNORDERED) "\u2022" else "${orgList.items.size}."
     val textWidthPixels = measureTextWidth(maxBullet, LocalTextStyle.current.copy(fontFamily = FontFamily.Monospace))
     val maxIndexWidth = with(LocalDensity.current) { textWidthPixels.toDp() }
@@ -50,7 +51,7 @@ fun OrgListText(orgList: OrgParagraph.OrgList, openNodeById: (String) -> Unit) {
                 )
                 Column {
                     item.items.forEach {
-                        OrgParagraphText(it, openNodeById)
+                        OrgParagraphText(it, viewModel, openNodeById)
                     }
                 }
             }

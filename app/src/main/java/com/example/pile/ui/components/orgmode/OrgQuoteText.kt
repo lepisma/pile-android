@@ -8,11 +8,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.pile.orgmode.OrgParagraph
+import com.example.pile.viewmodel.SharedViewModel
 
 @Composable
-fun OrgQuoteText(orgQuote: OrgParagraph.OrgQuote, openNodeById: (String) -> Unit) {
+fun OrgQuoteText(orgQuote: OrgParagraph.OrgQuote, viewModel: SharedViewModel, openNodeById: (String) -> Unit) {
     OrgText(
         text = orgQuote.text,
+        viewModel = viewModel,
         openNodeById = openNodeById,
         modifier = Modifier
             .padding(start = 10.dp, top = 20.dp, bottom = 20.dp)

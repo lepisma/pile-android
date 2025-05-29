@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.example.pile.orgmode.OrgParagraph
 import com.example.pile.orgmode.dropPreamble
@@ -34,6 +33,7 @@ import com.example.pile.orgmode.parseOrg
 import com.example.pile.orgmode.parseOrgParagraphs
 import com.example.pile.orgmode.parseTags
 import com.example.pile.orgmode.parseTitle
+import com.example.pile.viewmodel.SharedViewModel
 import com.orgzly.org.parser.OrgParsedFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -88,7 +88,7 @@ fun TextLoadingBox() {
 
 
 @Composable
-fun OrgPreview(text: String, openNodeById: (String) -> Unit) {
+fun OrgPreview(text: String, viewModel: SharedViewModel, openNodeById: (String) -> Unit) {
     val coroutineScope = rememberCoroutineScope()
     var parsed by remember { mutableStateOf<OrgParsedFile?>(null) }
 
@@ -110,7 +110,7 @@ fun OrgPreview(text: String, openNodeById: (String) -> Unit) {
             }
 
             items(parseOrgParagraphs(parsed!!.file.preface)) {
-                OrgParagraphText(it, openNodeById)
+                OrgParagraphText(it, viewModel, openNodeById)
             }
 
             parsed!!.headsInList.forEach { head ->
@@ -119,7 +119,7 @@ fun OrgPreview(text: String, openNodeById: (String) -> Unit) {
                 }
 
                 items(parseOrgParagraphs(head.head.content)) { para ->
-                    OrgParagraphText(para, openNodeById)
+                    OrgParagraphText(para, viewModel, openNodeById)
                 }
             }
         }
@@ -129,14 +129,14 @@ fun OrgPreview(text: String, openNodeById: (String) -> Unit) {
 }
 
 @Composable
-fun OrgParagraphText(orgParagraph: OrgParagraph, openNodeById: (String) -> Unit) {
+fun OrgParagraphText(orgParagraph: OrgParagraph, viewModel: SharedViewModel, openNodeById: (String) -> Unit) {
     when(orgParagraph) {
         is OrgParagraph.OrgHorizontalLine -> OrgHorizontalLine()
         is OrgParagraph.OrgTable -> OrgTableText(orgParagraph)
-        is OrgParagraph.OrgList -> OrgListText(orgParagraph, openNodeById)
-        is OrgParagraph.OrgQuote -> OrgQuoteText(orgParagraph, openNodeById)
+        is OrgParagraph.OrgList -> OrgListText(orgParagraph, viewModel, openNodeById)
+        is OrgParagraph.OrgQuote -> OrgQuoteText(orgParagraph, viewModel, openNodeById)
         is OrgParagraph.OrgBlock -> OrgBlockText(orgParagraph)
         is OrgParagraph.OrgLogBook -> Text("")
-        else -> OrgText(orgParagraph.text, openNodeById)
+        else -> OrgText(orgParagraph.text, viewModel, openNodeById)
     }
 }

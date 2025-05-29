@@ -20,6 +20,7 @@ import com.example.pile.data.nodeFilesFromDirectory
 import com.example.pile.data.parseFileOrgNode
 import com.example.pile.data.writeFile
 import com.example.pile.orgmode.orgAttachDir
+import com.example.pile.orgmode.orgAttachmentPath
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -61,7 +62,7 @@ class SharedViewModel(
     }
 
     // Helper function to manage loading state
-    fun CoroutineScope.launchWithLoading(block: suspend () -> Unit) {
+    private fun CoroutineScope.launchWithLoading(block: suspend () -> Unit) {
         launch {
             _isLoading.value = true
             try {
@@ -199,16 +200,33 @@ class SharedViewModel(
         _searchQuery.value = query
     }
 
-    suspend fun getNode(id: String): OrgNode? {
-        return withContext(Dispatchers.IO) {
-            val nodeFromDb = nodeDao.getNodeById(id)
-            if (nodeFromDb != null) {
-                recoverNode(nodeFromDb)
+    // Id for the current node, if being displayed
+    private val _currentNodeId: MutableStateFlow<String?> = MutableStateFlow(null)
+    fun setCurrentNodeId(id: String) {
+        _currentNodeId.value = null
+        _currentNodeId.value = id
+    }
+
+    val currentNode: StateFlow<OrgNode?> = _currentNodeId
+        .map { id ->
+            if (id != null) {
+                withContext(Dispatchers.IO) {
+                    val nodeFromDb = nodeDao.getNodeById(id)
+                    if (nodeFromDb != null) {
+                        recoverNode(nodeFromDb)
+                    } else {
+                        null
+                    }
+                }
             } else {
                 null
             }
         }
-    }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            null
+        )
 
     /**
      * Create new node in the filesystem AND the database with given metadata. On completion, run
@@ -362,7 +380,7 @@ class SharedViewModel(
         }
     }
 
-    suspend fun getAttachmentsDir(node: OrgNode): DocumentFile? {
+    private suspend fun getAttachmentsDir(node: OrgNode): DocumentFile? {
         return _rootUri.value?.let {
             withContext(Dispatchers.IO) {
                 orgAttachDir(
@@ -371,6 +389,23 @@ class SharedViewModel(
                     node = node
                 )
             }
+        }
+    }
+
+    /**
+     * Use current node and given filename to produce a full path to the attachment.
+     *
+     * In case you want to provide an ID that's not node's, pass parentId
+     */
+    suspend fun getAttachmentFile(fileName: String, parentId: String? = null): DocumentFile? {
+        if (parentId != null) {
+            throw NotImplementedError()
+        }
+        if (currentNode.value != null) {
+            val attachDir = getAttachmentsDir(currentNode.value!!)
+            return orgAttachmentPath(attachDir!!, currentNode.value!!.id, fileName)
+        } else {
+            return null
         }
     }
 }
