@@ -13,7 +13,7 @@ fun OrgTitleText(title: String) {
     Text(
         text = title,
         fontWeight = FontWeight.Bold,
-        style = MaterialTheme.typography.headlineLarge,
+        style = MaterialTheme.typography.displayMedium,
         modifier = Modifier.padding(bottom = 20.dp)
     )
 }

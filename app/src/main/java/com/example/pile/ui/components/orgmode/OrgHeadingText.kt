@@ -8,11 +8,8 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.example.pile.ui.formatBoldPattern
 import com.example.pile.ui.formatDatePattern
@@ -26,8 +23,9 @@ import com.orgzly.org.parser.OrgNodeInList
 @Composable
 fun OrgHeadingText(head: OrgNodeInList, openNodeById: (String) -> Unit) {
     val style = when (head.level) {
-        1 -> MaterialTheme.typography.headlineLarge
-        2 -> MaterialTheme.typography.headlineMedium
+        1 -> MaterialTheme.typography.displayMedium
+        2 -> MaterialTheme.typography.headlineLarge
+        3 -> MaterialTheme.typography.headlineMedium
         else -> MaterialTheme.typography.headlineSmall
     }.copy(color = MaterialTheme.colorScheme.onSurface)
 
@@ -44,9 +42,6 @@ fun OrgHeadingText(head: OrgNodeInList, openNodeById: (String) -> Unit) {
     annotatedString = formatInlineCodePattern(annotatedString, style.fontSize)
 
     annotatedString = buildAnnotatedString {
-        withStyle(SpanStyle(color = Color.Gray)) {
-            append("›".repeat(head.level) + " ")
-        }
         append(annotatedString)
     }
 
