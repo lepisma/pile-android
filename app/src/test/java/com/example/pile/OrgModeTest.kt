@@ -2,6 +2,7 @@ package com.example.pile
 
 import com.example.pile.orgmode.OrgListType
 import com.example.pile.orgmode.OrgParagraph
+import com.example.pile.orgmode.PileOptions
 import com.example.pile.orgmode.breakBlocks
 import com.example.pile.orgmode.breakHeadingContent
 import com.example.pile.orgmode.dropPreamble
@@ -9,6 +10,7 @@ import com.example.pile.orgmode.parseId
 import com.example.pile.orgmode.parseNodeLinks
 import com.example.pile.orgmode.parseOrgList
 import com.example.pile.orgmode.parseOrgRef
+import com.example.pile.orgmode.parsePileOptions
 import com.example.pile.orgmode.parseTitle
 import com.example.pile.orgmode.unfillText
 import org.junit.Assert.assertEquals
@@ -63,6 +65,30 @@ class OrgModeTest {
     fun testParseTitle_NoText() {
         val input = ""
         assertEquals(parseTitle(input), "<NA>")
+    }
+
+    @Test
+    fun testParsePileOptions_Pinned() {
+        val input = """
+            :PROPERTIES:
+            :ID:      21e2c8f6-8dbb-4002-bcf5-a15203516114
+            :END:
+            #+TITLE: Org Test
+            #+PILE: pinned:t
+            #+TOC: headlines 2
+
+            #+BEGIN_page-intro
+            This is an introductory paragraph. Kind of like an abstract. Let's fill this a
+            little. Pellentesque dapibus suscipit ligula. Donec posuere augue in quam. Etiam
+            vel tortor sodales tellus ultricies commodo. Suspendisse potenti. Aenean in sem
+            ac leo mollis blandit. Donec neque quam, dignissim in, mollis nec, sagittis eu,
+            wisi. Phasellus lacus. Etiam laoreet quam sed arcu. Phasellus at dui in ligula
+            mollis ultricies. Integer placerat tristique nisl.
+            #+END_page-intro
+            """.trimIndent()
+
+        val expected = PileOptions(pinned = true)
+        assertEquals(expected, parsePileOptions(input))
     }
 
     @Test
