@@ -132,7 +132,7 @@ fun OrgPreview(text: String, openNodeById: (String) -> Unit) {
 fun OrgParagraphText(orgParagraph: OrgParagraph, openNodeById: (String) -> Unit) {
     when(orgParagraph) {
         is OrgParagraph.OrgHorizontalLine -> OrgHorizontalLine()
-        is OrgParagraph.OrgTable -> Text(orgParagraph.text, fontFamily = FontFamily.Monospace)
+        is OrgParagraph.OrgTable -> OrgTableText(orgParagraph)
         is OrgParagraph.OrgList -> OrgListText(orgParagraph, openNodeById)
         is OrgParagraph.OrgQuote -> OrgQuoteText(orgParagraph, openNodeById)
         is OrgParagraph.OrgBlock -> OrgBlockText(orgParagraph)
