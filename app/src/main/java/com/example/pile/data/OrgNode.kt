@@ -8,13 +8,21 @@ import java.time.LocalDateTime
 
 /**
  * Data class representing each node in the zettelkasten. As of now this maps to file based nodes
- * and not Org header based ones.
+ * and not ones based on Org headers. This only contains the metadata and not the main content. For
+ * that, checkout `OrgContent`.
  *
- * @property pinned Pile-Android specific flag to tell if this node is pinned. This can be moved to
- *                  files later.
- * @property tags   Org mode file tags.
- * @property datetime Created (local) datetime for the node
- * @property lastModified Milliseconds since epoch representing last modified time
+ * A few values are ignored for Room since they are recovered using certain DB joins while reading.
+ *
+ * @property id            Org-Roam id for this node
+ * @property title         Title of the note
+ * @property datetime      Created (local) datetime for the node
+ * @property fileString    Local file URI for recovering the `file` object
+ * @property file          DocumentFile object from the `fileString`
+ * @property pinned        Tell if this node is pinned
+ * @property tags          Tags for this node
+ * @property lastModified  Milliseconds since epoch representing last modified time
+ * @property nodeType      See OrgNodeType enum
+ * @property ref           Reference url/id for literature nodes
  */
 @Entity(tableName = "nodes")
 data class OrgNode(
