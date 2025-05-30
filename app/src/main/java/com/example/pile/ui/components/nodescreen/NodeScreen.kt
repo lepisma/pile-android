@@ -143,7 +143,7 @@ fun NodeScreen(
     currentNode?.let { node ->
         val fileContent = node.file?.let { readFile(context, it) } ?: "NA"
 
-        var currentTextFieldValue by remember {
+        var currentTextFieldValue by remember(node.id) {
             mutableStateOf(
                 TextFieldValue(
                     text = fileContent,

@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -203,12 +204,12 @@ class SharedViewModel(
     // Id for the current node, if being displayed
     private val _currentNodeId: MutableStateFlow<String?> = MutableStateFlow(null)
     fun setCurrentNodeId(id: String) {
-        _currentNodeId.value = null
         _currentNodeId.value = id
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val currentNode: StateFlow<OrgNode?> = _currentNodeId
-        .map { id ->
+        .mapLatest { id ->
             if (id != null) {
                 withContext(Dispatchers.IO) {
                     val nodeFromDb = nodeDao.getNodeById(id)
