@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -36,12 +35,14 @@ import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -66,6 +67,17 @@ import compose.icons.fontawesomeicons.solid.Glasses
 import compose.icons.fontawesomeicons.solid.Link
 import compose.icons.fontawesomeicons.solid.ProjectDiagram
 import compose.icons.fontawesomeicons.solid.Thumbtack
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -120,7 +132,7 @@ fun findStructure(textFieldValue: TextFieldValue, dir: StructuredNavigationDirec
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
 @Composable
 fun NodeScreen(
     nodeId: String,
@@ -150,6 +162,41 @@ fun NodeScreen(
                     selection = TextRange(fileContent.length)
                 )
             )
+        }
+
+        var lastSavedText by remember(node.id) { mutableStateOf(fileContent) }
+
+        // Autosave text
+        DisposableEffect(node.id) {
+            val autoSaveInterval = 1000L
+            val saveScope = CoroutineScope(Dispatchers.Default)
+            val job = saveScope.launch {
+                snapshotFlow { currentTextFieldValue.text }
+                    .debounce(autoSaveInterval)
+                    .distinctUntilChanged()
+                    .filter { it.isNotBlank() }
+                    .onEach { debouncedText ->
+                        if (debouncedText != lastSavedText) {
+                            val newNode = node.copy(tags = parseTags(debouncedText))
+                            withContext(Dispatchers.Main) {
+                                viewModel.updateNode(newNode, newText = debouncedText)
+                                lastSavedText = debouncedText
+                            }
+                        }
+                    }
+                    .launchIn(this)
+            }
+
+            onDispose {
+                job.cancel()
+                val finalText = currentTextFieldValue.text
+                if (finalText != lastSavedText) {
+                    val newNode = node.copy(tags = parseTags(finalText))
+                    viewModel.updateNode(newNode, newText = finalText)
+                    lastSavedText = finalText
+                }
+                saveScope.cancel()
+            }
         }
 
         var showLinkDialog by remember { mutableStateOf(false) }
@@ -279,17 +326,6 @@ fun NodeScreen(
                                 }
                             }
                         },
-                        floatingActionButton = {
-                            FloatingActionButton(onClick = {
-                                val newNode = node.copy(tags = parseTags(currentTextFieldValue.text))
-                                viewModel.updateNode(newNode, newText = currentTextFieldValue.text)
-                            }) {
-                                Icon(
-                                    Icons.Filled.CheckCircle,
-                                    contentDescription = "Save Node"
-                                )
-                            }
-                        }
                     )
                 }
             },
