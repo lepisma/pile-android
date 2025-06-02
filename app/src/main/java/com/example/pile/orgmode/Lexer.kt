@@ -135,12 +135,6 @@ sealed class Token {
         override val range: Pair<Int, Int>
     ) : Token()
 
-    data class CodeBlockResultStart(
-        override val text: String = "RESULTS:",
-        override val range: Pair<Int, Int>,
-        val type: BlockType
-    ) : Token()
-
     // This is used in output of the above
     data class FixedWidthLineStart(
         override val text: String = ":",
@@ -159,7 +153,8 @@ sealed class Token {
         CAPTION,
         BIBLIOGRAPHY,
         TBLFM,
-        CONSTANTS
+        CONSTANTS,
+        RESULTS
     }
 
     data class HeadingStars(
@@ -1029,6 +1024,14 @@ class OrgLexer(private val input: String) {
                                             type = Token.KeywordType.CONSTANTS
                                         ))
                                     }
+                                    "RESULTS" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.Keyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.KeywordType.RESULTS
+                                        ))
+                                    }
                                     // Generic block stuff
                                     "BEGIN" -> {
                                         scannedPos = match.range.last + 1
@@ -1050,7 +1053,7 @@ class OrgLexer(private val input: String) {
                                 }
                             } else {
                                 // Blocks
-                                match = lookahead(Regex("#\\+BEGIN_([a-zA-Z_]+)", RegexOption.IGNORE_CASE))
+                                match = lookahead(Regex("#\\+BEGIN_([a-zA-Z_\\-]+)", RegexOption.IGNORE_CASE))
                                 if (match != null) {
                                     when (match.groupValues[1].uppercase()) {
                                         "COMMENT" -> {
@@ -1119,7 +1122,7 @@ class OrgLexer(private val input: String) {
                                         }
 
                                         // Custom blocks
-                                        "PAGE_INTRO" -> {
+                                        "PAGE-INTRO" -> {
                                             scannedPos = match.range.last + 1
                                             tokens.add(Token.BlockStart(
                                                 text = match.value,
@@ -1151,9 +1154,12 @@ class OrgLexer(private val input: String) {
                                                 type = Token.BlockType.VIDEO
                                             ))
                                         }
+                                        else -> {
+                                            consumeError("Block Start", skip = match.value.length)
+                                        }
                                     }
                                 } else {
-                                    match = lookahead(Regex("#\\+END_([a-zA-Z_]+)", RegexOption.IGNORE_CASE))
+                                    match = lookahead(Regex("#\\+END_([a-zA-Z_\\-]+)", RegexOption.IGNORE_CASE))
                                     if (match != null) {
                                         when (match.groupValues[1].uppercase()) {
                                             "COMMENT" -> {
@@ -1245,7 +1251,7 @@ class OrgLexer(private val input: String) {
                                             }
 
                                             // Custom blocks
-                                            "PAGE_INTRO" -> {
+                                            "PAGE-INTRO" -> {
                                                 scannedPos = match.range.last + 1
                                                 tokens.add(
                                                     Token.BlockEnd(
@@ -1287,6 +1293,9 @@ class OrgLexer(private val input: String) {
                                                         type = Token.BlockType.VIDEO
                                                     )
                                                 )
+                                            }
+                                            else -> {
+                                                consumeError("Block End", skip = match.value.length)
                                             }
                                         }
                                     } else {
