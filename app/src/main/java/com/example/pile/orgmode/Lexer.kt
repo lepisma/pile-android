@@ -442,6 +442,7 @@ class OrgLexer(private val input: String) {
 
     // For debugging and Error tokens
     private var currentLine = 0
+    private var nConsecutiveErrors = 0
 
     private var TODOTodoWords = listOf("TODO")
     private var TODODoneWords = listOf("DONE")
@@ -500,7 +501,13 @@ class OrgLexer(private val input: String) {
 
     private fun consumePropertyValue() {
         consumeSpacesAndTabs()
-        val match = lookaheadTill(Regex("\n"))!!
+        val match = lookaheadTill(Regex("\n"))
+
+        if (match == null) {
+            consumeError("Property value", skip = 1)
+            return
+        }
+
         scannedPos = match.range.first
         val text = input.substring(currentPos, scannedPos)
         tokens.add(Token.DrawerPropertyValue(
@@ -510,12 +517,37 @@ class OrgLexer(private val input: String) {
         ))
     }
 
+    private fun consumeError(parsedObject: String, skip: Int?) {
+        val text = if (skip != null) {
+            input.substring(currentPos, currentPos + skip)
+        } else {
+            ""
+        }
+
+        if (tokens.last() !is Token.Error) {
+            nConsecutiveErrors = 0
+        }
+
+        tokens.add(Token.Error(
+            text = text,
+            range = Pair(currentPos, currentPos + text.length),
+            message = "Error in parsing ${parsedObject} in line number ${currentLine} at (overall) position ${currentPos}"
+        ))
+
+        nConsecutiveErrors++
+    }
+
     fun tokenize(): List<Token> {
 
         while (!reachedEOF) {
             val char = input[currentPos]
             val lastToken = tokens[tokens.lastIndex]
             val atLineStart = (lastToken is Token.LineBreak) || (lastToken is Token.SOF)
+
+            // Consecutive error could be because of skips in malformed org mode text
+            if (nConsecutiveErrors > 5) {
+                return tokens
+            }
 
             when (char) {
                 ' ' -> {
@@ -530,6 +562,7 @@ class OrgLexer(private val input: String) {
                 '\n' -> {
                     scannedPos = currentPos + 1
                     tokens.add(Token.LineBreak(range = Pair(currentPos, scannedPos)))
+                    currentLine++
                     if (atLineStart) {
                         // Double break is a change of paragraph. Also works when we are at SOF
                         inParagraph = false
@@ -550,16 +583,21 @@ class OrgLexer(private val input: String) {
                         // This could be heading (we don't support * list) or general text
                         if (!inParagraph) {
                             val match = lookahead(Regex("\\*+"))
-                            val matchText = match!!.value
-                            scannedPos = currentPos + matchText.length
+                            if (match == null) {
+                                consumeError("Heading Star", skip = 1)
+                            } else {
+                                val matchText = match.value
+                                scannedPos = currentPos + matchText.length
 
-                            tokens.add(
-                                Token.HeadingStars(
-                                    matchText,
-                                    range = Pair(currentPos, scannedPos),
-                                    level = matchText.length
+                                tokens.add(
+                                    Token.HeadingStars(
+                                        matchText,
+                                        range = Pair(currentPos, scannedPos),
+                                        level = matchText.length
+                                    )
                                 )
-                            )
+                            }
+
                             inHeadline = true
                             // Once we hit a headline, we stop being in preface forever
                             inPreface = false
@@ -614,17 +652,21 @@ class OrgLexer(private val input: String) {
                                 if (inPropDrawer) {
                                     match = lookahead(
                                         Regex(":[a-zA-Z0-9_]+:", RegexOption.IGNORE_CASE)
-                                    )!!
-                                    scannedPos = currentPos + match.value.length
-                                    tokens.add(
-                                        Token.DrawerPropertyKey(
-                                            text = match.value,
-                                            range = Pair(currentPos, scannedPos),
-                                            key = match.value.substring(
-                                                1, match.value.length - 1
+                                    )
+                                    if (match == null) {
+                                        consumeError("Property Key", skip = 1)
+                                    } else {
+                                        scannedPos = currentPos + match.value.length
+                                        tokens.add(
+                                            Token.DrawerPropertyKey(
+                                                text = match.value,
+                                                range = Pair(currentPos, scannedPos),
+                                                key = match.value.substring(
+                                                    1, match.value.length - 1
+                                                )
                                             )
                                         )
-                                    )
+                                    }
                                 } else {
                                     scannedPos = currentPos + 1
                                     tokens.add(Token.Colon(
@@ -655,7 +697,7 @@ class OrgLexer(private val input: String) {
                             }
                         } else {
                             if (!listNesting.isEmpty() && listNesting.last() is Token.UnorderedListMarker) {
-                                // We could hit a description list
+                                // We could've hit a description list
                                 if (lastToken is Token.Space && lookahead(
                                         Regex(":: ")
                                     ) != null
@@ -677,14 +719,17 @@ class OrgLexer(private val input: String) {
                 }
                 else -> {
                     val match = lookaheadTill(Regex("\\s"))
-                    scannedPos = match!!.range.first
-
-                    tokens.add(
-                        Token.Text(
-                            input.substring(currentPos, scannedPos),
-                            range = Pair(currentPos, scannedPos)
+                    if (match == null) {
+                        consumeError("Text", skip = 1)
+                    } else {
+                        scannedPos = match.range.first
+                        tokens.add(
+                            Token.Text(
+                                input.substring(currentPos, scannedPos),
+                                range = Pair(currentPos, scannedPos)
+                            )
                         )
-                    )
+                    }
                 }
             }
             currentPos = scannedPos
