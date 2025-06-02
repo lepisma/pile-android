@@ -3,28 +3,35 @@ package com.example.pile.orgmode
 import java.time.LocalDate
 import java.time.LocalTime
 
+// TODO: Should probably use IntRange for range
 sealed class Token {
     abstract val text: String
     abstract val range: Pair<Int, Int>
 
+    // Start of file
+    data class SOF(
+        override val text: String = "",
+        override val range: Pair<Int, Int> = Pair(0, 0),
+    ) : Token()
+
     // All the usual whitespaces
     data class LineBreak(
-        override val text: String,
+        override val text: String = "\n",
         override val range: Pair<Int, Int>
     ) : Token()
 
     data class Space(
-        override val text: String,
+        override val text: String = " ",
         override val range: Pair<Int, Int>
     ) : Token()
 
     data class Tab(
-        override val text: String,
+        override val text: String = "\t",
         override val range: Pair<Int, Int>
     ) : Token()
 
     data class EOF(
-        override val text: String,
+        override val text: String = "",
         override val range: Pair<Int, Int>,
     ) : Token()
 
@@ -49,7 +56,7 @@ sealed class Token {
     ) : Token()
 
     data class DrawerEnd(
-        override val text: String,  // :END:
+        override val text: String = ":END:",
         override val range: Pair<Int, Int>
     ) : Token()
 
@@ -118,14 +125,14 @@ sealed class Token {
     ) : Token()
 
     data class CodeBlockResultStart(
-        override val text: String,  // RESULTS:
+        override val text: String = "RESULTS:",
         override val range: Pair<Int, Int>,
         val type: BlockType
     ) : Token()
 
     // This is used in output of the above
     data class FixedWidthLineStart(
-        override val text: String,  // :
+        override val text: String = ":",
         override val range: Pair<Int, Int>,
     ) : Token()
 
@@ -182,7 +189,7 @@ sealed class Token {
     }
 
     data class DescriptionListSep(
-        override val text: String,  // ::
+        override val text: String = "::",
         override val range: Pair<Int, Int>
     ) : Token()
 
@@ -202,7 +209,7 @@ sealed class Token {
     enum class InlineQuoteType { HTML, LATEX }
 
     data class InlineQuoteEnd(
-        override val text: String,  // @@
+        override val text: String = "@@",
         override val range: Pair<Int, Int>
     ) : Token()
 
@@ -272,38 +279,38 @@ sealed class Token {
     ) : Token()
 
     data class FootnoteStart(
-        override val text: String, // [fn:
+        override val text: String = "[fn:",
         override val range: Pair<Int, Int>,
         val ref: String,
     ) : Token()
 
     data class Colon(
-        override val text: String,  // :
+        override val text: String = ":",
         override val range: Pair<Int, Int>,
     ) : Token()
 
     data class SemiColon(
-        override val text: String,  // ;
+        override val text: String = ";",
         override val range: Pair<Int, Int>
     ) : Token()
 
     data class QuotationMark(
-        override val text: String,  // "
+        override val text: String = "\"",
         override val range: Pair<Int, Int>
     ) : Token()
 
     data class FootnoteEnd(
-        override val text: String,  // ]
+        override val text: String = "]",
         override val range: Pair<Int, Int>,
     ) : Token()
 
     data class CitationStart(
-        override val text: String,  // [cite
+        override val text: String = "[cite",
         override val range: Pair<Int, Int>
     ) : Token()
 
     data class CitationEnd(
-        override val text: String,  // ]
+        override val text: String = "]",
         override val range: Pair<Int, Int>
     ) : Token()
 
@@ -315,17 +322,17 @@ sealed class Token {
 
     // Planning and datetime
     data class Scheduled(
-        override val text: String,  // SCHEDULED:
+        override val text: String = "SCHEDULED:",
         override val range: Pair<Int, Int>
     ) : Token()
 
     data class Deadline(
-        override val text: String,  // DEADLINE:
+        override val text: String = "DEADLINE:",
         override val range: Pair<Int, Int>
     ) : Token()
 
     data class Closed(
-        override val text: String,  // CLOSED:
+        override val text: String = "CLOSED:",
         override val range: Pair<Int, Int>
     ) : Token()
 
@@ -341,22 +348,22 @@ sealed class Token {
     ) : Token()
 
     data class DatetimeDateRangeSep(
-        override val text: String,  // --
+        override val text: String = "--",
         override val range: Pair<Int, Int>
     ) : Token()
 
     data class TableColumnSep(
-        override val text: String,  // |
+        override val text: String = "|",
         override val range: Pair<Int, Int>
     ) : Token()
 
     data class TableRowSep(
-        override val text: String,  // -
+        override val text: String = "-",
         override val range: Pair<Int, Int>
     ) : Token()
 
     data class TableIntersection(
-        override val text: String,  // +
+        override val text: String = "+",
         override val range: Pair<Int, Int>
     ) : Token()
 
@@ -367,17 +374,17 @@ sealed class Token {
     ) : Token()
 
     data class LinkStart(
-        override val text: String, // [[
+        override val text: String = "[[",
         override val range: Pair<Int, Int>
     ) : Token()
 
     data class LinkEnd(
-        override val text: String, // ]]
+        override val text: String = "]]",
         override val range: Pair<Int, Int>
     ) : Token()
 
     data class LinkTitleSep(
-        override val text: String, // ][
+        override val text: String = "][",
         override val range: Pair<Int, Int>
     ) : Token()
 
@@ -387,13 +394,18 @@ sealed class Token {
     ) : Token()
 
     data class HorizontalRule(
-        override val text: String, // -----
+        override val text: String = "-----",
         override val range: Pair<Int, Int>
     ) : Token()
 
     data class CommentStart(
-        override val text: String, // #
+        override val text: String = "#",
         override val range: Pair<Int, Int>
+    ) : Token()
+
+    data class Text(
+        override val text: String,
+        override val range: Pair<Int, Int>,
     ) : Token()
 
     // Unparseable text
@@ -402,4 +414,232 @@ sealed class Token {
         override val range: Pair<Int, Int>,
         val message: String
     ) : Token()
+}
+
+/**
+ * Org mode lexer using simple FSM and tokens from above
+ */
+class OrgLexer(private val input: String) {
+    private var currentPos = 0
+    private var scannedPos = 0
+    private var TODOTodoWords = listOf("TODO")
+    private var TODODoneWords = listOf("DONE")
+    private var priorityIndicators = listOf("A", "B", "C")
+
+    // State management variables
+    private var reachedEOF = false
+    private var listNesting = mutableListOf<Token>()
+    private var blockNesting = mutableListOf<Token>()
+    private var inPropDrawer = false
+    private var inPreface = true
+    private var inParagraph = false
+    private var inHeadline = false
+
+    /**
+     * Look ahead till we find the regex match.
+     */
+    private fun lookaheadTill(regex: Regex): MatchResult? {
+        return regex.find(input, currentPos)
+    }
+
+    /**
+     * Look ahead for the pattern at the current point
+     */
+    private fun lookahead(regex: Regex): MatchResult? {
+        return regex.matchAt(input, currentPos)
+    }
+
+    fun tokenize(): List<Token> {
+        val tokens: MutableList<Token> = mutableListOf(Token.SOF())
+
+        while (!reachedEOF) {
+            val char = input[currentPos]
+            val lastToken = tokens[tokens.lastIndex]
+            val atLineStart = (lastToken is Token.LineBreak) || (lastToken is Token.SOF)
+
+            when (char) {
+                ' ' -> {
+                    scannedPos = currentPos + 1
+                    tokens.add(Token.Space(range = Pair(currentPos, scannedPos)))
+                }
+
+                '\n' -> {
+                    scannedPos = currentPos + 1
+                    tokens.add(Token.LineBreak(range = Pair(currentPos, scannedPos)))
+                    if (atLineStart) {
+                        // Double break is a change of paragraph. Also works when we are at SOF
+                        inParagraph = false
+                    }
+                }
+
+                '\t' -> {
+                    scannedPos = currentPos + 1
+                    tokens.add(Token.Tab(range = Pair(currentPos, scannedPos)))
+                }
+
+                '*' -> {
+                    if (atLineStart) {
+                        // This could be heading (we don't support * list) or general text
+                        if (!inParagraph) {
+                            val match = lookahead(Regex("\\*+"))
+                            val matchText = match!!.value
+                            scannedPos = currentPos + matchText.length
+
+                            tokens.add(
+                                Token.HeadingStars(
+                                    matchText,
+                                    range = Pair(currentPos, scannedPos),
+                                    level = matchText.length
+                                )
+                            )
+                            inHeadline = true
+                            // Once we hit a headline, we stop being in preface forever
+                            inPreface = false
+                        } else {
+                            scannedPos = currentPos + 1
+                            tokens.add(
+                                Token.EmphasisDelimiter(
+                                    text = "*",
+                                    range = Pair(currentPos, scannedPos),
+                                    type = Token.EmphasisType.BOLD
+                                )
+                            )
+                        }
+                    } else {
+                        // Just read it as emphasis thing
+                        scannedPos = currentPos + 1
+                        tokens.add(
+                            Token.EmphasisDelimiter(
+                                text = "*",
+                                range = Pair(currentPos, scannedPos),
+                                type = Token.EmphasisType.BOLD
+                            )
+                        )
+                    }
+                }
+
+                ':' -> {
+                    if (atLineStart) {
+                        // This could be drawer stuff or fixedwidth line, or plain colon
+                        var match = lookahead(Regex(":PROPERTIES:", RegexOption.IGNORE_CASE))
+                        if (match != null) {
+                            scannedPos = currentPos + match.value.length
+                            tokens.add(
+                                Token.DrawerStart(
+                                    text = match.value,
+                                    range = Pair(currentPos, scannedPos),
+                                    type = Token.DrawerType.PROPERTIES
+                                )
+                            )
+                            inPropDrawer = true
+                        } else {
+                            match = lookahead(Regex(":END:", RegexOption.IGNORE_CASE))
+                            if (match != null) {
+                                scannedPos = currentPos + match.value.length
+                                tokens.add(
+                                    Token.DrawerEnd(
+                                        range = Pair(currentPos, scannedPos)
+                                    )
+                                )
+                                inPropDrawer = false
+                            } else {
+                                if (inPropDrawer) {
+                                    match = lookahead(
+                                        Regex(":[a-zA-Z0-9_]+:", RegexOption.IGNORE_CASE)
+                                    )
+                                    if (match != null) {
+                                        scannedPos = currentPos + match.value.length
+                                        tokens.add(
+                                            Token.DrawerPropertyKey(
+                                                text = match.value,
+                                                range = Pair(currentPos, scannedPos),
+                                                key = match.value.substring(
+                                                    1, match.value.length - 2
+                                                )
+                                            )
+                                        )
+                                    } else {
+                                        scannedPos = currentPos + 1
+                                        if (lookahead(Regex(" ")) != null) {
+                                            tokens.add(Token.FixedWidthLineStart(
+                                                range = Pair(currentPos, scannedPos)
+                                            ))
+                                        } else {
+                                            tokens.add(Token.Colon(
+                                                range = Pair(currentPos, scannedPos)
+                                            ))
+                                        }
+                                    }
+                                } else {
+                                    scannedPos = currentPos + 1
+                                    tokens.add(Token.Colon(
+                                        range = Pair(currentPos, scannedPos)
+                                    ))
+                                }
+                            }
+                        }
+                    } else {
+                        // This could be description list sep or plain colon, or tags string
+                        if (inHeadline) {
+                            val match = lookahead(Regex(":([a-zA-Z]+:)+"))
+                            if (match != null) {
+                                val tags = match.value.split(":")
+                                    .map { it.trim() }
+                                    .filter { it.isNotEmpty() }
+                                scannedPos = currentPos + match.value.length
+                                tokens.add(Token.TagString(
+                                    text = match.value,
+                                    range = Pair(currentPos, scannedPos),
+                                    tags = tags
+                                ))
+                                // Tags are the last thing in a heading line
+                                inHeadline = false
+                            } else {
+                                scannedPos = currentPos + 1
+                                tokens.add(Token.Colon(range = Pair(currentPos, scannedPos)))
+                            }
+                        } else {
+                            if (!listNesting.isEmpty() && listNesting.last() is Token.UnorderedListMarker) {
+                                // We could hit a description list
+                                if (lastToken is Token.Space && lookahead(
+                                        Regex(":: ")
+                                    ) != null
+                                ) {
+                                    scannedPos = currentPos + 2
+                                    tokens.add(Token.DescriptionListSep(
+                                        range = Pair(currentPos, scannedPos)
+                                    ))
+                                } else {
+                                    scannedPos = currentPos + 1
+                                    tokens.add(Token.Colon(range = Pair(currentPos, scannedPos)))
+                                }
+                            } else {
+                                scannedPos = currentPos + 1
+                                tokens.add(Token.Colon(range = Pair(currentPos, scannedPos)))
+                            }
+                        }
+                    }
+                }
+
+                else -> {
+                    val match = lookaheadTill(Regex("\\s"))
+                    scannedPos = match!!.range.first
+
+                    tokens.add(
+                        Token.Text(
+                            input.substring(currentPos, scannedPos),
+                            range = Pair(currentPos, scannedPos)
+                        )
+                    )
+                }
+            }
+            currentPos = scannedPos
+
+            if (currentPos >= input.length - 1) {
+                reachedEOF = true
+            }
+        }
+        tokens.add(Token.EOF(range = Pair(currentPos, currentPos)))
+        return tokens.toList()
+    }
 }
