@@ -1359,6 +1359,18 @@ class OrgLexer(private val input: String) {
                         ))
                     }
                 }
+                ';' -> {
+                    scannedPos = currentPos + 1
+                    tokens.add(Token.SemiColon(
+                        range = Pair(currentPos, scannedPos)
+                    ))
+                }
+                '"' -> {
+                    scannedPos = currentPos + 1
+                    tokens.add(Token.QuotationMark(
+                        range = Pair(currentPos, scannedPos)
+                    ))
+                }
                 else -> {
                     val match = lookaheadTill(Regex("\\s"))
                     if (match == null) {
