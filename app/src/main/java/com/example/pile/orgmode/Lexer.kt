@@ -2,6 +2,7 @@ package com.example.pile.orgmode
 
 import java.time.LocalDate
 import java.time.LocalTime
+import kotlin.math.max
 
 // TODO: Should probably use IntRange for range
 sealed class Token {
@@ -113,7 +114,7 @@ sealed class Token {
 
         // These are custom
         PAGE_INTRO,
-        EDIT,
+        EDITS,
         ASIDE,
         VIDEO
     }
@@ -439,6 +440,45 @@ fun inverseLex(tokens: List<Token>): String {
     return strings.joinToString("")
 }
 
+fun compareStrings(a: String, b: String): String {
+    val lines = mutableListOf<String>()
+
+    if (a == b) {
+        return "Both strings are same"
+    }
+
+    if (a.length != b.length) {
+        lines.add("Length difference: ${a.length} vs ${b.length}")
+    }
+
+    var i = 0
+    while (i < max(a.length, b.length)) {
+        val ca: Char?
+        val cb: Char?
+        if (i < a.length) {
+            ca = a[i]
+        } else {
+            ca = null
+        }
+
+        if (i < b.length) {
+            cb = b[i]
+        } else {
+            cb = null
+        }
+
+        if (ca != cb) {
+            val contextA = a.substring(i - 10, i + 10)
+            val contextB = b.substring(i - 10, i + 10)
+            lines.add("\"$contextA\" vs \"$contextB\"")
+            break
+        }
+        i++
+    }
+
+    return lines.joinToString("\n")
+}
+
 /**
  * Org mode lexer using simple FSM and tokens from above
  */
@@ -552,6 +592,7 @@ class OrgLexer(private val input: String) {
     private fun consumeCommentLine() {
         scannedPos = currentPos + 1
         tokens.add(Token.CommentStart(range = Pair(currentPos, scannedPos)))
+        currentPos = scannedPos
         consumeSpacesAndTabs()
 
         // We take the rest of the line as single text token
@@ -1130,12 +1171,12 @@ class OrgLexer(private val input: String) {
                                                 type = Token.BlockType.PAGE_INTRO
                                             ))
                                         }
-                                        "EDIT" -> {
+                                        "EDITS" -> {
                                             scannedPos = match.range.last + 1
                                             tokens.add(Token.BlockStart(
                                                 text = match.value,
                                                 range = Pair(currentPos, scannedPos),
-                                                type = Token.BlockType.EDIT
+                                                type = Token.BlockType.EDITS
                                             ))
                                         }
                                         "ASIDE" -> {
@@ -1262,13 +1303,13 @@ class OrgLexer(private val input: String) {
                                                 )
                                             }
 
-                                            "EDIT" -> {
+                                            "EDITS" -> {
                                                 scannedPos = match.range.last + 1
                                                 tokens.add(
                                                     Token.BlockEnd(
                                                         text = match.value,
                                                         range = Pair(currentPos, scannedPos),
-                                                        type = Token.BlockType.EDIT
+                                                        type = Token.BlockType.EDITS
                                                     )
                                                 )
                                             }
