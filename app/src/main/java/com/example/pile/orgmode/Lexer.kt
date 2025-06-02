@@ -439,6 +439,10 @@ fun inverseLex(tokens: List<Token>): String {
 class OrgLexer(private val input: String) {
     private var currentPos = 0
     private var scannedPos = 0
+
+    // For debugging and Error tokens
+    private var currentLine = 0
+
     private var TODOTodoWords = listOf("TODO")
     private var TODODoneWords = listOf("DONE")
     private var priorityIndicators = listOf("A", "B", "C")
@@ -469,6 +473,43 @@ class OrgLexer(private val input: String) {
         return regex.matchAt(input, currentPos)
     }
 
+    private fun consumeSpace() {
+        scannedPos = currentPos + 1
+        tokens.add(Token.Space(range = Pair(currentPos, scannedPos)))
+        currentPos = scannedPos
+    }
+
+    private fun consumeTab() {
+        scannedPos = currentPos + 1
+        tokens.add(Token.Tab(range = Pair(currentPos, scannedPos)))
+        currentPos = scannedPos
+    }
+
+    private fun consumeSpacesAndTabs() {
+        var char = input[currentPos]
+
+        while (true) {
+            when (char) {
+                ' ' -> consumeSpace()
+                '\t' -> consumeTab()
+                else -> break
+            }
+            char = input[currentPos]
+        }
+    }
+
+    private fun consumePropertyValue() {
+        consumeSpacesAndTabs()
+        val match = lookaheadTill(Regex("\n"))!!
+        scannedPos = match.range.first
+        val text = input.substring(currentPos, scannedPos)
+        tokens.add(Token.DrawerPropertyValue(
+            text = text,
+            range = Pair(currentPos, scannedPos),
+            value = text.trim()
+        ))
+    }
+
     fun tokenize(): List<Token> {
 
         while (!reachedEOF) {
@@ -478,8 +519,12 @@ class OrgLexer(private val input: String) {
 
             when (char) {
                 ' ' -> {
-                    scannedPos = currentPos + 1
-                    tokens.add(Token.Space(range = Pair(currentPos, scannedPos)))
+                    if (inPropDrawer) {
+                        consumePropertyValue()
+                    } else {
+                        consumeSpace()
+                        consumeSpacesAndTabs()
+                    }
                 }
 
                 '\n' -> {
@@ -492,8 +537,12 @@ class OrgLexer(private val input: String) {
                 }
 
                 '\t' -> {
-                    scannedPos = currentPos + 1
-                    tokens.add(Token.Tab(range = Pair(currentPos, scannedPos)))
+                    if (inPropDrawer) {
+                        consumePropertyValue()
+                    } else {
+                        consumeTab()
+                        consumeSpacesAndTabs()
+                    }
                 }
 
                 '*' -> {
@@ -539,7 +588,7 @@ class OrgLexer(private val input: String) {
 
                 ':' -> {
                     if (atLineStart) {
-                        // This could be drawer stuff or fixedwidth line, or plain colon
+                        // This could be drawer stuff or fixed width line, or plain colon
                         var match = lookahead(Regex(":PROPERTIES:", RegexOption.IGNORE_CASE))
                         if (match != null) {
                             scannedPos = currentPos + match.value.length
@@ -565,30 +614,17 @@ class OrgLexer(private val input: String) {
                                 if (inPropDrawer) {
                                     match = lookahead(
                                         Regex(":[a-zA-Z0-9_]+:", RegexOption.IGNORE_CASE)
-                                    )
-                                    if (match != null) {
-                                        scannedPos = currentPos + match.value.length
-                                        tokens.add(
-                                            Token.DrawerPropertyKey(
-                                                text = match.value,
-                                                range = Pair(currentPos, scannedPos),
-                                                key = match.value.substring(
-                                                    1, match.value.length - 2
-                                                )
+                                    )!!
+                                    scannedPos = currentPos + match.value.length
+                                    tokens.add(
+                                        Token.DrawerPropertyKey(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            key = match.value.substring(
+                                                1, match.value.length - 1
                                             )
                                         )
-                                    } else {
-                                        scannedPos = currentPos + 1
-                                        if (lookahead(Regex(" ")) != null) {
-                                            tokens.add(Token.FixedWidthLineStart(
-                                                range = Pair(currentPos, scannedPos)
-                                            ))
-                                        } else {
-                                            tokens.add(Token.Colon(
-                                                range = Pair(currentPos, scannedPos)
-                                            ))
-                                        }
-                                    }
+                                    )
                                 } else {
                                     scannedPos = currentPos + 1
                                     tokens.add(Token.Colon(
@@ -639,7 +675,6 @@ class OrgLexer(private val input: String) {
                         }
                     }
                 }
-
                 else -> {
                     val match = lookaheadTill(Regex("\\s"))
                     scannedPos = match!!.range.first
