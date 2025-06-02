@@ -109,7 +109,7 @@ sealed class Token {
         CENTER,
         HTML,
         VERSE,
-        NONAME,   // Things like clock table are like this where BEGIN ends with :
+        LATEX,
 
         // These are custom
         PAGE_INTRO,
@@ -119,9 +119,20 @@ sealed class Token {
     }
 
     data class BlockEnd(
-        override val text: String,
+        override val text: String, // #+END_<stuff>
         override val range: Pair<Int, Int>,
         val type: BlockType
+    ) : Token()
+
+    // Things like clock table are like this where BEGIN ends with :
+    data class GenericBlockStart(
+        override val text: String = "#+BEGIN:",
+        override val range: Pair<Int, Int>,
+    ) : Token()
+
+    data class GenericBlockEnd(
+        override val text: String = "#+END:",
+        override val range: Pair<Int, Int>
     ) : Token()
 
     data class CodeBlockResultStart(
@@ -486,6 +497,9 @@ class OrgLexer(private val input: String) {
         currentPos = scannedPos
     }
 
+    /**
+     * Consume contiguous sequence of spaces and tabs
+     */
     private fun consumeSpacesAndTabs() {
         var char = input[currentPos]
 
@@ -501,7 +515,7 @@ class OrgLexer(private val input: String) {
 
     private fun consumePropertyValue() {
         consumeSpacesAndTabs()
-        val match = lookaheadTill(Regex("\n"))
+        val match = lookaheadTill(Regex("(\n|\$)"))
 
         if (match == null) {
             consumeError("Property value", skip = 1)
@@ -515,14 +529,16 @@ class OrgLexer(private val input: String) {
             range = Pair(currentPos, scannedPos),
             value = text.trim()
         ))
+        currentLine = scannedPos
     }
 
-    private fun consumeError(parsedObject: String, skip: Int?) {
-        val text = if (skip != null) {
-            input.substring(currentPos, currentPos + skip)
-        } else {
-            ""
-        }
+    /**
+     * Consume characters using skip count and return an Error token with details about current
+     * location and the object being parsed.
+     */
+    private fun consumeError(parsedObject: String, skip: Int = 0) {
+        scannedPos = currentPos + skip
+        val text = input.substring(currentPos, scannedPos)
 
         if (tokens.last() !is Token.Error) {
             nConsecutiveErrors = 0
@@ -530,11 +546,33 @@ class OrgLexer(private val input: String) {
 
         tokens.add(Token.Error(
             text = text,
-            range = Pair(currentPos, currentPos + text.length),
+            range = Pair(currentPos, scannedPos),
             message = "Error in parsing ${parsedObject} in line number ${currentLine} at (overall) position ${currentPos}"
         ))
 
         nConsecutiveErrors++
+        currentLine = scannedPos
+    }
+
+    private fun consumeCommentLine() {
+        scannedPos = currentPos + 1
+        tokens.add(Token.CommentStart(range = Pair(currentPos, scannedPos)))
+        consumeSpacesAndTabs()
+
+        // We take the rest of the line as single text token
+        val match = lookaheadTill(Regex("(\n|\$)"))
+
+        if (match == null) {
+            consumeError("Comment line", skip = 1)
+            return
+        }
+
+        scannedPos = match.range.first
+        tokens.add(Token.Text(
+            text = input.substring(currentPos, scannedPos),
+            range = Pair(currentPos, scannedPos)
+        ))
+        currentLine = scannedPos
     }
 
     fun tokenize(): List<Token> {
@@ -612,7 +650,7 @@ class OrgLexer(private val input: String) {
                             )
                         }
                     } else {
-                        // Just read it as emphasis thing
+                        // Just read it as an emphasis character
                         scannedPos = currentPos + 1
                         tokens.add(
                             Token.EmphasisDelimiter(
@@ -668,6 +706,7 @@ class OrgLexer(private val input: String) {
                                         )
                                     }
                                 } else {
+                                    // TODO: Handle FixedWidthLineStart here, or do that in the parser I guess
                                     scannedPos = currentPos + 1
                                     tokens.add(Token.Colon(
                                         range = Pair(currentPos, scannedPos)
@@ -698,9 +737,7 @@ class OrgLexer(private val input: String) {
                         } else {
                             if (!listNesting.isEmpty() && listNesting.last() is Token.UnorderedListMarker) {
                                 // We could've hit a description list
-                                if (lastToken is Token.Space && lookahead(
-                                        Regex(":: ")
-                                    ) != null
+                                if (lastToken is Token.Space && lookahead(Regex(":: ")) != null
                                 ) {
                                     scannedPos = currentPos + 2
                                     tokens.add(Token.DescriptionListSep(
@@ -715,6 +752,561 @@ class OrgLexer(private val input: String) {
                                 tokens.add(Token.Colon(range = Pair(currentPos, scannedPos)))
                             }
                         }
+                    }
+                }
+                '#' -> {
+                    if (atLineStart) {
+                        // This could be comment or keyword, block marker, or just plain text
+                        if (lookahead(Regex("# ")) != null) {
+                            consumeCommentLine()
+                        } else {
+                            // Keyword or general block
+                            var match = lookahead(Regex("#\\+([a-zA-Z_]+):"))
+                            if (match != null) {
+                                when (match.groupValues[1].uppercase()) {
+                                    "TITLE" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.TITLE
+                                        ))
+                                    }
+                                    "AUTHOR" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.AUTHOR
+                                        ))
+                                    }
+                                    "EMAIL" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.EMAIL
+                                        ))
+                                    }
+                                    "DATE" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.DATE
+                                        ))
+                                    }
+                                    "SUBTITLE" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.SUBTITLE
+                                        ))
+                                    }
+                                    "DESCRIPTION" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.DESCRIPTION
+                                        ))
+                                    }
+                                    "KEYWORDS" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.KEYWORDS
+                                        ))
+                                    }
+                                    "CATEGORY" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.CATEGORY
+                                        ))
+                                    }
+                                    "FILETAGS" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.FILETAGS
+                                        ))
+                                    }
+                                    "EXPORT_SELECT_TAGS" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.EXPORT_SELECT_TAGS
+                                        ))
+                                    }
+                                    "EXPORT_FILE_NAME" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.EXPORT_FILE_NAME
+                                        ))
+                                    }
+                                    "EXPORT_EXCLUDE_TAGS" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.EXPORT_EXCLUDE_TAGS
+                                        ))
+                                    }
+                                    "TAGS" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.TAGS
+                                        ))
+                                    }
+                                    "LANGUAGE" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.LANGUAGE
+                                        ))
+                                    }
+                                    "STARTUP" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.STARTUP
+                                        ))
+                                    }
+                                    "TODO" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.TODO
+                                        ))
+                                    }
+                                    "TYP_TODO" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.TYP_TODO
+                                        ))
+                                    }
+                                    "SEQ_TODO" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.SEQ_TODO
+                                        ))
+                                    }
+                                    "PROPERTY" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.PROPERTY
+                                        ))
+                                    }
+                                    "PILE" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.PILE
+                                        ))
+                                    }
+                                    "TOC" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.TOC
+                                        ))
+                                    }
+                                    "OPTIONS" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.OPTIONS
+                                        ))
+                                    }
+                                    "LATEX_HEADER" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.LATEX_HEADER
+                                        ))
+                                    }
+                                    "HTML_HEAD" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.HTML_HEAD
+                                        ))
+                                    }
+                                    "PRIORITIES" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.PRIORITIES
+                                        ))
+                                    }
+                                    "CITE_EXPORT" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.FileKeyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.FileKeywordType.CITE_EXPORT
+                                        ))
+                                    }
+                                    // Other keywords
+                                    "ATTR_HTML" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.Keyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.KeywordType.ATTR_HTML
+                                        ))
+                                    }
+                                    "NAME" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.Keyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.KeywordType.NAME
+                                        ))
+                                    }
+                                    "HTML" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.Keyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.KeywordType.HTML
+                                        ))
+                                    }
+                                    "CAPTION" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.Keyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.KeywordType.CAPTION
+                                        ))
+                                    }
+                                    "BIBLIOGRAPHY" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.Keyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.KeywordType.BIBLIOGRAPHY
+                                        ))
+                                    }
+                                    "TBLFM" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.Keyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.KeywordType.TBLFM
+                                        ))
+                                    }
+                                    "CONSTANTS" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.Keyword(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos),
+                                            type = Token.KeywordType.CONSTANTS
+                                        ))
+                                    }
+                                    // Generic block stuff
+                                    "BEGIN" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.GenericBlockStart(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos)
+                                        ))
+                                    }
+                                    "END" -> {
+                                        scannedPos = match.range.last + 1
+                                        tokens.add(Token.GenericBlockEnd(
+                                            text = match.value,
+                                            range = Pair(currentPos, scannedPos)
+                                        ))
+                                    }
+                                    else -> {
+                                        consumeError("Keyword", skip = match.value.length)
+                                    }
+                                }
+                            } else {
+                                // Blocks
+                                match = lookahead(Regex("#\\+BEGIN_([a-zA-Z_]+)", RegexOption.IGNORE_CASE))
+                                if (match != null) {
+                                    when (match.groupValues[1].uppercase()) {
+                                        "COMMENT" -> {
+                                            scannedPos = match.range.last + 1
+                                            tokens.add(Token.BlockStart(
+                                                text = match.value,
+                                                range = Pair(currentPos, scannedPos),
+                                                type = Token.BlockType.COMMENT
+                                            ))
+                                        }
+                                        "EXAMPLE" -> {
+                                            scannedPos = match.range.last + 1
+                                            tokens.add(Token.BlockStart(
+                                                text = match.value,
+                                                range = Pair(currentPos, scannedPos),
+                                                type = Token.BlockType.EXAMPLE
+                                            ))
+                                        }
+                                        "SRC" -> {
+                                            scannedPos = match.range.last + 1
+                                            tokens.add(Token.BlockStart(
+                                                text = match.value,
+                                                range = Pair(currentPos, scannedPos),
+                                                type = Token.BlockType.SRC
+                                            ))
+                                        }
+                                        "QUOTE" -> {
+                                            scannedPos = match.range.last + 1
+                                            tokens.add(Token.BlockStart(
+                                                text = match.value,
+                                                range = Pair(currentPos, scannedPos),
+                                                type = Token.BlockType.QUOTE
+                                            ))
+                                        }
+                                        "CENTER" -> {
+                                            scannedPos = match.range.last + 1
+                                            tokens.add(Token.BlockStart(
+                                                text = match.value,
+                                                range = Pair(currentPos, scannedPos),
+                                                type = Token.BlockType.CENTER
+                                            ))
+                                        }
+                                        "HTML" -> {
+                                            scannedPos = match.range.last + 1
+                                            tokens.add(Token.BlockStart(
+                                                text = match.value,
+                                                range = Pair(currentPos, scannedPos),
+                                                type = Token.BlockType.HTML
+                                            ))
+                                        }
+                                        "VERSE" -> {
+                                            scannedPos = match.range.last + 1
+                                            tokens.add(Token.BlockStart(
+                                                text = match.value,
+                                                range = Pair(currentPos, scannedPos),
+                                                type = Token.BlockType.VERSE
+                                            ))
+                                        }
+                                        "LATEX" -> {
+                                            scannedPos = match.range.last + 1
+                                            tokens.add(Token.BlockStart(
+                                                text = match.value,
+                                                range = Pair(currentPos, scannedPos),
+                                                type = Token.BlockType.LATEX
+                                            ))
+                                        }
+
+                                        // Custom blocks
+                                        "PAGE_INTRO" -> {
+                                            scannedPos = match.range.last + 1
+                                            tokens.add(Token.BlockStart(
+                                                text = match.value,
+                                                range = Pair(currentPos, scannedPos),
+                                                type = Token.BlockType.PAGE_INTRO
+                                            ))
+                                        }
+                                        "EDIT" -> {
+                                            scannedPos = match.range.last + 1
+                                            tokens.add(Token.BlockStart(
+                                                text = match.value,
+                                                range = Pair(currentPos, scannedPos),
+                                                type = Token.BlockType.EDIT
+                                            ))
+                                        }
+                                        "ASIDE" -> {
+                                            scannedPos = match.range.last + 1
+                                            tokens.add(Token.BlockStart(
+                                                text = match.value,
+                                                range = Pair(currentPos, scannedPos),
+                                                type = Token.BlockType.ASIDE
+                                            ))
+                                        }
+                                        "VIDEO" -> {
+                                            scannedPos = match.range.last + 1
+                                            tokens.add(Token.BlockStart(
+                                                text = match.value,
+                                                range = Pair(currentPos, scannedPos),
+                                                type = Token.BlockType.VIDEO
+                                            ))
+                                        }
+                                    }
+                                } else {
+                                    match = lookahead(Regex("#\\+END_([a-zA-Z_]+)", RegexOption.IGNORE_CASE))
+                                    if (match != null) {
+                                        when (match.groupValues[1].uppercase()) {
+                                            "COMMENT" -> {
+                                                scannedPos = match.range.last + 1
+                                                tokens.add(
+                                                    Token.BlockEnd(
+                                                        text = match.value,
+                                                        range = Pair(currentPos, scannedPos),
+                                                        type = Token.BlockType.COMMENT
+                                                    )
+                                                )
+                                            }
+
+                                            "EXAMPLE" -> {
+                                                scannedPos = match.range.last + 1
+                                                tokens.add(
+                                                    Token.BlockEnd(
+                                                        text = match.value,
+                                                        range = Pair(currentPos, scannedPos),
+                                                        type = Token.BlockType.EXAMPLE
+                                                    )
+                                                )
+                                            }
+
+                                            "SRC" -> {
+                                                scannedPos = match.range.last + 1
+                                                tokens.add(
+                                                    Token.BlockEnd(
+                                                        text = match.value,
+                                                        range = Pair(currentPos, scannedPos),
+                                                        type = Token.BlockType.SRC
+                                                    )
+                                                )
+                                            }
+
+                                            "QUOTE" -> {
+                                                scannedPos = match.range.last + 1
+                                                tokens.add(
+                                                    Token.BlockEnd(
+                                                        text = match.value,
+                                                        range = Pair(currentPos, scannedPos),
+                                                        type = Token.BlockType.QUOTE
+                                                    )
+                                                )
+                                            }
+
+                                            "CENTER" -> {
+                                                scannedPos = match.range.last + 1
+                                                tokens.add(
+                                                    Token.BlockEnd(
+                                                        text = match.value,
+                                                        range = Pair(currentPos, scannedPos),
+                                                        type = Token.BlockType.CENTER
+                                                    )
+                                                )
+                                            }
+
+                                            "HTML" -> {
+                                                scannedPos = match.range.last + 1
+                                                tokens.add(
+                                                    Token.BlockEnd(
+                                                        text = match.value,
+                                                        range = Pair(currentPos, scannedPos),
+                                                        type = Token.BlockType.HTML
+                                                    )
+                                                )
+                                            }
+
+                                            "VERSE" -> {
+                                                scannedPos = match.range.last + 1
+                                                tokens.add(
+                                                    Token.BlockEnd(
+                                                        text = match.value,
+                                                        range = Pair(currentPos, scannedPos),
+                                                        type = Token.BlockType.VERSE
+                                                    )
+                                                )
+                                            }
+
+                                            "LATEX" -> {
+                                                scannedPos = match.range.last + 1
+                                                tokens.add(
+                                                    Token.BlockEnd(
+                                                        text = match.value,
+                                                        range = Pair(currentPos, scannedPos),
+                                                        type = Token.BlockType.LATEX
+                                                    )
+                                                )
+                                            }
+
+                                            // Custom blocks
+                                            "PAGE_INTRO" -> {
+                                                scannedPos = match.range.last + 1
+                                                tokens.add(
+                                                    Token.BlockEnd(
+                                                        text = match.value,
+                                                        range = Pair(currentPos, scannedPos),
+                                                        type = Token.BlockType.PAGE_INTRO
+                                                    )
+                                                )
+                                            }
+
+                                            "EDIT" -> {
+                                                scannedPos = match.range.last + 1
+                                                tokens.add(
+                                                    Token.BlockEnd(
+                                                        text = match.value,
+                                                        range = Pair(currentPos, scannedPos),
+                                                        type = Token.BlockType.EDIT
+                                                    )
+                                                )
+                                            }
+
+                                            "ASIDE" -> {
+                                                scannedPos = match.range.last + 1
+                                                tokens.add(
+                                                    Token.BlockEnd(
+                                                        text = match.value,
+                                                        range = Pair(currentPos, scannedPos),
+                                                        type = Token.BlockType.ASIDE
+                                                    )
+                                                )
+                                            }
+
+                                            "VIDEO" -> {
+                                                scannedPos = match.range.last + 1
+                                                tokens.add(
+                                                    Token.BlockEnd(
+                                                        text = match.value,
+                                                        range = Pair(currentPos, scannedPos),
+                                                        type = Token.BlockType.VIDEO
+                                                    )
+                                                )
+                                            }
+                                        }
+                                    } else {
+                                        scannedPos = currentPos + 1
+                                        tokens.add(Token.Text(
+                                            text = "#",
+                                            range = Pair(currentPos, scannedPos)
+                                        ))
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        // This is plain text
+                        // We don't support #tag
+                        scannedPos = currentPos + 1
+                        tokens.add(Token.Text(
+                            text = "#",
+                            range = Pair(currentPos, scannedPos)
+                        ))
                     }
                 }
                 else -> {
