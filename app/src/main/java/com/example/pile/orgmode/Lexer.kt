@@ -288,7 +288,6 @@ sealed class Token {
     data class FootnoteStart(
         override val text: String = "[fn:",
         override val range: Pair<Int, Int>,
-        val ref: String,
     ) : Token()
 
     data class Colon(
@@ -395,7 +394,7 @@ sealed class Token {
         override val range: Pair<Int, Int>
     ) : Token()
 
-    data class LinkUrl(
+    data class LinkTarget(
         override val text: String,
         override val range: Pair<Int, Int>,
     ) : Token()
@@ -1425,6 +1424,35 @@ class OrgLexer(private val input: String) {
                         } else {
                             consumeNCharsAsText(1)
                         }
+                    } else {
+                        consumeNCharsAsText(1)
+                    }
+                }
+                '-' -> {
+                    if (atLineStart && lookahead(Regex("\\-\\-\\-\\-\\-")) != null) {
+                        scannedPos = currentPos + 5
+                        tokens.add(Token.HorizontalRule(range = Pair(currentPos, scannedPos)))
+                    } else {
+                        consumeNCharsAsText(1)
+                    }
+                }
+                '[' -> {
+                    if (lookahead(Regex("\\[\\[")) != null) {
+                        scannedPos = currentPos + 2
+                        tokens.add(Token.LinkStart(range = Pair(currentPos, scannedPos)))
+                    } else {
+                        if (lookahead(Regex("\\[fn:")) != null) {
+                            scannedPos = currentPos + 4
+                            tokens.add(Token.FootnoteStart(range = Pair(currentPos, scannedPos)))
+                        } else {
+                            consumeNCharsAsText(1)
+                        }
+                    }
+                }
+                ']' -> {
+                    if (lookahead(Regex("\\]\\]")) != null) {
+                        scannedPos = currentPos + 2
+                        tokens.add(Token.LinkEnd(range = Pair(currentPos, scannedPos)))
                     } else {
                         consumeNCharsAsText(1)
                     }
