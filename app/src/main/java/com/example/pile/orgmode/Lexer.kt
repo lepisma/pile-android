@@ -417,6 +417,23 @@ sealed class Token {
 }
 
 /**
+ * Convert a list of tokens to String, primarily for debugging.
+ */
+fun inverseLex(tokens: List<Token>): String {
+    val strings = mutableListOf<String>()
+
+    for (token in tokens) {
+        if (token is Token.SOF || token is Token.EOF) {
+            continue
+        }
+
+        strings.add(token.text)
+    }
+
+    return strings.joinToString("")
+}
+
+/**
  * Org mode lexer using simple FSM and tokens from above
  */
 class OrgLexer(private val input: String) {
@@ -637,7 +654,7 @@ class OrgLexer(private val input: String) {
             }
             currentPos = scannedPos
 
-            if (currentPos >= input.length - 1) {
+            if (currentPos > input.length - 1) {
                 reachedEOF = true
             }
         }
