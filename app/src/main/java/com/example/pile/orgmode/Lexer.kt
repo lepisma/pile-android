@@ -435,6 +435,9 @@ class OrgLexer(private val input: String) {
     private var inParagraph = false
     private var inHeadline = false
 
+    // Accumulator
+    private val tokens: MutableList<Token> = mutableListOf(Token.SOF())
+
     /**
      * Look ahead till we find the regex match.
      */
@@ -450,7 +453,6 @@ class OrgLexer(private val input: String) {
     }
 
     fun tokenize(): List<Token> {
-        val tokens: MutableList<Token> = mutableListOf(Token.SOF())
 
         while (!reachedEOF) {
             val char = input[currentPos]
