@@ -2,6 +2,9 @@ package com.example.pile.orgmode
 
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import java.util.Locale
 import kotlin.math.max
 
 // TODO: Should probably use IntRange for range
@@ -134,12 +137,6 @@ sealed class Token {
     data class GenericBlockEnd(
         override val text: String = "#+END:",
         override val range: Pair<Int, Int>
-    ) : Token()
-
-    // This is used in output of the above
-    data class FixedWidthLineStart(
-        override val text: String = ":",
-        override val range: Pair<Int, Int>,
     ) : Token()
 
     data class Keyword(
@@ -478,6 +475,92 @@ fun compareStrings(a: String, b: String): String {
     return lines.joinToString("\n")
 }
 
+class OrgDTParser {
+    private val DATE_FORMATTER_ORG = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    private val TIME_FORMATTER_ORG = DateTimeFormatter.ofPattern("HH:mm")
+
+    private val REPEATER_PATTERN = """([.+]?\d+[hdwmy])""".toRegex() // e.g., +1d, .5m, ++1w
+
+    private val SINGLE_TIMESTAMP_CONTENT_REGEX = """
+    (\d{4}-\d{2}-\d{2})         # Group 1: YYYY-MM-DD
+    (?:\s([A-Za-z]{3}))?        # Group 2: Optional Day (e.g., Mon, Tue)
+    (?:\s(\d{2}:\d{2}))?        # Group 3: Optional Start Time HH:MM
+    (?:-(\d{2}:\d{2}))?         # Group 4: Optional End Time HH:MM (if time range)
+    (?:\s(${REPEATER_PATTERN.pattern}))?
+    """.trimIndent().toRegex(RegexOption.COMMENTS)
+
+    // These are exposed for lookahead
+    val ACTIVE_TIMESTAMP_REGEX = """<($SINGLE_TIMESTAMP_CONTENT_REGEX)>""".toRegex(RegexOption.COMMENTS)
+    val INACTIVE_TIMESTAMP_REGEX = """\[($SINGLE_TIMESTAMP_CONTENT_REGEX)\]""".toRegex(RegexOption.COMMENTS)
+
+    fun parse(text: String, index: Int): Token.DatetimeStamp? {
+        val isActive: Boolean
+        val matchResult: MatchResult?
+
+        when {
+            ACTIVE_TIMESTAMP_REGEX.matchAt(text, index) != null -> {
+                isActive = true
+                matchResult = ACTIVE_TIMESTAMP_REGEX.find(text)
+            }
+            INACTIVE_TIMESTAMP_REGEX.matchAt(text, index) != null -> {
+                isActive = false
+                matchResult = INACTIVE_TIMESTAMP_REGEX.find(text)
+            }
+            else -> return null
+        }
+
+        matchResult?.let { m ->
+            val contentMatchResult = SINGLE_TIMESTAMP_CONTENT_REGEX.find(m.groupValues[1])
+            contentMatchResult?.let { cm ->
+                try {
+                    val dateStr = cm.groupValues[1]
+                    val weekdayStr = cm.groupValues[2].takeIf { it.isNotEmpty() }
+                    val timeStartStr = cm.groupValues[3].takeIf { it.isNotEmpty() }
+                    val timeEndStr = cm.groupValues[4].takeIf { it.isNotEmpty() }
+                    val repeaterStr = cm.groupValues[5].takeIf { it.isNotEmpty() }
+
+                    val date = LocalDate.parse(dateStr, DATE_FORMATTER_ORG)
+
+                    val showWeekDay = weekdayStr != null
+                    if (showWeekDay) {
+                        val expectedWeekday = date.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, Locale.ENGLISH)
+                        if (!expectedWeekday.startsWith(weekdayStr!!, ignoreCase = true)) {
+                            println("Warning: Weekday mismatch for '$dateStr'. Expected $expectedWeekday, got $weekdayStr")
+                        }
+                    }
+
+                    val timePair: Pair<LocalTime, LocalTime?>? = if (timeStartStr != null) {
+                        val startTime = LocalTime.parse(timeStartStr, TIME_FORMATTER_ORG)
+                        val endTime = if (timeEndStr != null) LocalTime.parse(timeEndStr, TIME_FORMATTER_ORG) else null
+                        startTime to endTime
+                    } else {
+                        null
+                    }
+
+                    val repeater = repeaterStr.takeIf { it?.isNotEmpty() == true }
+                    return Token.DatetimeStamp(
+                        text = m.value,
+                        range = Pair(index, index + m.value.length),
+                        date = date,
+                        showWeekDay = showWeekDay,
+                        time = timePair,
+                        isActive = isActive,
+                        repeater = repeater
+                    )
+
+                } catch (e: DateTimeParseException) {
+                    println("Error parsing date/time for '${m.value}': ${e.message}")
+                    return null
+                } catch (e: Exception) {
+                    println("Unexpected error parsing '${m.value}': ${e.message}")
+                    return null
+                }
+            }
+        }
+        return null
+    }
+}
+
 /**
  * Org mode lexer using simple FSM and tokens from above
  */
@@ -498,10 +581,13 @@ class OrgLexer(private val input: String) {
     private var reachedEOF = false
     private var listNesting = mutableListOf<Token>()
     private var blockNesting = mutableListOf<Token>()
+    private var nIndent = 0
     private var inPropDrawer = false
     private var inPreface = true
     private var inParagraph = false
     private var inHeadline = false
+
+    private val dtParser = OrgDTParser()
 
     // Accumulator
     private val tokens: MutableList<Token> = mutableListOf(Token.SOF())
@@ -644,6 +730,7 @@ class OrgLexer(private val input: String) {
                     scannedPos = currentPos + 1
                     tokens.add(Token.LineBreak(range = Pair(currentPos, scannedPos)))
                     currentLine++
+                    nIndent = 0
                     currentLineBegPos = currentPos
                     if (atLineStart) {
                         // Double break is a change of paragraph. Also works when we are at SOF
@@ -750,7 +837,6 @@ class OrgLexer(private val input: String) {
                                         )
                                     }
                                 } else {
-                                    // TODO: Handle FixedWidthLineStart here, or do that in the parser I guess
                                     scannedPos = currentPos + 1
                                     tokens.add(Token.Colon(
                                         range = Pair(currentPos, scannedPos)
@@ -1431,9 +1517,39 @@ class OrgLexer(private val input: String) {
                     }
                 }
                 '-' -> {
-                    if (atLineStart && lookahead(Regex("\\-\\-\\-\\-\\-")) != null) {
-                        scannedPos = currentPos + 5
-                        tokens.add(Token.HorizontalRule(range = Pair(currentPos, scannedPos)))
+                    if (atLineStart) {
+                        // Horizontal rule or list marker
+                        if (lookahead(Regex("\\-\\-\\-\\-\\-")) != null) {
+                            scannedPos = currentPos + 5
+                            tokens.add(Token.HorizontalRule(range = Pair(currentPos, scannedPos)))
+                        } else if (lookahead(Regex("\\- ")) != null) {
+                            scannedPos = currentPos + 1
+                            tokens.add(Token.UnorderedListMarker(
+                                text = "-",
+                                range = Pair(currentPos, scannedPos),
+                                style = Token.UnorderedListMarkerStyle.DASH,
+                                nIndent = nIndent
+                            ))
+                        } else {
+                            consumeNCharsAsText(1)
+                        }
+                    } else {
+                        consumeNCharsAsText(1)
+                    }
+                }
+                '+' -> {
+                    if (atLineStart) {
+                        if (lookahead(Regex("\\+ ")) != null) {
+                            scannedPos = currentPos + 1
+                            tokens.add(Token.UnorderedListMarker(
+                                text = "+",
+                                range = Pair(currentPos, scannedPos),
+                                style = Token.UnorderedListMarkerStyle.PLUS,
+                                nIndent = nIndent
+                            ))
+                        } else {
+                            consumeNCharsAsText(1)
+                        }
                     } else {
                         consumeNCharsAsText(1)
                     }
@@ -1442,22 +1558,93 @@ class OrgLexer(private val input: String) {
                     if (lookahead(Regex("\\[\\[")) != null) {
                         scannedPos = currentPos + 2
                         tokens.add(Token.LinkStart(range = Pair(currentPos, scannedPos)))
-                    } else {
-                        if (lookahead(Regex("\\[fn:")) != null) {
-                            scannedPos = currentPos + 4
-                            tokens.add(Token.FootnoteStart(range = Pair(currentPos, scannedPos)))
+                    } else if (lookahead(Regex("\\[fn:")) != null) {
+                        scannedPos = currentPos + 4
+                        tokens.add(Token.FootnoteStart(range = Pair(currentPos, scannedPos)))
+                    } else if (lookahead(Regex("\\[ \\] ")) != null) {
+                        scannedPos = currentPos + 3
+                        tokens.add(Token.CheckBox(
+                            text = "[ ]",
+                            range = Pair(currentPos, scannedPos),
+                            state = Token.CheckBoxState.UNCHECKED
+                        ))
+                    } else if (lookahead(Regex("\\[X\\] ")) != null) {
+                        scannedPos = currentPos + 3
+                        tokens.add(Token.CheckBox(
+                            text = "[X]",
+                            range = Pair(currentPos, scannedPos),
+                            state = Token.CheckBoxState.CHECKED
+                        ))
+                    } else if (lookahead(Regex("\\[\\-\\] ")) != null) {
+                        scannedPos = currentPos + 3
+                        tokens.add(Token.CheckBox(
+                            text = "[-]",
+                            range = Pair(currentPos, scannedPos),
+                            state = Token.CheckBoxState.PARTIAL
+                        ))
+                    } else if (lookahead(dtParser.INACTIVE_TIMESTAMP_REGEX) != null) {
+                        val token = dtParser.parse(input, currentPos)
+                        if (token != null) {
+                            scannedPos = token.range.second
+                            tokens.add(token)
                         } else {
-                            consumeNCharsAsText(1)
+                            consumeError("Inactive Datetime", 1)
                         }
+                    } else {
+                        consumeNCharsAsText(1)
                     }
                 }
                 ']' -> {
                     if (lookahead(Regex("\\]\\]")) != null) {
                         scannedPos = currentPos + 2
                         tokens.add(Token.LinkEnd(range = Pair(currentPos, scannedPos)))
+                    } else if (lookahead(Regex("\\]\\[")) != null) {
+                        scannedPos = currentPos + 2
+                        tokens.add(Token.LinkTitleSep(range = Pair(currentPos, scannedPos)))
                     } else {
                         consumeNCharsAsText(1)
                     }
+                }
+                '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
+                    if (atLineStart) {
+                        val match = lookahead(Regex("([0-9]+\\.|\\)) "))
+                        if (match != null) {
+                            // This is ordered list marker
+                            val text = match.groupValues[1]
+                            scannedPos = currentPos + text.length
+                            tokens.add(Token.OrderedListMarker(
+                                text = text,
+                                range = Pair(currentPos, scannedPos),
+                                style = if (text.last() == '.') {
+                                    Token.OrderedListMarkerStyle.PERIOD
+                                } else {
+                                    Token.OrderedListMarkerStyle.PARENTHESIS
+                                },
+                                nIndent = nIndent
+                            ))
+                        } else {
+                            consumeNCharsAsText(1)
+                        }
+                    } else {
+                        consumeNCharsAsText(1)
+                    }
+                }
+                '<' -> {
+                    // Org (active) datetime stamp or just char
+                    if (lookahead(dtParser.ACTIVE_TIMESTAMP_REGEX) != null) {
+                        val token = dtParser.parse(input, currentPos)
+                        if (token != null) {
+                            scannedPos = token.range.second
+                            tokens.add(token)
+                        } else {
+                            consumeError("Active Datetime", 1)
+                        }
+                    } else {
+                        consumeNCharsAsText(1)
+                    }
+                }
+                '.', ',', '\'', '|', '`', '@', '{', '}', '(', ')', '>', '=', '/', '\\' -> {
+                    consumeNCharsAsText(1)
                 }
                 else -> {
                     val match = lookaheadTill(Regex("\\s"))
