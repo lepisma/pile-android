@@ -7,22 +7,26 @@ sealed class OrgList {
     data class OrgUnorderedList(
         val marker: OrgUnorderedListMarker,
         val checkbox: OrgListCheckState?,
-        val items: List<OrgList>
+        val items: List<OrgList>,
+        val range: Pair<Int, Int>
     ) : OrgChunk()
 
     data class OrgOrderedList(
         val marker: OrgOrderedListMarker,
         val checkbox: OrgListCheckState?,
-        val items: List<OrgList>
+        val items: List<OrgList>,
+        val range: Pair<Int, Int>
     ) : OrgChunk()
 
     data class OrgListItem(
-        val content: List<OrgChunk>
+        val content: List<OrgChunk>,
+        val range: Pair<Int, Int>
     ) : OrgChunk()
 
     data class OrgDescriptionListItem(
         val term: String,
-        val description: OrgChunk.OrgParagraph
+        val description: OrgChunk.OrgParagraph,
+        val range: Pair<Int, Int>
     ) : OrgChunk()
 }
 

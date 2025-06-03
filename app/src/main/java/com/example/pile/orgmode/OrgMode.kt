@@ -39,15 +39,19 @@ data class OrgDocument (
     val language: String? = null,
     val options: HashMap<String, String> = hashMapOf(),
     val pile: HashMap<String, String> = hashMapOf(),
-    val properties: OrgProperties = hashMapOf(),
+    val properties: OrgProperties? = null,
     val preface: OrgPreface,
-    val content: List<OrgSection>
+    val content: List<OrgSection>,
+    val range: Pair<Int, Int>
 )
 
 /**
  * Unlike simple options, org properties could have full fledged org-mode text
  */
-typealias OrgProperties = HashMap<String, OrgLine>
+data class OrgProperties(
+    val map: HashMap<String, OrgLine>,
+    val range: Pair<Int, Int>
+)
 
 /**
  * Preface contains the chunks before first heading
@@ -60,14 +64,26 @@ data class OrgPreface(
  * A chunk is a block of org mode text that can be of various types as listed here
  */
 sealed class OrgChunk {
-    data class OrgParagraph(val lines: List<OrgLine>) : OrgChunk()
-    data class OrgCommentLine(val text: String) : OrgChunk()
-    data class OrgHorizontalLine(val text: String) : OrgChunk()
+    data class OrgParagraph(
+        val lines: List<OrgLine>,
+        val range: Pair<Int, Int>
+    ) : OrgChunk()
+
+    data class OrgCommentLine(
+        val text: String,
+        val range: Pair<Int, Int>
+    ) : OrgChunk()
+
+    data class OrgHorizontalLine(
+        val range: Pair<Int, Int>
+    ) : OrgChunk()
+
     data class OrgTable(
         val dim: Pair<Int, Int>,
         val header: OrgTableRow?,
         val subtables: List<List<OrgTableRow>>,
-        val formulaLine: String
+        val formulaLine: String,
+        val range: Pair<Int, Int>
     ) : OrgChunk()
 }
 
@@ -77,7 +93,8 @@ typealias OrgTableRow = List<OrgLine>
  * A single line string with Org Mode formatting enabled
  */
 data class OrgLine(
-    val items: List<OrgInlineElem>
+    val items: List<OrgInlineElem>,
+    val range: Pair<Int, Int>
 )
 
 // THINGS BELOW ARE OLD STUFF
