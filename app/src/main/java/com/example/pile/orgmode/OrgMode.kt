@@ -22,6 +22,65 @@ enum class OrgListType {
     UNORDERED
 }
 
+/**
+ * Represents org document with all info present 'in' the file.
+ */
+data class OrgDocument (
+    val title: OrgLine,
+    val author: String? = null,
+    val email: String? = null,
+    val date: LocalDate? = null,
+    val subtitle: OrgLine? = null,
+    val description: OrgLine? = null,
+    val keywords: List<String> = emptyList(),
+    val category: String? = null,
+    val filetags: List<String> = emptyList(),
+    val tags: List<String> = emptyList(),  // NOTE: I use this wrongly in pile
+    val language: String? = null,
+    val options: HashMap<String, String> = hashMapOf(),
+    val pile: HashMap<String, String> = hashMapOf(),
+    val properties: OrgProperties = hashMapOf(),
+    val preface: OrgPreface,
+    val content: List<OrgSection>
+)
+
+/**
+ * Unlike simple options, org properties could have full fledged org-mode text
+ */
+typealias OrgProperties = HashMap<String, OrgLine>
+
+/**
+ * Preface contains the chunks before first heading
+ */
+data class OrgPreface(
+    val body: List<OrgChunk>
+)
+
+/**
+ * A chunk is a block of org mode text that can be of various types as listed here
+ */
+sealed class OrgChunk {
+    data class OrgParagraph(val lines: List<OrgLine>) : OrgChunk()
+    data class OrgCommentLine(val text: String) : OrgChunk()
+    data class OrgHorizontalLine(val text: String) : OrgChunk()
+    data class OrgTable(
+        val dim: Pair<Int, Int>,
+        val header: OrgTableRow?,
+        val subtables: List<List<OrgTableRow>>,
+        val formulaLine: String
+    ) : OrgChunk()
+}
+
+typealias OrgTableRow = List<OrgLine>
+
+/**
+ * A single line string with Org Mode formatting enabled
+ */
+data class OrgLine(
+    val items: List<OrgInlineElem>
+)
+
+// THINGS BELOW ARE OLD STUFF
 sealed class OrgParagraph {
     abstract var text: String
 
