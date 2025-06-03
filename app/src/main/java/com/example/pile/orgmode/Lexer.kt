@@ -487,6 +487,7 @@ class OrgLexer(private val input: String) {
 
     // For debugging and Error tokens
     private var currentLine = 0
+    private var currentLineBegPos = 0
     private var nConsecutiveErrors = 0
 
     private var TODOTodoWords = listOf("TODO")
@@ -563,7 +564,7 @@ class OrgLexer(private val input: String) {
             range = Pair(currentPos, scannedPos),
             value = text.trim()
         ))
-        currentLine = scannedPos
+        currentPos = scannedPos
     }
 
     private fun consumeNCharsAsText(n: Int) {
@@ -588,11 +589,11 @@ class OrgLexer(private val input: String) {
         tokens.add(Token.Error(
             text = text,
             range = Pair(currentPos, scannedPos),
-            message = "Error in parsing ${parsedObject} in line number ${currentLine} at (overall) position ${currentPos}"
+            message = "Error in parsing ${parsedObject} in line number ${currentLine} at position ${currentPos - currentLineBegPos}"
         ))
 
         nConsecutiveErrors++
-        currentLine = scannedPos
+        currentPos = scannedPos
     }
 
     private fun consumeCommentLine() {
@@ -614,7 +615,7 @@ class OrgLexer(private val input: String) {
             text = input.substring(currentPos, scannedPos),
             range = Pair(currentPos, scannedPos)
         ))
-        currentLine = scannedPos
+        currentPos = scannedPos
     }
 
     fun tokenize(): List<Token> {
@@ -643,6 +644,7 @@ class OrgLexer(private val input: String) {
                     scannedPos = currentPos + 1
                     tokens.add(Token.LineBreak(range = Pair(currentPos, scannedPos)))
                     currentLine++
+                    currentLineBegPos = currentPos
                     if (atLineStart) {
                         // Double break is a change of paragraph. Also works when we are at SOF
                         inParagraph = false
