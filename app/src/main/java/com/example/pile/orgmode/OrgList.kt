@@ -8,26 +8,26 @@ sealed class OrgList {
         val marker: OrgUnorderedListMarker,
         val checkbox: OrgListCheckState?,
         val items: List<OrgList>,
-        val range: Pair<Int, Int>
-    ) : OrgChunk()
+        override val range: Pair<Int, Int>
+    ) : OrgChunk(), OrgElem
 
     data class OrgOrderedList(
         val marker: OrgOrderedListMarker,
         val checkbox: OrgListCheckState?,
         val items: List<OrgList>,
-        val range: Pair<Int, Int>
-    ) : OrgChunk()
+        override val range: Pair<Int, Int>
+    ) : OrgChunk(), OrgElem
 
     data class OrgListItem(
         val content: List<OrgChunk>,
-        val range: Pair<Int, Int>
-    ) : OrgChunk()
+        override val range: Pair<Int, Int>
+    ) : OrgChunk(), OrgElem
 
     data class OrgDescriptionListItem(
         val term: String,
         val description: OrgChunk.OrgParagraph,
-        val range: Pair<Int, Int>
-    ) : OrgChunk()
+        override val range: Pair<Int, Int>
+    ) : OrgChunk(), OrgElem
 }
 
 enum class OrgUnorderedListMarker {

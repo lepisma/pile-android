@@ -23,6 +23,13 @@ enum class OrgListType {
 }
 
 /**
+ * Any parsed org element
+ */
+sealed interface OrgElem {
+    val range: Pair<Int, Int>
+}
+
+/**
  * Represents org document with all info present 'in' the file.
  */
 data class OrgDocument (
@@ -42,23 +49,24 @@ data class OrgDocument (
     val properties: OrgProperties? = null,
     val preface: OrgPreface,
     val content: List<OrgSection>,
-    val range: Pair<Int, Int>
-)
+    override val range: Pair<Int, Int>
+) : OrgElem
 
 /**
  * Unlike simple options, org properties could have full fledged org-mode text
  */
 data class OrgProperties(
     val map: HashMap<String, OrgLine>,
-    val range: Pair<Int, Int>
-)
+    override val range: Pair<Int, Int>
+) : OrgElem
 
 /**
  * Preface contains the chunks before first heading
  */
 data class OrgPreface(
-    val body: List<OrgChunk>
-)
+    val body: List<OrgChunk>,
+    override val range: Pair<Int, Int>
+) : OrgElem
 
 /**
  * A chunk is a block of org mode text that can be of various types as listed here
@@ -66,36 +74,39 @@ data class OrgPreface(
 sealed class OrgChunk {
     data class OrgParagraph(
         val lines: List<OrgLine>,
-        val range: Pair<Int, Int>
-    ) : OrgChunk()
+        override val range: Pair<Int, Int>
+    ) : OrgChunk(), OrgElem
 
     data class OrgCommentLine(
         val text: String,
-        val range: Pair<Int, Int>
-    ) : OrgChunk()
+        override val range: Pair<Int, Int>
+    ) : OrgChunk(), OrgElem
 
     data class OrgHorizontalLine(
-        val range: Pair<Int, Int>
-    ) : OrgChunk()
+        override val range: Pair<Int, Int>
+    ) : OrgChunk(), OrgElem
 
     data class OrgTable(
         val dim: Pair<Int, Int>,
         val header: OrgTableRow?,
         val subtables: List<List<OrgTableRow>>,
         val formulaLine: String,
-        val range: Pair<Int, Int>
-    ) : OrgChunk()
+        override val range: Pair<Int, Int>
+    ) : OrgChunk(), OrgElem
 }
 
-typealias OrgTableRow = List<OrgLine>
+data class OrgTableRow(
+    val cells: List<OrgLine>,
+    override val range: Pair<Int, Int>
+) : OrgElem
 
 /**
  * A single line string with Org Mode formatting enabled
  */
 data class OrgLine(
     val items: List<OrgInlineElem>,
-    val range: Pair<Int, Int>
-)
+    override val range: Pair<Int, Int>
+) : OrgElem
 
 // THINGS BELOW ARE OLD STUFF
 sealed class OrgParagraph {
