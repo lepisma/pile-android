@@ -15,10 +15,15 @@ data class OrgHeading(
     val tags: List<String>,
     val todoState: OrgTODOState?,
     val priority: OrgPriority?,
+    val planningInfo: OrgPlanningInfo,
+    val properties: OrgProperties,
+    override val tokens: List<Token>
+) : OrgElem
+
+data class OrgPlanningInfo(
     val scheduled: OrgInlineElem.DTStamp?,
     val deadline: OrgInlineElem.DTStamp?,
     val closed: OrgInlineElem.DTStamp?,
-    val properties: OrgProperties,
     override val tokens: List<Token>
 ) : OrgElem
 
