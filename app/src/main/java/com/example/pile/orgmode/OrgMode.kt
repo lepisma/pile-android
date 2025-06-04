@@ -23,10 +23,10 @@ enum class OrgListType {
 }
 
 /**
- * Any parsed org element
+ * Any parsed org element which keeps tracks of the tokens used in parsing
  */
 sealed interface OrgElem {
-    val range: Pair<Int, Int>
+    val tokens: List<Token>
 }
 
 /**
@@ -37,19 +37,15 @@ data class OrgDocument (
     val author: String? = null,
     val email: String? = null,
     val date: LocalDate? = null,
-    val subtitle: OrgLine? = null,
-    val description: OrgLine? = null,
-    val keywords: List<String> = emptyList(),
     val category: String? = null,
     val filetags: List<String> = emptyList(),
     val tags: List<String> = emptyList(),  // NOTE: I use this wrongly in pile
-    val language: String? = null,
     val options: HashMap<String, String> = hashMapOf(),
     val pile: HashMap<String, String> = hashMapOf(),
     val properties: OrgProperties? = null,
     val preface: OrgPreface,
     val content: List<OrgSection>,
-    override val range: Pair<Int, Int>
+    override val tokens: List<Token>
 ) : OrgElem
 
 /**
@@ -57,7 +53,7 @@ data class OrgDocument (
  */
 data class OrgProperties(
     val map: HashMap<String, OrgLine>,
-    override val range: Pair<Int, Int>
+    override val tokens: List<Token>
 ) : OrgElem
 
 /**
@@ -65,7 +61,7 @@ data class OrgProperties(
  */
 data class OrgPreface(
     val body: List<OrgChunk>,
-    override val range: Pair<Int, Int>
+    override val tokens: List<Token>
 ) : OrgElem
 
 /**
@@ -74,16 +70,16 @@ data class OrgPreface(
 sealed class OrgChunk {
     data class OrgParagraph(
         val lines: List<OrgLine>,
-        override val range: Pair<Int, Int>
+        override val tokens: List<Token>
     ) : OrgChunk(), OrgElem
 
     data class OrgCommentLine(
         val text: String,
-        override val range: Pair<Int, Int>
+        override val tokens: List<Token>
     ) : OrgChunk(), OrgElem
 
     data class OrgHorizontalLine(
-        override val range: Pair<Int, Int>
+        override val tokens: List<Token>
     ) : OrgChunk(), OrgElem
 
     data class OrgTable(
@@ -91,13 +87,13 @@ sealed class OrgChunk {
         val header: OrgTableRow?,
         val subtables: List<List<OrgTableRow>>,
         val formulaLine: String,
-        override val range: Pair<Int, Int>
+        override val tokens: List<Token>
     ) : OrgChunk(), OrgElem
 }
 
 data class OrgTableRow(
     val cells: List<OrgLine>,
-    override val range: Pair<Int, Int>
+    override val tokens: List<Token>
 ) : OrgElem
 
 /**
@@ -105,7 +101,15 @@ data class OrgTableRow(
  */
 data class OrgLine(
     val items: List<OrgInlineElem>,
-    override val range: Pair<Int, Int>
+    override val tokens: List<Token>
+) : OrgElem
+
+/**
+ * Represents parsing error of all kinds
+ */
+data class OrgParsingError(
+    val message: String,
+    override val tokens: List<Token>
 ) : OrgElem
 
 // THINGS BELOW ARE OLD STUFF

@@ -6,7 +6,7 @@ package com.example.pile.orgmode
 data class OrgSection(
     val heading: OrgHeading,
     val body: List<OrgChunk>,
-    override val range: Pair<Int, Int>
+    override val tokens: List<Token>
 ) : OrgChunk(), OrgElem
 
 data class OrgHeading(
@@ -19,17 +19,17 @@ data class OrgHeading(
     val deadline: OrgInlineElem.DTStamp?,
     val closed: OrgInlineElem.DTStamp?,
     val properties: OrgProperties,
-    override val range: Pair<Int, Int>
+    override val tokens: List<Token>
 ) : OrgElem
 
 data class OrgPriority(
-    val p: Int,
+    val priority: Int,
     val text: String,
-    override val range: Pair<Int, Int>
+    override val tokens: List<Token>
 ) : OrgElem
 
 data class OrgTODOState(
     val text: String,
     val isDone: Boolean,
-    override val range: Pair<Int, Int>
+    override val tokens: List<Token>
 ) : OrgElem
