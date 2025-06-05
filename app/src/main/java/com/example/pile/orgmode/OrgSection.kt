@@ -10,13 +10,18 @@ data class OrgSection(
 ) : OrgChunk(), OrgElem
 
 data class OrgHeading(
-    val title: String,
+    val title: OrgLine,
+    val level: OrgHeadingLevel,
+    val tags: OrgTags? = null,
+    val todoState: OrgTODOState? = null,
+    val priority: OrgPriority? = null,
+    val planningInfo: OrgPlanningInfo? = null,
+    val properties: OrgProperties? = null,
+    override val tokens: List<Token>
+) : OrgElem
+
+data class OrgHeadingLevel(
     val level: Int,
-    val tags: List<String>,
-    val todoState: OrgTODOState?,
-    val priority: OrgPriority?,
-    val planningInfo: OrgPlanningInfo,
-    val properties: OrgProperties,
     override val tokens: List<Token>
 ) : OrgElem
 

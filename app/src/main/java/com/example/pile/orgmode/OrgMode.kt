@@ -33,18 +33,34 @@ sealed interface OrgElem {
  * Represents org document with all info present 'in' the file.
  */
 data class OrgDocument (
+    val preamble: OrgPreamble,
+    val preface: OrgPreface,
+    val content: List<OrgSection>,
+    override val tokens: List<Token>
+) : OrgElem
+
+/**
+ * Preamble is everything that comes in the start before the actual content starts
+ */
+data class OrgPreamble(
     val title: OrgLine,
     val author: String? = null,
     val email: String? = null,
     val date: LocalDate? = null,
     val category: String? = null,
-    val filetags: List<String> = emptyList(),
-    val tags: List<String> = emptyList(),  // NOTE: I use this wrongly in pile
-    val options: HashMap<String, String> = hashMapOf(),
-    val pile: HashMap<String, String> = hashMapOf(),
+    val filetags: OrgTags? = null,
+    val tags: OrgTags? = null,  // NOTE: I use this wrongly in pile
+    val options: OrgOptions? = null,
+    val pile: OrgOptions? = null,
     val properties: OrgProperties? = null,
-    val preface: OrgPreface,
-    val content: List<OrgSection>,
+    override val tokens: List<Token>
+) : OrgElem
+
+/**
+ * Options that could go in top of the file, code block headers, etc.
+ */
+data class OrgOptions(
+    val map: Map<String, String>,
     override val tokens: List<Token>
 ) : OrgElem
 
@@ -52,7 +68,15 @@ data class OrgDocument (
  * Unlike simple options, org properties could have full fledged org-mode text
  */
 data class OrgProperties(
-    val map: HashMap<String, OrgLine>,
+    val map: Map<String, OrgLine>,
+    override val tokens: List<Token>
+) : OrgElem
+
+/**
+ * Tags for files or headings or anywhere else
+ */
+data class OrgTags(
+    val tags: List<String>,
     override val tokens: List<Token>
 ) : OrgElem
 
@@ -109,6 +133,26 @@ data class OrgLine(
  */
 data class OrgParsingError(
     val message: String,
+    override val tokens: List<Token> = emptyList()
+) : OrgElem
+
+
+/**
+ * Represents a null parse (as compared to error)
+ */
+data class OrgNothing(
+    override val tokens: List<Token> = emptyList()
+) : OrgElem
+
+/**
+ * Represents a plain token parse
+ */
+data class OrgToken(
+    override val tokens: List<Token>
+) : OrgElem
+
+data class OrgElemList(
+    val items: List<OrgElem>,
     override val tokens: List<Token>
 ) : OrgElem
 
