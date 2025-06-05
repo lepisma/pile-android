@@ -2,7 +2,6 @@ package com.example.pile.ui.components.nodescreen
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,8 +51,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.pile.data.readFile
-import com.example.pile.orgmode.OrgLexer
-import com.example.pile.orgmode.OrgParser
 import com.example.pile.orgmode.parseNodeLinks
 import com.example.pile.orgmode.parseTags
 import com.example.pile.ui.components.FindNodeDialog
@@ -61,7 +58,7 @@ import com.example.pile.ui.components.NodeEditField
 import com.example.pile.ui.components.NodeList
 import com.example.pile.ui.components.StructuredNavigationButton
 import com.example.pile.ui.components.StructuredNavigationDirection
-import com.example.pile.ui.components.orgmode.OrgPreview
+import com.example.pile.ui.components.orgmode.OrgPreview2
 import com.example.pile.ui.theme.PileTheme
 import com.example.pile.viewmodel.SharedViewModel
 import compose.icons.FontAwesomeIcons
@@ -157,10 +154,6 @@ fun NodeScreen(
 
     currentNode?.let { node ->
         val fileContent = node.file?.let { readFile(context, it) } ?: "NA"
-
-        val tokens = OrgLexer(fileContent).tokenize()
-        val document = OrgParser().parse(tokens)
-        Log.d("PARSER", document.toString())
 
         var currentTextFieldValue by remember(node.id) {
             mutableStateOf(
@@ -386,7 +379,7 @@ fun NodeScreen(
                                     )
                                 }
                             } else {
-                                OrgPreview(currentTextFieldValue.text, viewModel, openNodeById)
+                                OrgPreview2(currentTextFieldValue.text, viewModel, openNodeById)
                                 if (showBottomSheet) {
                                     ModalBottomSheet(
                                         onDismissRequest = { showBottomSheet = false },

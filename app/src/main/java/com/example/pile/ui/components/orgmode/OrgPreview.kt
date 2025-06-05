@@ -27,8 +27,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.pile.orgmode.OrgDocument
+import com.example.pile.orgmode.OrgLexer
 import com.example.pile.orgmode.OrgParagraph
 import com.example.pile.orgmode.dropPreamble
+import com.example.pile.orgmode.parse
 import com.example.pile.orgmode.parseOrg
 import com.example.pile.orgmode.parseOrgParagraphs
 import com.example.pile.orgmode.parseTags
@@ -86,6 +89,30 @@ fun TextLoadingBox() {
     }
 }
 
+@Composable
+fun OrgPreview2(text: String, viewModel: SharedViewModel, openNodeById: (String) -> Unit) {
+    val coroutineScope = rememberCoroutineScope()
+    var document by remember { mutableStateOf<OrgDocument?>(null) }
+
+    LaunchedEffect(text) {
+        coroutineScope.launch(Dispatchers.Default) {
+            val tokens = OrgLexer(text).tokenize()
+            document = parse(tokens)
+            println(document)
+        }
+    }
+
+    if (document != null) {
+        LazyColumn {
+            item {
+                OrgTitleText2(title = document!!.preamble.title)
+                Text(text = document!!.preface.toString())
+            }
+        }
+    } else {
+        TextLoadingBox()
+    }
+}
 
 @Composable
 fun OrgPreview(text: String, viewModel: SharedViewModel, openNodeById: (String) -> Unit) {

@@ -199,14 +199,14 @@ fun parsePreamble(tokens: List<Token>, pos: Int): ParsingResult<OrgPreamble> {
         // maybe(::parseDate),
         // maybe(::parseCategory),
         // ::parseFiletags,
-        ::parseTags,
-        oneOrMore(::matchToken { it is Token.LineBreak })
+        maybe(::parseTags),
+        zeroOrMore(::matchToken { it is Token.LineBreak })
         // ::parseOptions,
         // ::parsePileOptions
     )(tokens, pos).map { output ->
         OrgPreamble(
             title = (output as OrgElemList).items[2] as OrgLine,
-            tags = output.items[4] as OrgTags,
+            tags = if (output.items[4] is OrgNothing) null else { output.items[4] as OrgTags},
             tokens = output.tokens,
             properties = if (output.items[0] is OrgNothing) null else { output.items[0] as OrgProperties }
         )
@@ -260,9 +260,10 @@ fun parseProperties(tokens: List<Token>, pos: Int): ParsingResult<OrgProperties>
 fun parseTitle(tokens: List<Token>, pos: Int): ParsingResult<OrgLine> {
     return seq(
         ::matchToken { it is Token.FileKeyword && it.type == Token.FileKeywordType.TITLE },
+        oneOrMore(::matchToken { it is Token.Space }),
         ::parseOrgLine
     )(tokens, pos).map { output ->
-        (output as OrgElemList).items[1] as OrgLine
+        (output as OrgElemList).items[2] as OrgLine
     }
 }
 
