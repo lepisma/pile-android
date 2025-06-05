@@ -11,17 +11,7 @@ import com.example.pile.orgmode.OrgInlineElem
 import com.example.pile.orgmode.OrgLine
 
 @Composable
-fun OrgTitleText(title: String) {
-    Text(
-        text = title,
-        fontWeight = FontWeight.Bold,
-        style = MaterialTheme.typography.displayMedium,
-        modifier = Modifier.padding(bottom = 20.dp)
-    )
-}
-
-@Composable
-fun OrgTitleText2(title: OrgLine) {
+fun OrgTitleText(title: OrgLine) {
     var rawTitle = title.items
         .filter { it is OrgInlineElem.Text }
         .joinToString("") { (it as OrgInlineElem.Text).text }

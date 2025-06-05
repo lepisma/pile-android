@@ -18,7 +18,6 @@ fun NodeList(
     nodes: List<OrgNode>,
     heading: String?,
     onClick: (String) -> Unit,
-    expandedView: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -36,7 +35,7 @@ fun NodeList(
         }
         LazyColumn {
             items(nodes) { node ->
-                OrgNodeItem(node, expandedView = expandedView) {
+                NodeItem(node) {
                     onClick(node.id)
                 }
             }

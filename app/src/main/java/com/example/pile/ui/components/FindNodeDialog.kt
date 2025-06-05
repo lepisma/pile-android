@@ -65,7 +65,7 @@ fun FindNodeDialog(
                                         .sortedByDescending { it.datetime }
                                         .filter { !isDailyNode(it) }
                                 ) { node ->
-                                    OrgNodeItem(node, expandedView = false) { onClick(node) }
+                                    NodeItem(node) { onClick(node) }
                                 }
                             }
                         }

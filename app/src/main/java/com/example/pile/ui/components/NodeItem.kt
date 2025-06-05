@@ -19,7 +19,6 @@ import com.example.pile.data.OrgNode
 import com.example.pile.data.isDailyNode
 import com.example.pile.data.isLiteratureNode
 import com.example.pile.data.isUnsortedNode
-import com.example.pile.ui.components.orgmode.OrgTags
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Regular
 import compose.icons.fontawesomeicons.Solid
@@ -30,7 +29,7 @@ import java.time.format.DateTimeFormatter
 
 /* View for one node */
 @Composable
-fun OrgNodeItem(node: OrgNode, expandedView: Boolean, onClick: (String) -> Unit) {
+fun NodeItem(node: OrgNode, onClick: (String) -> Unit) {
     Column(modifier = Modifier
         .padding(vertical = 5.dp)
         .fillMaxWidth()
@@ -61,11 +60,6 @@ fun OrgNodeItem(node: OrgNode, expandedView: Boolean, onClick: (String) -> Unit)
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-        }
-        if (expandedView) {
-            if (node.tags.isNotEmpty() && node.tags != listOf("")) {
-                OrgTags(tags = node.tags)
-            }
         }
         val dtFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy hh:mm a")
         Text(node.datetime.format(dtFormatter), fontSize = 10.sp, color = Color.Gray)

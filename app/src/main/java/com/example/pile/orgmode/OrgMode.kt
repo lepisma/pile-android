@@ -6,8 +6,6 @@ import androidx.documentfile.provider.DocumentFile
 import com.example.pile.data.OrgNode
 import com.example.pile.data.isDailyNode
 import com.example.pile.data.isLiteratureNode
-import com.orgzly.org.parser.OrgParsedFile
-import com.orgzly.org.parser.OrgParser
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.time.Instant
@@ -156,20 +154,6 @@ data class OrgElemList(
     override val tokens: List<Token>
 ) : OrgElem
 
-// THINGS BELOW ARE OLD STUFF
-sealed class OrgParagraph {
-    abstract var text: String
-
-    data class OrgList(override var text: String, val type: OrgListType, val items: List<OrgListItem>) : OrgParagraph()
-    data class OrgListItem(override var text: String, val items: List<OrgParagraph>) : OrgParagraph()
-    data class OrgPlainParagraph(override var text: String) : OrgParagraph()
-    data class OrgQuote(override var text: String) : OrgParagraph()
-    data class OrgBlock(override var text: String) : OrgParagraph()
-    data class OrgTable(override var text: String) : OrgParagraph()
-    data class OrgHorizontalLine(override var text: String) : OrgParagraph()
-    data class OrgLogBook(override var text: String) : OrgParagraph()
-}
-
 /**
  * Options specific to a file in pile
  *
@@ -178,112 +162,11 @@ sealed class OrgParagraph {
  * listed below at the moment.
  *
  * @property pinned  Specifies whether the note is pinned and so should be displayed preferentially.
+ * TODO: This is deprecated
  */
 data class PileOptions(
     var pinned: Boolean,
 )
-
-fun parseNodeLinks(orgText: String): List<String> {
-    val pattern = Regex("\\[\\[id:([0-9a-fA-F\\-]+)](\\[(.*?)])?]")
-
-    return pattern.findAll(orgText).toList().mapNotNull {
-        it.groups[1]?.value
-    }
-}
-
-fun parseOrgParagraphs(text: String): List<OrgParagraph> {
-    val brokenTexts = breakHeadingContent(text)
-
-    val brokenOrgParagraphs = brokenTexts.map {
-        if (it.matches(Regex("-----"))) {
-            OrgParagraph.OrgHorizontalLine(it)
-        } else if (it.matches(Regex("^\\|.*"))) {
-            OrgParagraph.OrgTable(it)
-        } else if (it.matches(Regex("(?s)^(\\+|-|\\d+\\.) .*"))) {
-            parseOrgList(it)
-        } else if (it.matches(Regex("(?is)(#\\+begin_quote).*"))) {
-            parseOrgQuote(it)
-        } else if (it.matches(Regex("(?is)(#\\+begin).*"))) {
-            OrgParagraph.OrgBlock(it)
-        } else if (it.matches(Regex("(?is):LOGBOOK:.*"))) {
-            OrgParagraph.OrgLogBook(it)
-        } else {
-            OrgParagraph.OrgPlainParagraph(it)
-        }
-    }
-
-    return brokenOrgParagraphs.fold(mutableListOf<OrgParagraph>()) { acc, it ->
-        if (acc.isEmpty()) {
-            acc.add(it)
-        } else {
-            if (acc.last()::class == it::class) {
-                when (it::class) {
-                    OrgParagraph.OrgList::class -> {
-                        val a = acc.last() as OrgParagraph.OrgList
-                        val b = it as OrgParagraph.OrgList
-                        acc[acc.lastIndex] = OrgParagraph.OrgList(
-                            a.text + "\n" + b.text, a.type, a.items + b.items
-                        )
-                    }
-                    OrgParagraph.OrgTable::class -> {
-                        val a = acc.last() as OrgParagraph.OrgTable
-                        val b = it as OrgParagraph.OrgTable
-                        acc[acc.lastIndex] = OrgParagraph.OrgTable(a.text + "\n" + b.text)
-                    }
-                    else -> { acc.add(it) }
-                }
-            } else {
-                acc.add(it)
-            }
-        }
-        acc
-    }
-}
-
-fun parseOrgList(text: String): OrgParagraph.OrgList {
-    val type = if (text.matches(Regex("(?s)^\\d.*"))) OrgListType.ORDERED else OrgListType.UNORDERED
-
-    val items = ("\n" + text).split(Regex("\\n(?=(\\+|-|\\d+\\.) )"))
-        .map { it.trim() }
-        .filter { it.isNotEmpty() }
-        .map {
-            val nIndent = (Regex("\n +").find(it)?.value?.length ?: 1) - 1
-            val processedText = it.replace(Regex("^(\\d+\\.|\\+|-) "), " ".repeat(nIndent)).trimIndent()
-            OrgParagraph.OrgListItem(processedText, items = parseOrgParagraphs(processedText))
-        }
-
-    return OrgParagraph.OrgList(text, type = type, items = items)
-}
-
-fun parseOrgQuote(text: String) =
-    OrgParagraph.OrgQuote(text.replace(Regex("(?i)#\\+begin_quote|#\\+end_quote"), "").trim())
-
-/*
- Break text based on begin and end blocks
- */
-fun breakBlocks(text: String): List<String> {
-    return text.split(Regex("(?i)(\\n(?=#\\+begin)|(?<=#\\+end_[a-z]{1,20})\\n)"))
-        .map { it.trim() }
-        .filter { it.isNotEmpty() }
-}
-
-/*
- Tokenizer for texts below a heading. High level heading parsing happens via Org-Java, but this
- takes care of the parsing for body text within a heading (also used in org file preface).
- */
-fun breakHeadingContent(text: String): List<String> {
-    val blocks = breakBlocks(text)
-
-    return blocks.fold(listOf<String>()) { acc, it ->
-        if (it.startsWith("#+")) {
-            acc + it
-        } else {
-            acc + it.split(Regex("\\n((?=\\|)|\\n|(?=(\\+|-|\\d+\\.) ))"))
-        }
-    }
-        .map { it.trim() }
-        .filter { it.isNotEmpty() }
-}
 
 fun parseLastModified(file: DocumentFile): LocalDateTime {
     val lastModifiedMillis = file.lastModified()
@@ -383,11 +266,6 @@ fun parseOrgRef(preamble: String): String? {
     val match = idPattern.find(preamble)
 
     return match?.groups?.get(1)?.value?.trim()
-}
-
-fun parseOrg(text: String): OrgParsedFile {
-    val orgParser = OrgParser.Builder()
-    return orgParser.setInput(text).build().parse()
 }
 
 fun unfillText(text: String): String {

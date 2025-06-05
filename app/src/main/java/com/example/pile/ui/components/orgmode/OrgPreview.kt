@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,18 +28,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.pile.orgmode.OrgDocument
 import com.example.pile.orgmode.OrgLexer
-import com.example.pile.orgmode.OrgParagraph
-import com.example.pile.orgmode.dropPreamble
 import com.example.pile.orgmode.parse
-import com.example.pile.orgmode.parseOrg
-import com.example.pile.orgmode.parseOrgParagraphs
-import com.example.pile.orgmode.parseTags
-import com.example.pile.orgmode.parseTitle
 import com.example.pile.viewmodel.SharedViewModel
-import com.orgzly.org.parser.OrgParsedFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun ShimmerBox(modifier: Modifier) {
@@ -90,7 +81,7 @@ fun TextLoadingBox() {
 }
 
 @Composable
-fun OrgPreview2(text: String, viewModel: SharedViewModel, openNodeById: (String) -> Unit) {
+fun OrgPreview(text: String, viewModel: SharedViewModel, openNodeById: (String) -> Unit) {
     val coroutineScope = rememberCoroutineScope()
     var document by remember { mutableStateOf<OrgDocument?>(null) }
 
@@ -105,65 +96,11 @@ fun OrgPreview2(text: String, viewModel: SharedViewModel, openNodeById: (String)
     if (document != null) {
         LazyColumn {
             item {
-                OrgTitleText2(title = document!!.preamble.title)
+                OrgTitleText(title = document!!.preamble.title)
                 Text(text = document!!.preface.toString())
             }
         }
     } else {
         TextLoadingBox()
-    }
-}
-
-@Composable
-fun OrgPreview(text: String, viewModel: SharedViewModel, openNodeById: (String) -> Unit) {
-    val coroutineScope = rememberCoroutineScope()
-    var parsed by remember { mutableStateOf<OrgParsedFile?>(null) }
-
-    LaunchedEffect(text) {
-        coroutineScope.launch(Dispatchers.Default) {
-            val parsedData = parseOrg(dropPreamble(text))
-            withContext(Dispatchers.Main) {
-                parsed = parsedData
-            }
-        }
-    }
-
-    if (parsed != null) {
-        LazyColumn {
-            item {
-                OrgTitleText(title = parseTitle(text))
-                OrgRefButton(text = text)
-                OrgTags(tags = parseTags(text))
-            }
-
-            items(parseOrgParagraphs(parsed!!.file.preface)) {
-                OrgParagraphText(it, viewModel, openNodeById)
-            }
-
-            parsed!!.headsInList.forEach { head ->
-                item {
-                    OrgHeadingText(head, openNodeById)
-                }
-
-                items(parseOrgParagraphs(head.head.content)) { para ->
-                    OrgParagraphText(para, viewModel, openNodeById)
-                }
-            }
-        }
-    } else {
-        TextLoadingBox()
-    }
-}
-
-@Composable
-fun OrgParagraphText(orgParagraph: OrgParagraph, viewModel: SharedViewModel, openNodeById: (String) -> Unit) {
-    when(orgParagraph) {
-        is OrgParagraph.OrgHorizontalLine -> OrgHorizontalLine()
-        is OrgParagraph.OrgTable -> OrgTableText(orgParagraph)
-        is OrgParagraph.OrgList -> OrgListText(orgParagraph, viewModel, openNodeById)
-        is OrgParagraph.OrgQuote -> OrgQuoteText(orgParagraph, viewModel, openNodeById)
-        is OrgParagraph.OrgBlock -> OrgBlockText(orgParagraph)
-        is OrgParagraph.OrgLogBook -> Text("")
-        else -> OrgText(orgParagraph.text, viewModel, openNodeById)
     }
 }

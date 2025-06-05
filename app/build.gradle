@@ -49,7 +49,6 @@ android {
 }
 
 dependencies {
-    implementation 'com.orgzly:org-java:1.2.3'
     implementation 'androidx.room:room-runtime:2.7.1'
     implementation 'org.jsoup:jsoup:1.17.2'
     implementation 'androidx.compose.material3:material3-android:1.3.2'
