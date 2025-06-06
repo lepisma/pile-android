@@ -66,8 +66,8 @@ fun seq(vararg parsers: ParsingFn<OrgElem>): ParsingFn<OrgElem> {
 /**
  * Run the same parser many times and return results till a failure.
  */
-fun zeroOrMore(parser: ParsingFn<OrgElem>): ParsingFn<OrgElem> {
-    return fun(tokens: List<Token>, pos: Int): ParsingResult.Success<OrgElem> {
+fun zeroOrMore(parser: ParsingFn<OrgElem>): ParsingFn<OrgElemList> {
+    return fun(tokens: List<Token>, pos: Int): ParsingResult.Success<OrgElemList> {
         var currentPos = pos
         val results = mutableListOf<ParsingResult.Success<OrgElem>>()
 
