@@ -96,14 +96,15 @@ fun zeroOrMore(parser: ParsingFn<OrgElem>): ParsingFn<OrgElem> {
  * parse happens.
  */
 fun oneOrMore(parser: ParsingFn<OrgElem>): ParsingFn<OrgElem> {
-    return fun(tokens: List<Token>, pos: Int): ParsingResult<OrgElem> {
-        val result = zeroOrMore(parser)(tokens, pos) as ParsingResult.Success
-
-        return if ((result.output as OrgElemList).items.isEmpty()) {
-            // This is a failure since we need at least one parse here
-            parsingError("Unable to run oneOrMore for ${parser}", tokens = listOf(tokens[pos]))
-        } else {
-            result
+    return fun(tokens: List<Token>, pos: Int): ParsingResult<OrgElemList> {
+        return seq(
+            parser,
+            zeroOrMore(parser)
+        )(tokens, pos).map { output ->
+            OrgElemList(
+                items = listOf((output as OrgElemList).items[0]) + (output.items[1] as OrgElemList).items,
+                tokens = emptyList()
+            )
         }
     }
 }
