@@ -228,45 +228,65 @@ val parseOrgLine: Parser<OrgLine> = Parser { tokens, pos ->
     )
 }
 
-val parseTitle: Parser<OrgLine> = seq(
-    ::matchToken { it is Token.FileKeyword && it.type == Token.FileKeywordType.TITLE },
+val parseFileKeyword: Parser<OrgElemList> = seq(
+    ::matchToken { it is Token.FileKeyword },
     oneOrMore(::matchToken { it is Token.Space }),
     parseOrgLine
 ).map { output ->
-    (output as OrgElemList).items[2] as OrgLine
-}
-
-val parseTags: Parser<OrgTags> = seq(
-    ::matchToken { it is Token.FileKeyword && it.type == Token.FileKeywordType.TAGS },
-    parseOrgLine
-).map { output ->
-    val line = ((output as OrgElemList).items[1] as OrgLine).items.first() as OrgInlineElem.Text
-    OrgTags(
-        // FIXME: Assuming plain line
-        tags = line.text.split(",").map { it.trim() },
+    OrgElemList(
+        items = listOf(
+            (output as OrgElemList).items[0],
+            output.items[2]
+        ),
         tokens = output.tokens
     )
 }
 
+fun orgLineToTags(line: OrgLine): OrgTags {
+    val rawText = line.items
+        .filter { it is OrgInlineElem.Text }
+        .joinToString("") { (it as OrgInlineElem.Text).text }
+
+    return OrgTags(
+        tags = rawText.split(",").map { it.trim() }.filter { it.isNotBlank() },
+        tokens = line.tokens
+    )
+}
+
+/**
+ * Preamble is everything before the start of actual content.
+ *
+ * We don't allow empty lines here
+ */
 val parsePreamble: Parser<OrgPreamble> = seq(
     maybe(parseProperties),
     oneOrMore(::matchToken { it is Token.LineBreak }),
-    parseTitle,
-    oneOrMore(::matchToken { it is Token.LineBreak }),
-    // Need to handle permutations in these
-    // maybe(::parseAuthor),
-    // maybe(::parseEmail),
-    // maybe(::parseDate),
-    // maybe(::parseCategory),
-    // ::parseFiletags,
-    maybe(parseTags),
+    oneOrMore(seq(parseFileKeyword, ::matchToken { it is Token.LineBreak })),
     zeroOrMore(::matchToken { it is Token.LineBreak })
-    // ::parseOptions,
-    // ::parsePileOptions
 ).map { output ->
+    // We need to interpret all the file keywords
+    var title: OrgLine? = null
+    var tags: OrgTags? = null
+
+    for (keywordLine in ((output as OrgElemList).items[2] as OrgElemList).items) {
+        val keywordPair = (keywordLine as OrgElemList).items[0] as OrgElemList
+        val token = (keywordPair.items[0] as OrgToken).tokens[0] as Token.FileKeyword
+        val valueLine = keywordPair.items[1] as OrgLine
+
+        when (token.type) {
+            Token.FileKeywordType.TITLE -> title = valueLine
+            Token.FileKeywordType.TAGS -> tags = orgLineToTags(valueLine)
+            else -> { }
+        }
+    }
+
+    if (title == null) {
+        println("Unable to parse Title")
+    }
+
     OrgPreamble(
-        title = (output as OrgElemList).items[2] as OrgLine,
-        tags = if (output.items[4] is OrgNothing) null else { output.items[4] as OrgTags},
+        title = title ?: OrgLine(emptyList(), tokens = emptyList()),
+        tags = tags,
         tokens = output.tokens,
         properties = if (output.items[0] is OrgNothing) null else { output.items[0] as OrgProperties }
     )
