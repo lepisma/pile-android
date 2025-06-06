@@ -362,7 +362,7 @@ val parseChunk: Parser<OrgElem> = seq(
     (output as OrgElemList).items[0]
 }
 
-val parsePreface: Parser<OrgPreface> = oneOrMore(parseChunk).map { output ->
+val parsePreface: Parser<OrgPreface> = zeroOrMore(parseChunk).map { output ->
     OrgPreface(
         body = (output as OrgElemList).items as List<OrgChunk>,
         tokens = output.tokens
@@ -371,7 +371,7 @@ val parsePreface: Parser<OrgPreface> = oneOrMore(parseChunk).map { output ->
 
 val parseSection: Parser<OrgSection> = seq(
     parseHeading,
-    oneOrMore(parseChunk)
+    zeroOrMore(parseChunk)
 ).map { output ->
     OrgSection(
         heading = (output as OrgElemList).items[0] as OrgHeading,
