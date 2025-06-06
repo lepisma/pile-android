@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,7 +28,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.pile.orgmode.OrgChunk
 import com.example.pile.orgmode.OrgDocument
-import com.example.pile.orgmode.OrgInlineElem
 import com.example.pile.orgmode.OrgLexer
 import com.example.pile.orgmode.parse
 import com.example.pile.viewmodel.SharedViewModel
@@ -91,9 +89,7 @@ fun OrgPreview(text: String, viewModel: SharedViewModel, openNodeById: (String) 
     LaunchedEffect(text) {
         coroutineScope.launch(Dispatchers.Default) {
             val tokens = OrgLexer(text).tokenize()
-            println(tokens)
             document = parse(tokens)
-            println(document)
         }
     }
 
@@ -104,11 +100,14 @@ fun OrgPreview(text: String, viewModel: SharedViewModel, openNodeById: (String) 
             }
 
             items(document!!.preface.body) { chunk ->
-                if (chunk is OrgChunk.OrgParagraph) {
-                    Text(text = chunk.items
-                        .filter { it is OrgInlineElem.Text }
-                        .joinToString("") { (it as OrgInlineElem.Text).text })
+                when (chunk) {
+                    is OrgChunk.OrgParagraph -> OrgParagraphView(chunk)
+                    else -> { }
                 }
+            }
+
+            items(document!!.content) { section ->
+                OrgSectionView(section)
             }
         }
     } else {

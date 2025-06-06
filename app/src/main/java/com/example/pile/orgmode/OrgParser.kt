@@ -317,7 +317,7 @@ val parseHeading: Parser<OrgHeading> = seq(
 ).map { output ->
     OrgHeading(
         level = (output as OrgElemList).items[0] as OrgHeadingLevel,
-        title = output.items[1] as OrgLine,
+        title = output.items[2] as OrgLine,
         tokens = output.tokens
     )
 }
@@ -341,7 +341,7 @@ val parseParagraph: Parser<OrgChunk.OrgParagraph> = Parser { tokens, pos ->
     while (currentPos < tokens.size) {
         tok = tokens[currentPos]
 
-        if (tok is Token.EOF) {
+        if (tok is Token.EOF || tok is Token.HeadingStars) {
             break
         }
 
@@ -408,7 +408,7 @@ val parseSection: Parser<OrgSection> = seq(
 ).map { output ->
     OrgSection(
         heading = (output as OrgElemList).items[0] as OrgHeading,
-        body = output.items.drop(1) as List<OrgChunk>,
+        body = (output.items[1] as OrgElemList).items as List<OrgChunk>,
         tokens = output.tokens
     )
 }
