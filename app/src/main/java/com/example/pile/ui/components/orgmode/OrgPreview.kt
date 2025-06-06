@@ -105,11 +105,9 @@ fun OrgPreview(text: String, viewModel: SharedViewModel, openNodeById: (String) 
 
             items(document!!.preface.body) { chunk ->
                 if (chunk is OrgChunk.OrgParagraph) {
-                    Text(text = chunk.lines.joinToString("\n") { line ->
-                        line.items
-                            .filter { it is OrgInlineElem.Text }
-                            .joinToString("") { (it as OrgInlineElem.Text).text }
-                    })
+                    Text(text = chunk.items
+                        .filter { it is OrgInlineElem.Text }
+                        .joinToString("") { (it as OrgInlineElem.Text).text })
                 }
             }
         }

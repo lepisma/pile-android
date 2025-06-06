@@ -91,7 +91,7 @@ data class OrgPreface(
  */
 sealed class OrgChunk {
     data class OrgParagraph(
-        val lines: List<OrgLine>,
+        val items: List<OrgInlineElem>,
         override val tokens: List<Token>
     ) : OrgChunk(), OrgElem
 

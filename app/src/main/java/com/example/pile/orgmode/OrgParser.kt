@@ -328,12 +328,45 @@ val parseHorizontalRule: Parser<OrgChunk.OrgHorizontalLine> = matchToken {
     OrgChunk.OrgHorizontalLine(tokens = output.tokens)
 }
 
-val parseParagraph: Parser<OrgChunk.OrgParagraph> = oneOrMore(parseOrgLine).map { output ->
-    // TODO: Fix this since paragraph formatting will involve multi line elements
-    OrgChunk.OrgParagraph(
-        lines = listOf((output as OrgElemList).items[0] as OrgLine),
-        tokens = output.tokens
-    )
+val parseParagraph: Parser<OrgChunk.OrgParagraph> = Parser { tokens, pos ->
+    if (pos >= tokens.size) {
+        return@Parser parsingError("Exhausted tokens while parsing paragraph")
+    }
+
+    var accumulator = mutableListOf<Token>()
+    var currentPos = pos
+    var lbCount = 0
+    var tok: Token
+
+    while (currentPos < tokens.size) {
+        tok = tokens[currentPos]
+
+        if (tok is Token.EOF) {
+            break
+        }
+
+        lbCount = if (tok is Token.LineBreak) { lbCount + 1 } else { 0 }
+        if (lbCount == 2) {
+            accumulator.dropLast(1)
+            break
+        }
+
+        accumulator.add(tokens[currentPos])
+        currentPos++
+    }
+
+    if (accumulator.isNotEmpty()) {
+        // Currently taking all raw texts from tokens and throwing them as a single text
+        ParsingResult.Success(
+            output = OrgChunk.OrgParagraph(
+                items = accumulator.map { tok -> OrgInlineElem.Text(tok.text, tokens = listOf(tok)) },
+                tokens = accumulator
+            ),
+            nextPos = currentPos
+        )
+    } else {
+        parsingError("Unable to parse paragraph because of lack of tokens", tokens = listOf(tokens[pos]))
+    }
 }
 
 val parseChunk: Parser<OrgElem> = seq(
