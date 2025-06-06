@@ -101,7 +101,7 @@ fun oneOrMore(parser: ParsingFn<OrgElem>): ParsingFn<OrgElem> {
 
         return if ((result.output as OrgElemList).items.isEmpty()) {
             // This is a failure since we need at least one parse here
-            parsingError("Unable to run oneOrMore for ${parser}")
+            parsingError("Unable to run oneOrMore for ${parser}", tokens = listOf(tokens[pos]))
         } else {
             result
         }
@@ -135,7 +135,7 @@ fun oneOf(vararg parsers: ParsingFn<OrgElem>): ParsingFn<OrgElem> {
             }
         }
 
-        return parsingError("Unable to find any match in oneOf")
+        return parsingError("Unable to find any match in oneOf", tokens = listOf(tokens[pos]))
     }
 }
 
@@ -163,7 +163,7 @@ fun matchToken(matchFn: (Token) -> Boolean): ParsingFn<OrgToken> {
                 nextPos = pos + 1
             )
         } else {
-            parsingError("Unable to match token: ${tok}")
+            parsingError("Unable to match token: ${tok}", tokens = listOf(tokens[pos]))
         }
     }
 }
