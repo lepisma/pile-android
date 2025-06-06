@@ -100,7 +100,7 @@ fun OrgPreview(text: String, viewModel: SharedViewModel, openNodeById: (String) 
     if (document != null) {
         LazyColumn {
             item {
-                OrgTitleText(title = document!!.preamble.title)
+                OrgPreambleView(document!!.preamble)
             }
 
             items(document!!.preface.body) { chunk ->
