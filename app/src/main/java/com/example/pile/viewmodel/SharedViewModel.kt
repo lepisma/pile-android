@@ -330,7 +330,7 @@ class SharedViewModel(
 
     private fun write(file: DocumentFile, text: String) {
         writeFile(applicationContext, file, text)
-        notify("File Saved")
+        // notify("File Saved")
     }
 
     fun togglePinned(node: OrgNode) {
