@@ -26,7 +26,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.pile.orgmode.OrgChunk
 import com.example.pile.orgmode.OrgDocument
 import com.example.pile.orgmode.OrgLexer
 import com.example.pile.orgmode.parse
@@ -90,6 +89,7 @@ fun OrgPreview(text: String, viewModel: SharedViewModel, openNodeById: (String) 
         coroutineScope.launch(Dispatchers.Default) {
             val tokens = OrgLexer(text).tokenize()
             document = parse(tokens)
+            println(document?.content)
         }
     }
 
@@ -100,10 +100,7 @@ fun OrgPreview(text: String, viewModel: SharedViewModel, openNodeById: (String) 
             }
 
             items(document!!.preface.body) { chunk ->
-                when (chunk) {
-                    is OrgChunk.OrgParagraph -> OrgParagraphView(chunk)
-                    else -> { }
-                }
+                OrgChunkView(chunk)
             }
 
             items(document!!.content) { section ->

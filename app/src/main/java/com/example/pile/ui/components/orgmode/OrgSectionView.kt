@@ -6,7 +6,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.pile.orgmode.OrgChunk
 import com.example.pile.orgmode.OrgHeading
 import com.example.pile.orgmode.OrgInlineElem
 import com.example.pile.orgmode.OrgSection
@@ -34,10 +33,6 @@ fun OrgSectionView(section: OrgSection) {
     OrgSectionHeadingView(section.heading)
 
     for (chunk in section.body) {
-        when (chunk) {
-            is OrgChunk.OrgParagraph -> OrgParagraphView(chunk)
-            is OrgSection -> OrgSectionView(chunk)
-            else -> { }
-        }
+        OrgChunkView(chunk)
     }
 }

@@ -328,9 +328,52 @@ val parseHorizontalRule: Parser<OrgChunk.OrgHorizontalLine> = matchToken {
     OrgChunk.OrgHorizontalLine(tokens = output.tokens)
 }
 
+// Without checkbox, and no nesting, and no multiline chunks
+// oneOrMore
+// parse indent (default 0), parse marker, parse space, parse line, parse eof or lb
+val parseUnorderedList : Parser<OrgList.OrgUnorderedList> = seq(
+    // No indent matching, assuming things to be indented at 0
+    ::matchToken { it is Token.UnorderedListMarker },
+    ::matchToken { it is Token.Space },
+    parseOrgLine
+    // Need to handle end
+).map { output ->
+    val marker = when(
+        ((((output as OrgElemList)
+            .items[0] as OrgToken)
+            .tokens[0]) as Token.UnorderedListMarker)
+            .style
+    ) {
+        Token.UnorderedListMarkerStyle.DASH -> OrgUnorderedListMarker.DASH
+        Token.UnorderedListMarkerStyle.PLUS -> OrgUnorderedListMarker.PLUS
+    }
+    val line = output.items[2] as OrgLine
+
+    OrgList.OrgUnorderedList(
+        marker = marker,
+        checkbox = null,
+        items = listOf(
+            OrgList.OrgListItem(
+                content = listOf(OrgChunk.OrgParagraph(items = line.items, tokens = line.tokens)),
+                tokens = line.tokens
+            )
+        ),
+        tokens = output.tokens
+    )
+}
+
 val parseParagraph: Parser<OrgChunk.OrgParagraph> = Parser { tokens, pos ->
     if (pos >= tokens.size) {
         return@Parser parsingError("Exhausted tokens while parsing paragraph")
+    }
+
+    // Stopping condition for paragraph parsing
+    fun shouldStop(position: Int): Boolean {
+        val token = tokens[position]
+
+        return token is Token.EOF
+                || token is Token.HeadingStars
+                || token is Token.UnorderedListMarker
     }
 
     var accumulator = mutableListOf<Token>()
@@ -341,7 +384,7 @@ val parseParagraph: Parser<OrgChunk.OrgParagraph> = Parser { tokens, pos ->
     while (currentPos < tokens.size) {
         tok = tokens[currentPos]
 
-        if (tok is Token.EOF || tok is Token.HeadingStars) {
+        if (shouldStop(currentPos)) {
             break
         }
 
@@ -386,7 +429,7 @@ val parseChunk: Parser<OrgElem> = seq(
         // ::parseEditsBlock,
         // ::parseAsideBlock,
         // ::parseVideoBlock,
-        // ::parseUnorderedList,
+        parseUnorderedList,
         // ::parseOrderedList,
         parseParagraph
     ),
