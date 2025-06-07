@@ -124,7 +124,7 @@ fun HomeView(
                         NodeList(
                             nodes = searchResults,
                             heading = null,
-                            onClick = openNodeById,
+                            onClick = { node -> openNodeById(node.id) },
                             modifier = Modifier.padding(horizontal = 20.dp)
                         )
                     }

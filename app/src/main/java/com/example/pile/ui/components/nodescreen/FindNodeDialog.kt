@@ -1,4 +1,4 @@
-package com.example.pile.ui.components
+package com.example.pile.ui.components.nodescreen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +22,10 @@ import androidx.compose.ui.window.Dialog
 import com.example.pile.data.OrgNode
 import com.example.pile.data.OrgNodeType
 import com.example.pile.data.isDailyNode
+import com.example.pile.ui.components.FindField
+import com.example.pile.ui.components.NewNodeButton
+import com.example.pile.ui.components.NodeItem
+import com.example.pile.ui.components.NodeList
 import com.example.pile.viewmodel.SharedViewModel
 
 /**
@@ -46,16 +50,21 @@ fun FindNodeDialog(
 
     Dialog(onDismissRequest = { onDismiss() }) {
         Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.BottomStart
+            modifier = Modifier.Companion.fillMaxSize(),
+            contentAlignment = Alignment.Companion.BottomStart
         ) {
-            Card (modifier = Modifier.padding(bottom = 60.dp)) {
+            Card(modifier = Modifier.Companion.padding(bottom = 60.dp)) {
                 var text by remember { mutableStateOf("") }
 
-                Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
+                Column(
+                    modifier = Modifier.Companion.padding(
+                        horizontal = 20.dp,
+                        vertical = 20.dp
+                    )
+                ) {
                     if (text == "") {
                         Column(
-                            modifier = Modifier
+                            modifier = Modifier.Companion
                                 .fillMaxWidth()
                                 .padding(16.dp)
                         ) {
@@ -73,7 +82,7 @@ fun FindNodeDialog(
                         NodeList(
                             nodes = searchResults,
                             heading = null,
-                            onClick = { /* TODO onClick(it) */ }
+                            onClick = onClick
                         )
                         NewNodeButton(text) { title, nodeType -> onCreateClick(title, nodeType) }
                     }

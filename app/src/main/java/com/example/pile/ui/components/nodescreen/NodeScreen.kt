@@ -52,7 +52,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.pile.data.readFile
 import com.example.pile.orgmode.parseTags
-import com.example.pile.ui.components.FindNodeDialog
 import com.example.pile.ui.components.NodeEditField
 import com.example.pile.ui.components.NodeList
 import com.example.pile.ui.components.StructuredNavigationButton
@@ -356,10 +355,10 @@ fun NodeScreen(
                                 if (showLinkDialog) {
                                     FindNodeDialog(
                                         viewModel,
-                                        onClick = {
+                                        onClick = { node ->
                                             currentTextFieldValue = insertText(
                                                 currentTextFieldValue,
-                                                "[[id:${it.id}][${it.title}]]"
+                                                "[[id:${node.id}][${node.title}]]"
                                             )
                                             showLinkDialog = false
                                         },
@@ -384,11 +383,11 @@ fun NodeScreen(
                                         onDismissRequest = { showBottomSheet = false },
                                         sheetState = sheetState
                                     ) {
-                                        // TODO: Get backlinks too
+                                        // TODO: Get forward and backward links
                                         NodeList(
-                                            emptyList(), // TODO: Fix this
+                                            emptyList(),
                                             "Linked Nodes",
-                                            openNodeById
+                                            { node -> openNodeById(node.id) }
                                         )
                                     }
                                 }

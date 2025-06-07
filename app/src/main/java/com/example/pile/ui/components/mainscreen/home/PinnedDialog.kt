@@ -27,7 +27,7 @@ fun PinnedDialog(nodes: List<OrgNode>, onDismiss: () -> Unit, openNodeById: (Str
                         NodeList(
                             nodes = pinnedNodes,
                             heading = "Pinned Nodes",
-                            onClick = openNodeById
+                            onClick = { node -> openNodeById(node.id) }
                         )
                     } else {
                         Text(text = "No pinned nodes")
