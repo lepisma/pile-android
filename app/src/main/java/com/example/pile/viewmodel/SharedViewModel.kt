@@ -304,8 +304,10 @@ class SharedViewModel(
                         }
                     }
 
-                    withContext(Dispatchers.Main) {
-                        notify("Inserted $insertCount new notes, updated $updateCount notes")
+                    if (insertCount + updateCount > 0) {
+                        withContext(Dispatchers.Main) {
+                            notify("Inserted $insertCount new notes, updated $updateCount notes")
+                        }
                     }
 
                     // Delete all the nodes from db that are not reflected in the filesystem
