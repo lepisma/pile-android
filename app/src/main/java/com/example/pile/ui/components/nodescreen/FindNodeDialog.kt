@@ -3,12 +3,11 @@ package com.example.pile.ui.components.nodescreen
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -21,10 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.pile.data.OrgNode
 import com.example.pile.data.OrgNodeType
-import com.example.pile.data.isDailyNode
 import com.example.pile.ui.components.FindField
 import com.example.pile.ui.components.NewNodeButton
-import com.example.pile.ui.components.NodeItem
 import com.example.pile.ui.components.NodeList
 import com.example.pile.viewmodel.SharedViewModel
 
@@ -50,41 +47,54 @@ fun FindNodeDialog(
 
     Dialog(onDismissRequest = { onDismiss() }) {
         Box(
-            modifier = Modifier.Companion.fillMaxSize(),
-            contentAlignment = Alignment.Companion.BottomStart
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.BottomStart
         ) {
-            Card(modifier = Modifier.Companion.padding(bottom = 60.dp)) {
+            Card(
+                modifier = Modifier
+                    .padding(bottom = 60.dp)
+            ) {
                 var text by remember { mutableStateOf("") }
 
                 Column(
-                    modifier = Modifier.Companion.padding(
-                        horizontal = 20.dp,
-                        vertical = 20.dp
-                    )
+                    modifier = Modifier
+                        .padding(horizontal = 20.dp, vertical = 20.dp),
                 ) {
                     if (text == "") {
-                        Column(
-                            modifier = Modifier.Companion
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                        ) {
-                            LazyColumn {
-                                items(
-                                    recentNodes
-                                        .sortedByDescending { it.datetime }
-                                        .filter { !isDailyNode(it) }
-                                ) { node ->
-                                    NodeItem(node) { onClick(node) }
-                                }
-                            }
-                        }
-                    } else {
-                        NodeList(
-                            nodes = searchResults,
-                            heading = null,
-                            onClick = onClick
+                        Text(
+                            text = "Recent Nodes",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
                         )
-                        NewNodeButton(text) { title, nodeType -> onCreateClick(title, nodeType) }
+                        NodeList(
+                            nodes = recentNodes.sortedByDescending { it.datetime },
+                            heading = null,
+                            onClick = onClick,
+                            modifier = Modifier
+                                .weight(1f, fill = false)
+                        )
+                    } else {
+                        if (searchResults.isEmpty()) {
+                            Text(
+                                text = "No matches found",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.outline,
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 20.dp)
+                            )
+                        } else {
+                            NodeList(
+                                nodes = searchResults,
+                                heading = null,
+                                onClick = onClick,
+                                modifier = Modifier
+                                    .weight(1f, fill = false)
+                            )
+                        }
+                        NewNodeButton(text) { title, nodeType ->
+                            onCreateClick(title, nodeType)
+                        }
                     }
                     FindField(
                         text = text,

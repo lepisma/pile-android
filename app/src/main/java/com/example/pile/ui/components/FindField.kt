@@ -28,7 +28,8 @@ fun FindField(
     label: String? = "Find",
     placeholder: String? = null,
     showButton: Boolean = false,
-    onButtonClick: ((String) -> Unit)? = null
+    onButtonClick: ((String) -> Unit)? = null,
+    modifier: Modifier = Modifier
 ) {
     TextField(
         value = text,
@@ -40,7 +41,7 @@ fun FindField(
         placeholder = if (placeholder != null) {
             { Text(text = placeholder) }
         } else null,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(top = 20.dp),
         shape = RoundedCornerShape(60.dp),
