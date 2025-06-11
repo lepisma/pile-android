@@ -217,6 +217,7 @@ val parseParagraph: Parser<OrgChunk.OrgParagraph> = Parser { tokens, pos ->
     }
 }
 
+// TODO: Parse more chunks
 val parsePageIntroBlock: Parser<OrgBlock.OrgPageIntroBlock> = seq(
     matchToken { it is Token.BlockStart && it.type == Token.BlockType.PAGE_INTRO },
     collectUntil { it is Token.BlockEnd && it.type == Token.BlockType.PAGE_INTRO },
@@ -233,6 +234,23 @@ val parsePageIntroBlock: Parser<OrgBlock.OrgPageIntroBlock> = seq(
     )
 }
 
+// TODO: Parse more chunks
+val parseQuoteBlock: Parser<OrgBlock.OrgQuoteBlock> = seq(
+    matchToken { it is Token.BlockStart && it.type == Token.BlockType.QUOTE },
+    collectUntil { it is Token.BlockEnd && it.type == Token.BlockType.QUOTE },
+    matchToken { it is Token.BlockEnd && it.type == Token.BlockType.QUOTE }
+).map { (start, tokens, end) ->
+    val allTokens = collectTokens(Triple(start, tokens, end))
+
+    OrgBlock.OrgQuoteBlock(
+        body = listOf(OrgChunk.OrgParagraph(
+            items = tokens.map { tok -> OrgInlineElem.Text(tok.text, tokens = listOf(tok)) },
+            tokens = allTokens
+        )),
+        tokens = allTokens
+    )
+}
+
 val parseChunk: Parser<OrgChunk> = seq(
     oneOf(
         // ::parseCommentLine,
@@ -241,7 +259,7 @@ val parseChunk: Parser<OrgChunk> = seq(
         // ::parseCommentBlock,
         // ::parseExampleBlock,
         // ::parseSourceBlock,
-        // ::parseQuoteBlock,
+        parseQuoteBlock,
         // ::parseCenterBlock,
         // ::parseHTMLBlock,
         // ::parseVerseBlock,
