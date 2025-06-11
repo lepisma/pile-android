@@ -145,39 +145,43 @@ val parseHorizontalRule: Parser<OrgChunk.OrgHorizontalLine> = matchToken {
 // Without checkbox, and no nesting, and no multiline chunks
 // oneOrMore
 // parse indent (default 0), parse marker, parse space, parse line, parse eof or lb
-val parseUnorderedList : Parser<OrgList.OrgUnorderedList> = seq(
+val parseUnorderedList : Parser<OrgList.OrgUnorderedList> = oneOrMore(seq(
     // No indent matching, assuming things to be indented at 0
     ::matchToken { it is Token.UnorderedListMarker },
     matchSpace,
-    maybe(matchToken { it is Token.CheckBox }),
-    parseOrgLine
-    // Need to handle end
-).map { (markerTok, sp, cb, line) ->
+    maybe(seq(matchToken { it is Token.CheckBox }, matchSpace)),
+    parseOrgLine,
+    oneOf(matchLineBreak, matchEOF)
+)).map { listItems ->
+    val markerTok = listItems.first().first
     val markerStyle = when(((markerTok.tokens[0]) as Token.UnorderedListMarker).style) {
         Token.UnorderedListMarkerStyle.DASH -> OrgUnorderedListMarker.DASH
         Token.UnorderedListMarkerStyle.PLUS -> OrgUnorderedListMarker.PLUS
     }
 
-    val checkbox = if (cb == null) {
-        null
-    } else {
-        when ((cb.tokens[0] as Token.CheckBox).state) {
-            Token.CheckBoxState.UNCHECKED -> OrgListCheckState.UNCHECKED
-            Token.CheckBoxState.CHECKED -> OrgListCheckState.CHECKED
-            Token.CheckBoxState.PARTIAL -> OrgListCheckState.PARTIAL
+    var items: MutableList<OrgList.OrgListItem> = mutableListOf()
+
+    for ((_, _, cb, line, _) in listItems) {
+        val checkbox = if (cb == null) {
+            null
+        } else {
+            when ((cb.first.tokens[0] as Token.CheckBox).state) {
+                Token.CheckBoxState.UNCHECKED -> OrgListCheckState.UNCHECKED
+                Token.CheckBoxState.CHECKED -> OrgListCheckState.CHECKED
+                Token.CheckBoxState.PARTIAL -> OrgListCheckState.PARTIAL
+            }
         }
+        items.add(OrgList.OrgListItem(
+            content = listOf(OrgChunk.OrgParagraph(items = line.items, tokens = line.tokens)),
+            checkbox = checkbox,
+            tokens = line.tokens
+        ))
     }
 
     OrgList.OrgUnorderedList(
         markerStyle = markerStyle,
-        items = listOf(
-            OrgList.OrgListItem(
-                content = listOf(OrgChunk.OrgParagraph(items = line.items, tokens = line.tokens)),
-                checkbox = checkbox,
-                tokens = line.tokens
-            )
-        ),
-        tokens = collectTokens(Tuple4(markerTok, sp, cb, line))
+        items = items,
+        tokens = collectTokens(listItems)
     )
 }
 
