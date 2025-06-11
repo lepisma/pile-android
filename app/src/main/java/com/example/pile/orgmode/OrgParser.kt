@@ -36,7 +36,7 @@ val parseProperties: Parser<OrgProperties> = seq(
     )
 }
 
-val parseOrgLine = collectUntill { it is Token.LineBreak || it is Token.EOF }
+val parseOrgLine = collectUntil { it is Token.LineBreak || it is Token.EOF }
     .map { tokens ->
         OrgLine(
             items = listOf(

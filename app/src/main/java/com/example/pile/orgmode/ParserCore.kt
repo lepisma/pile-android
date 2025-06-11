@@ -743,7 +743,7 @@ fun matchToken(matchFn: (Token) -> Boolean): Parser<OrgToken> {
 /**
  * Collect all tokens from current till any one of them matches the given function.
  */
-fun collectUntill(matchFn: (Token) -> Boolean): Parser<List<Token>> {
+fun collectUntil(matchFn: (Token) -> Boolean): Parser<List<Token>> {
     return Parser<List<Token>> { tokens, pos ->
         val collectedTokens = tokens.drop(pos).takeWhile { !matchFn(it) }
 
