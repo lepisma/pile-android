@@ -14,6 +14,7 @@ fun OrgChunkView(chunk: OrgChunk) {
         is OrgSection -> OrgSectionView(chunk)
         is OrgBlock.OrgPageIntroBlock -> OrgPageIntroView(chunk)
         is OrgBlock.OrgQuoteBlock -> OrgQuoteBlockView(chunk)
+        is OrgBlock.OrgEditsBlock -> OrgEditsBlockView(chunk)
         else -> { }
     }
 }

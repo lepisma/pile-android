@@ -252,6 +252,23 @@ val parseQuoteBlock: Parser<OrgBlock.OrgQuoteBlock> = seq(
     )
 }
 
+// TODO: Parse more chunks
+val parseEditsBlock: Parser<OrgBlock.OrgEditsBlock> = seq(
+    matchToken { it is Token.BlockStart && it.type == Token.BlockType.EDITS },
+    collectUntil { it is Token.BlockEnd && it.type == Token.BlockType.EDITS },
+    matchToken { it is Token.BlockEnd && it.type == Token.BlockType.EDITS }
+).map { (start, tokens, end) ->
+    val allTokens = collectTokens(Triple(start, tokens, end))
+
+    OrgBlock.OrgEditsBlock(
+        body = listOf(OrgChunk.OrgParagraph(
+            items = tokens.drop(1).dropLast(1).map { tok -> OrgInlineElem.Text(tok.text, tokens = listOf(tok)) },
+            tokens = allTokens
+        )),
+        tokens = allTokens
+    )
+}
+
 val parseChunk: Parser<OrgChunk> = seq(
     oneOf(
         // ::parseCommentLine,
@@ -266,7 +283,7 @@ val parseChunk: Parser<OrgChunk> = seq(
         // ::parseVerseBlock,
         // ::parseLaTeXBlock,
         parsePageIntroBlock,
-        // ::parseEditsBlock,
+        parseEditsBlock,
         // ::parseAsideBlock,
         // ::parseVideoBlock,
         parseUnorderedList,
