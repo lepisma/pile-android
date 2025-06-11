@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.example.pile.orgmode.OrgChunk
 import com.example.pile.orgmode.OrgList
@@ -67,6 +69,38 @@ fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier
                             },
                         )
                     }
+
+                    for (paragraph in item.content.filter { it is OrgChunk.OrgParagraph }) {
+                        OrgParagraphView(
+                            paragraph as OrgChunk.OrgParagraph,
+                            modifier = Modifier.align(Alignment.Top)
+                        )
+                    }
+
+                    // TODO: Display nested lists also
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun OrgListView(orglist: OrgList.OrgOrderedList, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .padding(vertical = 10.dp)
+    ) {
+        for ((idx, item) in orglist.items.withIndex()) {
+            Row(
+                modifier = Modifier
+                    .padding(vertical = 5.dp)
+            ) {
+                if (item is OrgList.OrgListItem) {
+                    Text(
+                        text = "${idx + 1}. ".padStart(4),
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.outline
+                    )
 
                     for (paragraph in item.content.filter { it is OrgChunk.OrgParagraph }) {
                         OrgParagraphView(

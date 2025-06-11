@@ -185,6 +185,46 @@ val parseUnorderedList : Parser<OrgList.OrgUnorderedList> = oneOrMore(seq(
     )
 }
 
+val parseOrderedList : Parser<OrgList.OrgOrderedList> = oneOrMore(seq(
+    // No indent matching, assuming things to be indented at 0
+    ::matchToken { it is Token.OrderedListMarker },
+    matchSpace,
+    maybe(seq(matchToken { it is Token.CheckBox }, matchSpace)),
+    parseOrgLine,
+    oneOf(matchLineBreak, matchEOF)
+)).map { listItems ->
+    val markerTok = listItems.first().first
+    val markerStyle = when(((markerTok.tokens[0]) as Token.OrderedListMarker).style) {
+        Token.OrderedListMarkerStyle.PARENTHESIS -> OrgOrderedListMarker.PARENTHESIS
+        Token.OrderedListMarkerStyle.PERIOD -> OrgOrderedListMarker.PERIOD
+    }
+
+    var items: MutableList<OrgList.OrgListItem> = mutableListOf()
+
+    for ((_, _, cb, line, _) in listItems) {
+        val checkbox = if (cb == null) {
+            null
+        } else {
+            when ((cb.first.tokens[0] as Token.CheckBox).state) {
+                Token.CheckBoxState.UNCHECKED -> OrgListCheckState.UNCHECKED
+                Token.CheckBoxState.CHECKED -> OrgListCheckState.CHECKED
+                Token.CheckBoxState.PARTIAL -> OrgListCheckState.PARTIAL
+            }
+        }
+        items.add(OrgList.OrgListItem(
+            content = listOf(OrgChunk.OrgParagraph(items = line.items, tokens = line.tokens)),
+            checkbox = checkbox,
+            tokens = line.tokens
+        ))
+    }
+
+    OrgList.OrgOrderedList(
+        markerStyle = markerStyle,
+        items = items,
+        tokens = collectTokens(listItems)
+    )
+}
+
 val parseParagraph: Parser<OrgChunk.OrgParagraph> = Parser { tokens, pos ->
     if (pos >= tokens.size) {
         return@Parser parsingError("Exhausted tokens while parsing paragraph")
@@ -197,6 +237,7 @@ val parseParagraph: Parser<OrgChunk.OrgParagraph> = Parser { tokens, pos ->
         return token is Token.EOF
                 || token is Token.HeadingStars
                 || token is Token.UnorderedListMarker
+                || token is Token.OrderedListMarker
     }
 
     var accumulator = mutableListOf<Token>()
@@ -326,7 +367,7 @@ val parseChunk: Parser<OrgChunk> = seq(
         // ::parseAsideBlock,
         // ::parseVideoBlock,
         parseUnorderedList,
-        // ::parseOrderedList,
+        parseOrderedList,
         parseParagraph
     ),
     zeroOrMore(matchLineBreak)
