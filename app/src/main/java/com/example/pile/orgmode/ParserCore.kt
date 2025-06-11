@@ -740,6 +740,24 @@ fun matchToken(matchFn: (Token) -> Boolean): Parser<OrgToken> {
     }
 }
 
+/**
+ * Collect all tokens from current till any one of them matches the given function.
+ */
+fun collectUntill(matchFn: (Token) -> Boolean): Parser<List<Token>> {
+    return Parser<List<Token>> { tokens, pos ->
+        val collectedTokens = tokens.drop(pos).takeWhile { !matchFn(it) }
+
+        if (collectedTokens.isEmpty()) {
+            parsingError("Unable to collect any token")
+        } else {
+            ParsingResult.Success(
+                output = collectedTokens,
+                nextPos = pos + collectedTokens.count()
+            )
+        }
+    }
+}
+
 // A few helpful parsers
 val matchSOF: Parser<OrgToken> = matchToken { it is Token.SOF }
 val matchLineBreak: Parser<OrgToken> = matchToken { it is Token.LineBreak }
@@ -748,11 +766,13 @@ val matchSpaces: Parser<List<OrgToken>> = oneOrMore(matchSpace)
 val matchEOF: Parser<OrgToken> = matchToken { it is Token.EOF }
 
 fun <T> collectTokens(result: T): List<Token> {
-    if (result is OrgElem) {
-        return result.tokens
-    } else {
-        return emptyList()
-        println("Unable to collect tokens from $result")
+    return when (result) {
+        is List<*> -> result.map { collectTokens(it) }.flatten()
+        is OrgElem -> result.tokens
+        else -> {
+            println("Unable to collect tokens from $result")
+            emptyList()
+        }
     }
 }
 
@@ -853,8 +873,4 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> collectTokens(
             collectTokens(result.eighth) +
             collectTokens(result.ninth) +
             collectTokens(result.tenth)
-}
-
-fun <T: OrgElem> collectTokens(result: List<T>): List<Token> {
-    return result.map { collectTokens(it) }.flatten()
 }

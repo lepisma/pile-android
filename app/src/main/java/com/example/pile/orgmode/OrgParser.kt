@@ -36,27 +36,17 @@ val parseProperties: Parser<OrgProperties> = seq(
     )
 }
 
-// TODO: This needs collect untill
-val parseOrgLine: Parser<OrgLine> = Parser { tokens, pos ->
-    val lineTokens = tokens.drop(pos).takeWhile { it !is Token.LineBreak && it !is Token.EOF }
-
-    if (lineTokens.isEmpty()) {
-        return@Parser parsingError("Unable to find valid OrgLine")
-    }
-
-    ParsingResult.Success(
-        // TODO: Do this handling more inline elements
-        output = OrgLine(
+val parseOrgLine = collectUntill { it is Token.LineBreak || it is Token.EOF }
+    .map { tokens ->
+        OrgLine(
             items = listOf(
                 OrgInlineElem.Text(
-                    lineTokens.joinToString("") { it.text },
-                    tokens = lineTokens
+                    tokens.joinToString("") { it.text },
+                    tokens = tokens
                 )),
-            tokens = lineTokens
-        ),
-        nextPos = pos + lineTokens.count()
-    )
-}
+            tokens = tokens
+        )
+    }
 
 val parseFileKeyword: Parser<Pair<OrgToken, OrgLine>> = seq(
     ::matchToken { it is Token.FileKeyword },
@@ -110,7 +100,7 @@ val parsePreamble: Parser<OrgPreamble> = seq(
         tags = tags,
         tokens = collectTokens(Tuple4(props, lbs, keywordLines, lbsEnd)),
         properties = props
-    ).also { println(it) }
+    )
 }
 
 val parseLevel: Parser<OrgHeadingLevel> = matchToken {
