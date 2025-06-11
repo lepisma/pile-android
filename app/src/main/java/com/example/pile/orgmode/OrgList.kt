@@ -5,21 +5,20 @@ package com.example.pile.orgmode
  */
 sealed class OrgList {
     data class OrgUnorderedList(
-        val marker: OrgUnorderedListMarker,
-        val checkbox: OrgListCheckState?,
+        val markerStyle: OrgUnorderedListMarker,
         val items: List<OrgList>,
         override val tokens: List<Token>
     ) : OrgChunk(), OrgElem
 
     data class OrgOrderedList(
-        val marker: OrgOrderedListMarker,
-        val checkbox: OrgListCheckState?,
+        val markerStyle: OrgOrderedListMarker,
         val items: List<OrgList>,
         override val tokens: List<Token>
     ) : OrgChunk(), OrgElem
 
     data class OrgListItem(
         val content: List<OrgChunk>,
+        val checkbox: OrgListCheckState?,
         override val tokens: List<Token>
     ) : OrgList(), OrgElem
 

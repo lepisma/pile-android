@@ -149,24 +149,35 @@ val parseUnorderedList : Parser<OrgList.OrgUnorderedList> = seq(
     // No indent matching, assuming things to be indented at 0
     ::matchToken { it is Token.UnorderedListMarker },
     matchSpace,
+    maybe(matchToken { it is Token.CheckBox }),
     parseOrgLine
     // Need to handle end
-).map { (markerTok, sp, line) ->
-    val marker = when(((markerTok.tokens[0]) as Token.UnorderedListMarker).style) {
+).map { (markerTok, sp, cb, line) ->
+    val markerStyle = when(((markerTok.tokens[0]) as Token.UnorderedListMarker).style) {
         Token.UnorderedListMarkerStyle.DASH -> OrgUnorderedListMarker.DASH
         Token.UnorderedListMarkerStyle.PLUS -> OrgUnorderedListMarker.PLUS
     }
 
+    val checkbox = if (cb == null) {
+        null
+    } else {
+        when ((cb.tokens[0] as Token.CheckBox).state) {
+            Token.CheckBoxState.UNCHECKED -> OrgListCheckState.UNCHECKED
+            Token.CheckBoxState.CHECKED -> OrgListCheckState.CHECKED
+            Token.CheckBoxState.PARTIAL -> OrgListCheckState.PARTIAL
+        }
+    }
+
     OrgList.OrgUnorderedList(
-        marker = marker,
-        checkbox = null,
+        markerStyle = markerStyle,
         items = listOf(
             OrgList.OrgListItem(
                 content = listOf(OrgChunk.OrgParagraph(items = line.items, tokens = line.tokens)),
+                checkbox = checkbox,
                 tokens = line.tokens
             )
         ),
-        tokens = collectTokens(Triple(markerTok, sp, line))
+        tokens = collectTokens(Tuple4(markerTok, sp, cb, line))
     )
 }
 
