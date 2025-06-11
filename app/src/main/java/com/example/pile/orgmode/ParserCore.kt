@@ -764,6 +764,9 @@ val matchLineBreak: Parser<OrgToken> = matchToken { it is Token.LineBreak }
 val matchSpace: Parser<OrgToken> = matchToken { it is Token.Space }
 val matchSpaces: Parser<List<OrgToken>> = oneOrMore(matchSpace)
 val matchEOF: Parser<OrgToken> = matchToken { it is Token.EOF }
+val matchWord: Parser<String> = collectUntil { it is Token.EOF || it is Token.Space || it is Token.LineBreak }.map { tokens ->
+    tokens.joinToString("") { tok -> tok.text }
+}
 
 fun <T> collectTokens(result: T): List<Token> {
     return when (result) {

@@ -48,6 +48,9 @@ val parseOrgLine = collectUntil { it is Token.LineBreak || it is Token.EOF }
         )
     }
 
+val parseLine: Parser<String> = collectUntil { it is Token.LineBreak || it is Token.EOF }
+    .map { tokens -> tokens.joinToString("") { it.text } }
+
 val parseFileKeyword: Parser<Pair<OrgToken, OrgLine>> = seq(
     ::matchToken { it is Token.FileKeyword },
     matchSpaces,
@@ -252,6 +255,27 @@ val parseQuoteBlock: Parser<OrgBlock.OrgQuoteBlock> = seq(
     )
 }
 
+val parseSourceBlock: Parser<OrgBlock.OrgSourceBlock> = seq(
+    matchToken { it is Token.BlockStart && it.type == Token.BlockType.SRC },
+    matchSpace,
+    parseLine,
+    matchLineBreak,
+    collectUntil { it is Token.BlockEnd && it.type == Token.BlockType.SRC },
+    matchToken { it is Token.BlockEnd && it.type == Token.BlockType.SRC }
+).map { (start, sp, configLine, lb, tokens, end) ->
+    // TODO: Fix token collection for plain line
+    val allTokens = collectTokens(Tuple5(start, sp, lb, tokens, end))
+
+    OrgBlock.OrgSourceBlock(
+        language = configLine,
+        switches = emptyList(),
+        headerArgs = emptyList(),
+        name = null,
+        body = tokens.dropLast(1).joinToString("") { tok -> tok.text },
+        tokens = allTokens
+    )
+}
+
 // TODO: Parse more chunks
 val parseEditsBlock: Parser<OrgBlock.OrgEditsBlock> = seq(
     matchToken { it is Token.BlockStart && it.type == Token.BlockType.EDITS },
@@ -276,7 +300,7 @@ val parseChunk: Parser<OrgChunk> = seq(
         // ::parseTable,
         // ::parseCommentBlock,
         // ::parseExampleBlock,
-        // ::parseSourceBlock,
+        parseSourceBlock,
         parseQuoteBlock,
         // ::parseCenterBlock,
         // ::parseHTMLBlock,
