@@ -89,7 +89,6 @@ fun OrgPreview(text: String, viewModel: SharedViewModel, openNodeById: (String) 
         coroutineScope.launch(Dispatchers.Default) {
             val tokens = OrgLexer(text).tokenize()
             document = parse(tokens)
-            println(document?.content)
         }
     }
 

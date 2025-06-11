@@ -217,6 +217,22 @@ val parseParagraph: Parser<OrgChunk.OrgParagraph> = Parser { tokens, pos ->
     }
 }
 
+val parsePageIntroBlock: Parser<OrgBlock.OrgPageIntroBlock> = seq(
+    matchToken { it is Token.BlockStart && it.type == Token.BlockType.PAGE_INTRO },
+    collectUntil { it is Token.BlockEnd && it.type == Token.BlockType.PAGE_INTRO },
+    matchToken { it is Token.BlockEnd && it.type == Token.BlockType.PAGE_INTRO }
+).map { (start, tokens, end) ->
+    val allTokens = collectTokens(Triple(start, tokens, end))
+
+    OrgBlock.OrgPageIntroBlock(
+        body = listOf(OrgChunk.OrgParagraph(
+            items = tokens.map { tok -> OrgInlineElem.Text(tok.text, tokens = listOf(tok)) },
+            tokens = allTokens
+        )),
+        tokens = allTokens
+    )
+}
+
 val parseChunk: Parser<OrgChunk> = seq(
     oneOf(
         // ::parseCommentLine,
@@ -230,7 +246,7 @@ val parseChunk: Parser<OrgChunk> = seq(
         // ::parseHTMLBlock,
         // ::parseVerseBlock,
         // ::parseLaTeXBlock,
-        // ::parsePageIntroBlock,
+        parsePageIntroBlock,
         // ::parseEditsBlock,
         // ::parseAsideBlock,
         // ::parseVideoBlock,
