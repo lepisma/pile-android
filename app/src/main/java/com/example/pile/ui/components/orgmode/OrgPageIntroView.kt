@@ -22,6 +22,6 @@ fun OrgPageIntroView(
         modifier = modifier
             .padding(bottom = 20.dp)
     ) {
-        OrgParagraphView(paragraph, modifier = Modifier.padding(horizontal = 10.dp))
+        OrgParagraphView(paragraph, modifier = Modifier.padding(15.dp))
     }
 }

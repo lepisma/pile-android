@@ -227,7 +227,8 @@ val parsePageIntroBlock: Parser<OrgBlock.OrgPageIntroBlock> = seq(
 
     OrgBlock.OrgPageIntroBlock(
         body = listOf(OrgChunk.OrgParagraph(
-            items = tokens.map { tok -> OrgInlineElem.Text(tok.text, tokens = listOf(tok)) },
+            // Removing the linebreak around block delimiter tokens
+            items = tokens.drop(1).dropLast(1).map { tok -> OrgInlineElem.Text(tok.text, tokens = listOf(tok)) },
             tokens = allTokens
         )),
         tokens = allTokens
@@ -244,7 +245,7 @@ val parseQuoteBlock: Parser<OrgBlock.OrgQuoteBlock> = seq(
 
     OrgBlock.OrgQuoteBlock(
         body = listOf(OrgChunk.OrgParagraph(
-            items = tokens.map { tok -> OrgInlineElem.Text(tok.text, tokens = listOf(tok)) },
+            items = tokens.drop(1).dropLast(1).map { tok -> OrgInlineElem.Text(tok.text, tokens = listOf(tok)) },
             tokens = allTokens
         )),
         tokens = allTokens
