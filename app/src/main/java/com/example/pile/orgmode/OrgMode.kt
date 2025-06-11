@@ -134,23 +134,10 @@ data class OrgParsingError(
     override val tokens: List<Token> = emptyList()
 ) : OrgElem
 
-
-/**
- * Represents a null parse (as compared to error)
- */
-data class OrgNothing(
-    override val tokens: List<Token> = emptyList()
-) : OrgElem
-
 /**
  * Represents a plain token parse
  */
 data class OrgToken(
-    override val tokens: List<Token>
-) : OrgElem
-
-data class OrgElemList(
-    val items: List<OrgElem>,
     override val tokens: List<Token>
 ) : OrgElem
 

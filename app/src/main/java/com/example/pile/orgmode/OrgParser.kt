@@ -1,192 +1,21 @@
 package com.example.pile.orgmode
 
-/**
- * Output from a parser
- */
-sealed class ParsingResult<out T> {
-    data class Success<T>(
-        val output: T,
-        val nextPos: Int
-    ) : ParsingResult<T>()
-
-    data class Failure<T>(
-        val error: OrgParsingError
-    ) : ParsingResult<T>()
-}
-
-fun <T> parsingError(message: String, tokens: List<Token> = emptyList()): ParsingResult.Failure<T> {
-    return ParsingResult.Failure<T>(
-        error = OrgParsingError(message, tokens)
-    )
-}
-
-/**
- * Type of a parsing function which takes the list of all tokens and the current working position.
- */
-fun interface Parser<out T> {
-    fun invoke(tokens: List<Token>, pos: Int): ParsingResult<T>
-}
-
-// Parser Combinators Start
-
-fun <T, R> Parser<T>.map(transform: (T) -> R) : Parser<R> {
-    return Parser { tokens, pos ->
-        val result = this@map.invoke(tokens, pos)
-        result.map(transform)
-    }
-}
-
-fun <T, R> ParsingResult<T>.map(transform: (T) -> R): ParsingResult<R> {
-    return when (this) {
-        is ParsingResult.Success -> ParsingResult.Success(transform(this.output), this.nextPos)
-        is ParsingResult.Failure -> ParsingResult.Failure(this.error)
-    }
-}
-
-/**
- * Sequence given parsers and execute them one by one. If any parse fails, stop immediately and
- * return the failed result.
- */
-fun seq(vararg parsers: Parser<OrgElem>): Parser<OrgElem> {
-    return Parser<OrgElem> { tokens, pos ->
-        var currentPos = pos
-        val results = mutableListOf<ParsingResult.Success<OrgElem>>()
-
-        for (parser in parsers) {
-            val result = parser.invoke(tokens, currentPos)
-            if (result is ParsingResult.Success) {
-                results.add(result)
-                currentPos = result.nextPos
-            } else {
-                return@Parser result
-            }
-        }
-
-        ParsingResult.Success(
-            output = OrgElemList(
-                results.map { it.output },
-                tokens = results.flatMap { it.output.tokens }
-            ),
-            nextPos = currentPos
-        )
-    }
-}
-
-/**
- * Run the same parser many times and return results till a failure.
- */
-fun zeroOrMore(parser: Parser<OrgElem>): Parser<OrgElemList> {
-    return Parser<OrgElemList> { tokens, pos ->
-        var currentPos = pos
-        val results = mutableListOf<ParsingResult.Success<OrgElem>>()
-
-        while (true) {
-            val result = parser.invoke(tokens, currentPos)
-            if (result is ParsingResult.Success) {
-                results.add(result)
-                currentPos = result.nextPos
-            } else {
-                break
-            }
-        }
-
-        ParsingResult.Success(
-            output = OrgElemList(
-                results.map { it.output },
-                tokens = results.flatMap { it.output.tokens }
-            ),
-            nextPos = currentPos
-        )
-    }
-}
-
-/**
- * Run the same parser many times and return results till a failure. This ensures that at least one
- * parse happens.
- */
-fun oneOrMore(parser: Parser<OrgElem>): Parser<OrgElemList> = seq(
-    parser,
-    zeroOrMore(parser)
-).map { output ->
-    OrgElemList(
-        items = listOf((output as OrgElemList).items[0]) + (output.items[1] as OrgElemList).items,
-        tokens = output.tokens
-    )
-}
-
-/**
- * Convert a failed result to success with OrgNothing
- */
-fun maybe(parser: Parser<OrgElem>): Parser<OrgElem> {
-    return Parser<OrgElem> { tokens, pos ->
-        val result = parser.invoke(tokens, pos)
-
-        result as? ParsingResult.Success
-            ?: ParsingResult.Success(
-                output = OrgNothing(),
-                nextPos = pos
-            )
-    }
-}
-
-/**
- * Match one of the parsers and return the result. Order matters.
- */
-fun oneOf(vararg parsers: Parser<OrgElem>): Parser<OrgElem> {
-    return Parser<OrgElem> { tokens, pos ->
-        for (parser in parsers) {
-            val result = parser.invoke(tokens, pos)
-            if (result is ParsingResult.Success) {
-                return@Parser result
-            }
-        }
-
-        parsingError("Unable to find any match in oneOf", tokens = listOf(tokens[pos]))
-    }
-}
-
-/**
- * Match a single token at current position
- */
-fun matchToken(matchFn: (Token) -> Boolean): Parser<OrgToken> {
-    return Parser<OrgToken> { tokens, pos ->
-        val tok = tokens[pos]
-
-        if (matchFn(tok)) {
-            ParsingResult.Success(
-                output = OrgToken(tokens = listOf(tok)),
-                nextPos = pos + 1
-            )
-        } else {
-            parsingError("Unable to match token: ${tok}", tokens = listOf(tokens[pos]))
-        }
-    }
-}
-
-// Combinators end
-
 val parseProperties: Parser<OrgProperties> = seq(
     ::matchToken { it is Token.DrawerStart },
-    ::matchToken { it is Token.LineBreak },
+    matchLineBreak,
     oneOrMore(
         seq(
             ::matchToken { it is Token.DrawerPropertyKey },
-            zeroOrMore(
-                ::matchToken { it is Token.Space }
-            ),
+            zeroOrMore(matchSpace),
             ::matchToken { it is Token.DrawerPropertyValue },
-            ::matchToken { it is Token.LineBreak }
+            matchLineBreak
         )
     ),
     ::matchToken { it is Token.DrawerEnd }
-).map { output ->
-    val propLines = (output as OrgElemList).items[2] as OrgElemList
+).map { (ds, lb, propLines, de) ->
     var map = mutableMapOf<String, OrgLine>()
 
-    for (propLine in propLines.items) {
-        val k = (propLine as OrgElemList).items[0] as OrgToken
-        val v = propLine.items[2] as OrgToken
-
+    for ((k, _, v, _) in propLines) {
         val keyString = (k.tokens.first() as Token.DrawerPropertyKey).key
         val valueString = (v.tokens.first() as Token.DrawerPropertyValue).value
 
@@ -203,10 +32,11 @@ val parseProperties: Parser<OrgProperties> = seq(
 
     OrgProperties(
         map = map,
-        tokens = output.tokens
+        tokens = collectTokens(Tuple4(ds, lb, propLines, de))
     )
 }
 
+// TODO: This needs collect untill
 val parseOrgLine: Parser<OrgLine> = Parser { tokens, pos ->
     val lineTokens = tokens.drop(pos).takeWhile { it !is Token.LineBreak && it !is Token.EOF }
 
@@ -228,19 +58,11 @@ val parseOrgLine: Parser<OrgLine> = Parser { tokens, pos ->
     )
 }
 
-val parseFileKeyword: Parser<OrgElemList> = seq(
+val parseFileKeyword: Parser<Pair<OrgToken, OrgLine>> = seq(
     ::matchToken { it is Token.FileKeyword },
-    oneOrMore(::matchToken { it is Token.Space }),
+    matchSpaces,
     parseOrgLine
-).map { output ->
-    OrgElemList(
-        items = listOf(
-            (output as OrgElemList).items[0],
-            output.items[2]
-        ),
-        tokens = output.tokens
-    )
-}
+).map { (k, _, line) -> Pair(k, line) }
 
 fun orgLineToTags(line: OrgLine): OrgTags {
     val rawText = line.items
@@ -260,18 +82,17 @@ fun orgLineToTags(line: OrgLine): OrgTags {
  */
 val parsePreamble: Parser<OrgPreamble> = seq(
     maybe(parseProperties),
-    oneOrMore(::matchToken { it is Token.LineBreak }),
-    oneOrMore(seq(parseFileKeyword, ::matchToken { it is Token.LineBreak })),
-    zeroOrMore(::matchToken { it is Token.LineBreak })
-).map { output ->
+    oneOrMore(matchLineBreak),
+    oneOrMore(seq(parseFileKeyword, matchLineBreak)),
+    zeroOrMore(matchLineBreak)
+).map { (props, lbs, keywordLines, lbsEnd) ->
     // We need to interpret all the file keywords
     var title: OrgLine? = null
     var tags: OrgTags? = null
 
-    for (keywordLine in ((output as OrgElemList).items[2] as OrgElemList).items) {
-        val keywordPair = (keywordLine as OrgElemList).items[0] as OrgElemList
-        val token = (keywordPair.items[0] as OrgToken).tokens[0] as Token.FileKeyword
-        val valueLine = keywordPair.items[1] as OrgLine
+    for ((kwMatch, _) in keywordLines) {
+        val token = kwMatch.first.tokens[0] as Token.FileKeyword
+        val valueLine = kwMatch.second
 
         when (token.type) {
             Token.FileKeywordType.TITLE -> title = valueLine
@@ -287,9 +108,9 @@ val parsePreamble: Parser<OrgPreamble> = seq(
     OrgPreamble(
         title = title ?: OrgLine(emptyList(), tokens = emptyList()),
         tags = tags,
-        tokens = output.tokens,
-        properties = if (output.items[0] is OrgNothing) null else { output.items[0] as OrgProperties }
-    )
+        tokens = collectTokens(Tuple4(props, lbs, keywordLines, lbsEnd)),
+        properties = props
+    ).also { println(it) }
 }
 
 val parseLevel: Parser<OrgHeadingLevel> = matchToken {
@@ -306,19 +127,19 @@ val parseHeadingTitle: Parser<OrgLine> = parseOrgLine
 
 val parseHeading: Parser<OrgHeading> = seq(
     parseLevel,
-    ::matchToken { it is Token.Space },
+    matchSpace,
     // maybe(::parseTODOState),
     // maybe(::parsePriority),
     parseHeadingTitle,
-    oneOrMore(::matchToken { it is Token.LineBreak }),
+    oneOrMore(matchLineBreak),
     // maybe(::parseHeadingTags),
     // ::parsePlanningInfo,
     // maybe(::parseProperties)
-).map { output ->
+).map { (level, sp, title, lbs) ->
     OrgHeading(
-        level = (output as OrgElemList).items[0] as OrgHeadingLevel,
-        title = output.items[2] as OrgLine,
-        tokens = output.tokens
+        level = level,
+        title = title,
+        tokens = collectTokens(Tuple4(level, sp, title, lbs))
     )
 }
 
@@ -334,20 +155,14 @@ val parseHorizontalRule: Parser<OrgChunk.OrgHorizontalLine> = matchToken {
 val parseUnorderedList : Parser<OrgList.OrgUnorderedList> = seq(
     // No indent matching, assuming things to be indented at 0
     ::matchToken { it is Token.UnorderedListMarker },
-    ::matchToken { it is Token.Space },
+    matchSpace,
     parseOrgLine
     // Need to handle end
-).map { output ->
-    val marker = when(
-        ((((output as OrgElemList)
-            .items[0] as OrgToken)
-            .tokens[0]) as Token.UnorderedListMarker)
-            .style
-    ) {
+).map { (markerTok, sp, line) ->
+    val marker = when(((markerTok.tokens[0]) as Token.UnorderedListMarker).style) {
         Token.UnorderedListMarkerStyle.DASH -> OrgUnorderedListMarker.DASH
         Token.UnorderedListMarkerStyle.PLUS -> OrgUnorderedListMarker.PLUS
     }
-    val line = output.items[2] as OrgLine
 
     OrgList.OrgUnorderedList(
         marker = marker,
@@ -358,7 +173,7 @@ val parseUnorderedList : Parser<OrgList.OrgUnorderedList> = seq(
                 tokens = line.tokens
             )
         ),
-        tokens = output.tokens
+        tokens = collectTokens(Triple(markerTok, sp, line))
     )
 }
 
@@ -412,7 +227,7 @@ val parseParagraph: Parser<OrgChunk.OrgParagraph> = Parser { tokens, pos ->
     }
 }
 
-val parseChunk: Parser<OrgElem> = seq(
+val parseChunk: Parser<OrgChunk> = seq(
     oneOf(
         // ::parseCommentLine,
         parseHorizontalRule,
@@ -433,41 +248,42 @@ val parseChunk: Parser<OrgElem> = seq(
         // ::parseOrderedList,
         parseParagraph
     ),
-    zeroOrMore(::matchToken { it is Token.LineBreak })
-).map { output ->
-    (output as OrgElemList).items[0]
+    zeroOrMore(matchLineBreak)
+).map { (chunk, lbs) ->
+    chunk as OrgChunk
+    // We are missing the tokens from lbs here
 }
 
 val parsePreface: Parser<OrgPreface> = zeroOrMore(parseChunk).map { output ->
     OrgPreface(
-        body = (output as OrgElemList).items as List<OrgChunk>,
-        tokens = output.tokens
+        body = output,
+        tokens = collectTokens(output)
     )
 }
 
 val parseSection: Parser<OrgSection> = seq(
     parseHeading,
     zeroOrMore(parseChunk)
-).map { output ->
+).map { (heading, chunks) ->
     OrgSection(
-        heading = (output as OrgElemList).items[0] as OrgHeading,
-        body = (output.items[1] as OrgElemList).items as List<OrgChunk>,
-        tokens = output.tokens
+        heading = heading,
+        body = chunks,
+        tokens = collectTokens(Pair(heading, chunks))
     )
 }
 
 val parseDocument: Parser<OrgDocument> = seq(
-    ::matchToken { it is Token.SOF },
+    matchSOF,
     parsePreamble,
     parsePreface,
     zeroOrMore(parseSection),
-    ::matchToken { it is Token.EOF }
-).map { output ->
+    matchEOF
+).map { (sof, preamble, preface, sections, eof) ->
     OrgDocument(
-        preamble = (output as OrgElemList).items[1] as OrgPreamble,
-        preface = output.items[2] as OrgPreface,
-        content = (output.items[3] as OrgElemList).items as List<OrgSection>,
-        tokens = output.tokens
+        preamble = preamble,
+        preface = preface,
+        content = sections,
+        tokens = collectTokens(Tuple5(sof, preamble, preface, sections, eof))
     )
 }
 
