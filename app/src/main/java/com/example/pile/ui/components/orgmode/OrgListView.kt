@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.example.pile.orgmode.OrgChunk
 import com.example.pile.orgmode.OrgList
@@ -68,10 +69,20 @@ fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier
                         )
                     }
 
+                    val style = if (item.checkbox == OrgListCheckState.CHECKED) {
+                        MaterialTheme.typography.bodyLarge.copy(
+                            textDecoration = TextDecoration.LineThrough,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                    } else {
+                        MaterialTheme.typography.bodyLarge
+                    }
+
                     for (paragraph in item.content.filter { it is OrgChunk.OrgParagraph }) {
                         OrgParagraphView(
                             paragraph as OrgChunk.OrgParagraph,
-                            modifier = Modifier.align(Alignment.Top)
+                            modifier = Modifier.align(Alignment.Top),
+                            style = style
                         )
                     }
 
@@ -123,10 +134,20 @@ fun OrgListView(orglist: OrgList.OrgOrderedList, modifier: Modifier = Modifier) 
                         )
                     }
 
+                    val style = if (item.checkbox == OrgListCheckState.CHECKED) {
+                        MaterialTheme.typography.bodyLarge.copy(
+                            textDecoration = TextDecoration.LineThrough,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                    } else {
+                        MaterialTheme.typography.bodyLarge
+                    }
+
                     for (paragraph in item.content.filter { it is OrgChunk.OrgParagraph }) {
                         OrgParagraphView(
                             paragraph as OrgChunk.OrgParagraph,
-                            modifier = Modifier.align(Alignment.Top)
+                            modifier = Modifier.align(Alignment.Top),
+                            style = style
                         )
                     }
 
