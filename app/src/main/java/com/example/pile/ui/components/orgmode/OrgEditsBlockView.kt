@@ -12,15 +12,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.pile.orgmode.OrgBlock
-import com.example.pile.orgmode.OrgChunk
 
 @Composable
 fun OrgEditsBlockView(
     editsBlock: OrgBlock.OrgEditsBlock,
     modifier: Modifier = Modifier
 ) {
-    val paragraph = editsBlock.body.first() as OrgChunk.OrgParagraph
-
     Column(
         modifier = modifier
             .padding(bottom = 20.dp)
@@ -43,6 +40,8 @@ fun OrgEditsBlockView(
                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
             )
         }
-        OrgParagraphView(paragraph)
+        for (chunk in editsBlock.body) {
+            OrgChunkView(chunk, modifier = Modifier.padding(15.dp))
+        }
     }
 }

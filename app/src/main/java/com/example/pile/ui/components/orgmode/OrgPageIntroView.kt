@@ -14,7 +14,6 @@ fun OrgPageIntroView(
     pageIntroBlock: OrgBlock.OrgPageIntroBlock,
     modifier: Modifier = Modifier
 ) {
-    val paragraph = pageIntroBlock.body.first() as OrgChunk.OrgParagraph
     ElevatedCard(
         elevation = CardDefaults.cardElevation(
             defaultElevation = 6.dp
@@ -22,6 +21,8 @@ fun OrgPageIntroView(
         modifier = modifier
             .padding(bottom = 20.dp)
     ) {
-        OrgParagraphView(paragraph, modifier = Modifier.padding(15.dp))
+        for (chunk in pageIntroBlock.body) {
+            OrgChunkView(chunk, modifier = Modifier.padding(15.dp))
+        }
     }
 }

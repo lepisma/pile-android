@@ -10,14 +10,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.dp
 import com.example.pile.orgmode.OrgBlock
-import com.example.pile.orgmode.OrgChunk
 
 @Composable
 fun OrgQuoteBlockView(
     quoteBlock: OrgBlock.OrgQuoteBlock,
     modifier: Modifier = Modifier
 ) {
-    val paragraph = quoteBlock.body.first() as OrgChunk.OrgParagraph
     val lineColor = MaterialTheme.colorScheme.secondary
 
     Column(
@@ -31,9 +29,11 @@ fun OrgQuoteBlockView(
                 )
             }
     ) {
-        OrgParagraphView(
-            paragraph,
-            modifier = Modifier
-                .padding(start = 20.dp, end = 10.dp, top = 10.dp, bottom = 10.dp))
+        for (chunk in quoteBlock.body) {
+            OrgChunkView(
+                chunk,
+                modifier = Modifier.padding(start = 20.dp, end = 10.dp, top = 10.dp, bottom = 10.dp)
+            )
+        }
     }
 }
