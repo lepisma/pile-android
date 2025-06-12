@@ -84,6 +84,8 @@ fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier
 
 @Composable
 fun OrgListView(orglist: OrgList.OrgOrderedList, modifier: Modifier = Modifier) {
+    val hasCheckbox = orglist.items.count { it is OrgList.OrgListItem && it.checkbox != null } > 0
+
     Column(
         modifier = modifier
             .padding(vertical = 10.dp)
@@ -99,6 +101,27 @@ fun OrgListView(orglist: OrgList.OrgOrderedList, modifier: Modifier = Modifier) 
                         fontFamily = FontFamily.Monospace,
                         color = MaterialTheme.colorScheme.outline
                     )
+
+                    if (hasCheckbox) {
+                        val icon = when (item.checkbox) {
+                            null -> FontAwesomeIcons.Solid.Circle
+                            OrgListCheckState.CHECKED -> FontAwesomeIcons.Solid.CheckCircle
+                            OrgListCheckState.PARTIAL -> FontAwesomeIcons.Regular.DotCircle
+                            OrgListCheckState.UNCHECKED -> FontAwesomeIcons.Regular.Circle
+                        }
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = "Checked icon",
+                            modifier = Modifier
+                                .padding(start = 5.dp, end = 5.dp)
+                                .size(25.dp),
+                            tint = if (item.checkbox == null) {
+                                MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                            } else {
+                                MaterialTheme.colorScheme.primary
+                            },
+                        )
+                    }
 
                     for (paragraph in item.content.filter { it is OrgChunk.OrgParagraph }) {
                         OrgParagraphView(
