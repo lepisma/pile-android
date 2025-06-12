@@ -77,14 +77,13 @@ fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier
                         MaterialTheme.typography.bodyLarge
                     }
 
-                    for (paragraph in item.content.filter { it is OrgChunk.OrgParagraph }) {
-                        OrgParagraphView(
-                            paragraph as OrgChunk.OrgParagraph,
-                            style = style
-                        )
+                    for (chunk in item.content) {
+                        if (chunk is OrgChunk.OrgParagraph) {
+                            OrgParagraphView(chunk, style = style)
+                        } else {
+                            OrgChunkView(chunk)
+                        }
                     }
-
-                    // TODO: Display nested lists also
                 }
             }
         }
@@ -141,14 +140,13 @@ fun OrgListView(orglist: OrgList.OrgOrderedList, modifier: Modifier = Modifier) 
                         MaterialTheme.typography.bodyLarge
                     }
 
-                    for (paragraph in item.content.filter { it is OrgChunk.OrgParagraph }) {
-                        OrgParagraphView(
-                            paragraph as OrgChunk.OrgParagraph,
-                            style = style
-                        )
+                    for (chunk in item.content) {
+                        if (chunk is OrgChunk.OrgParagraph) {
+                            OrgParagraphView(chunk, style = style)
+                        } else {
+                            OrgChunkView(chunk)
+                        }
                     }
-
-                    // TODO: Display nested lists also
                 }
             }
         }
