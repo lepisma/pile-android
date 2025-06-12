@@ -238,6 +238,7 @@ val parseParagraph: Parser<OrgChunk.OrgParagraph> = Parser { tokens, pos ->
                 || token is Token.HeadingStars
                 || token is Token.UnorderedListMarker
                 || token is Token.OrderedListMarker
+                || (token is Token.BlockEnd && token.type == Token.BlockType.ASIDE)
     }
 
     var accumulator = mutableListOf<Token>()
@@ -333,6 +334,40 @@ val parseSourceBlock: Parser<OrgBlock.OrgSourceBlock> = seq(
 }
 
 // TODO: Parse more chunks
+val parseAsideBlock: Parser<OrgBlock.OrgAsideBlock> = seq(
+    matchToken { it is Token.BlockStart && it.type == Token.BlockType.ASIDE },
+    matchLineBreak,
+    oneOrMore(seq(
+        oneOf(
+            // ::parseCommentLine,
+            parseHorizontalRule,
+            // ::parseTable,
+            // ::parseCommentBlock,
+            // ::parseExampleBlock,
+            parseSourceBlock,
+            parseQuoteBlock,
+            // ::parseCenterBlock,
+            // ::parseHTMLBlock,
+            // ::parseVerseBlock,
+            // ::parseLaTeXBlock
+            // ::parseVideoBlock,
+            parseUnorderedList,
+            parseOrderedList,
+            parseParagraph
+        ),
+        zeroOrMore(matchLineBreak)
+    )),
+    matchToken { it is Token.BlockEnd && it.type == Token.BlockType.ASIDE }
+).map { (start, lb, chunks, end) ->
+    val allTokens = collectTokens(Tuple4(start, lb, chunks, end))
+
+    OrgBlock.OrgAsideBlock(
+        body = chunks.map { it.first as OrgChunk },
+        tokens = allTokens
+    )
+}
+
+// TODO: Parse more chunks
 val parseEditsBlock: Parser<OrgBlock.OrgEditsBlock> = seq(
     matchToken { it is Token.BlockStart && it.type == Token.BlockType.EDITS },
     collectUntil { it is Token.BlockEnd && it.type == Token.BlockType.EDITS },
@@ -364,7 +399,7 @@ val parseChunk: Parser<OrgChunk> = seq(
         // ::parseLaTeXBlock,
         parsePageIntroBlock,
         parseEditsBlock,
-        // ::parseAsideBlock,
+        parseAsideBlock,
         // ::parseVideoBlock,
         parseUnorderedList,
         parseOrderedList,

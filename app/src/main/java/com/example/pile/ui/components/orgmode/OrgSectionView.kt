@@ -11,7 +11,7 @@ import com.example.pile.orgmode.OrgInlineElem
 import com.example.pile.orgmode.OrgSection
 
 @Composable
-fun OrgSectionHeadingView(heading: OrgHeading) {
+fun OrgSectionHeadingView(heading: OrgHeading, modifier: Modifier = Modifier) {
     val style = when (heading.level.level) {
         1 -> MaterialTheme.typography.displayMedium
         2 -> MaterialTheme.typography.headlineLarge
@@ -24,15 +24,15 @@ fun OrgSectionHeadingView(heading: OrgHeading) {
             .filter { it is OrgInlineElem.Text }
             .joinToString("") { (it as OrgInlineElem.Text).text },
         style = style,
-        modifier = Modifier.padding(top = 20.dp, bottom = 10.dp)
+        modifier = modifier.padding(top = 20.dp, bottom = 10.dp)
     )
 }
 
 @Composable
-fun OrgSectionView(section: OrgSection) {
+fun OrgSectionView(section: OrgSection, modifier: Modifier = Modifier) {
     OrgSectionHeadingView(section.heading)
 
     for (chunk in section.body) {
-        OrgChunkView(chunk)
+        OrgChunkView(chunk, modifier)
     }
 }
