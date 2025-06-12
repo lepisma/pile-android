@@ -24,6 +24,48 @@ import compose.icons.fontawesomeicons.solid.CheckCircle
 import compose.icons.fontawesomeicons.solid.Circle
 
 @Composable
+fun CheckBoxIcon(checkboxState: OrgListCheckState?) {
+    val icon = when (checkboxState) {
+        null -> FontAwesomeIcons.Solid.Circle
+        OrgListCheckState.CHECKED -> FontAwesomeIcons.Solid.CheckCircle
+        OrgListCheckState.PARTIAL -> FontAwesomeIcons.Regular.DotCircle
+        OrgListCheckState.UNCHECKED -> FontAwesomeIcons.Regular.Circle
+    }
+    Icon(
+        imageVector = icon,
+        contentDescription = "Checked icon",
+        modifier = Modifier
+            .padding(start = 5.dp, end = 5.dp)
+            .size(20.dp),
+        tint = if (checkboxState == null) {
+            MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+        } else {
+            MaterialTheme.colorScheme.primary
+        },
+    )
+}
+
+@Composable
+fun OrgListItemView(item: OrgList.OrgListItem) {
+    val style = if (item.checkbox == OrgListCheckState.CHECKED) {
+        MaterialTheme.typography.bodyLarge.copy(
+            textDecoration = TextDecoration.LineThrough,
+            color = MaterialTheme.colorScheme.outline
+        )
+    } else {
+        MaterialTheme.typography.bodyLarge
+    }
+
+    for (chunk in item.content) {
+        if (chunk is OrgChunk.OrgParagraph) {
+            OrgParagraphView(chunk, style = style)
+        } else {
+            OrgChunkView(chunk)
+        }
+    }
+}
+
+@Composable
 fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier) {
     // If any item has checkbox, we don't show bullets (for unordered list only)
     val hasCheckbox = orglist.items.count { it is OrgList.OrgListItem && it.checkbox != null } > 0
@@ -48,42 +90,10 @@ fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier
                             tint = MaterialTheme.colorScheme.outlineVariant,
                         )
                     } else {
-                        val icon = when (item.checkbox) {
-                            null -> FontAwesomeIcons.Solid.Circle
-                            OrgListCheckState.CHECKED -> FontAwesomeIcons.Solid.CheckCircle
-                            OrgListCheckState.PARTIAL -> FontAwesomeIcons.Regular.DotCircle
-                            OrgListCheckState.UNCHECKED -> FontAwesomeIcons.Regular.Circle
-                        }
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = "Checked icon",
-                            modifier = Modifier
-                                .padding(start = 5.dp, end = 5.dp)
-                                .size(20.dp),
-                            tint = if (item.checkbox == null) {
-                                MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                            } else {
-                                MaterialTheme.colorScheme.primary
-                            },
-                        )
+                        CheckBoxIcon(item.checkbox)
                     }
 
-                    val style = if (item.checkbox == OrgListCheckState.CHECKED) {
-                        MaterialTheme.typography.bodyLarge.copy(
-                            textDecoration = TextDecoration.LineThrough,
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    } else {
-                        MaterialTheme.typography.bodyLarge
-                    }
-
-                    for (chunk in item.content) {
-                        if (chunk is OrgChunk.OrgParagraph) {
-                            OrgParagraphView(chunk, style = style)
-                        } else {
-                            OrgChunkView(chunk)
-                        }
-                    }
+                    OrgListItemView(item)
                 }
             }
         }
@@ -111,42 +121,10 @@ fun OrgListView(orglist: OrgList.OrgOrderedList, modifier: Modifier = Modifier) 
                     )
 
                     if (hasCheckbox) {
-                        val icon = when (item.checkbox) {
-                            null -> FontAwesomeIcons.Solid.Circle
-                            OrgListCheckState.CHECKED -> FontAwesomeIcons.Solid.CheckCircle
-                            OrgListCheckState.PARTIAL -> FontAwesomeIcons.Regular.DotCircle
-                            OrgListCheckState.UNCHECKED -> FontAwesomeIcons.Regular.Circle
-                        }
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = "Checked icon",
-                            modifier = Modifier
-                                .padding(start = 5.dp, end = 5.dp)
-                                .size(20.dp),
-                            tint = if (item.checkbox == null) {
-                                MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                            } else {
-                                MaterialTheme.colorScheme.primary
-                            },
-                        )
+                        CheckBoxIcon(item.checkbox)
                     }
 
-                    val style = if (item.checkbox == OrgListCheckState.CHECKED) {
-                        MaterialTheme.typography.bodyLarge.copy(
-                            textDecoration = TextDecoration.LineThrough,
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    } else {
-                        MaterialTheme.typography.bodyLarge
-                    }
-
-                    for (chunk in item.content) {
-                        if (chunk is OrgChunk.OrgParagraph) {
-                            OrgParagraphView(chunk, style = style)
-                        } else {
-                            OrgChunkView(chunk)
-                        }
-                    }
+                    OrgListItemView(item)
                 }
             }
         }
