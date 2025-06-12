@@ -13,7 +13,7 @@ fun OrgParagraphView(paragraph: OrgChunk.OrgParagraph, modifier: Modifier = Modi
     val rawText = unfillText(paragraph.items
         .filter { it is OrgInlineElem.Text }
         .joinToString("") { (it as OrgInlineElem.Text).text }
-    )
+    ).trim()
 
     Text(
         text = rawText,
