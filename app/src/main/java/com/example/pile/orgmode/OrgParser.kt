@@ -234,11 +234,29 @@ val parseParagraph: Parser<OrgChunk.OrgParagraph> = Parser { tokens, pos ->
     fun shouldStop(position: Int): Boolean {
         val token = tokens[position]
 
-        return token is Token.EOF
-                || token is Token.HeadingStars
-                || token is Token.UnorderedListMarker
-                || token is Token.OrderedListMarker
-                || (token is Token.BlockEnd && token.type == Token.BlockType.ASIDE)
+        return when (token) {
+            is Token.EOF,
+            is Token.UnorderedListMarker,
+            is Token.OrderedListMarker,
+            is Token.HeadingStars  -> true
+            is Token.BlockEnd -> when (token.type) {
+                Token.BlockType.ASIDE,
+                Token.BlockType.SRC,
+                Token.BlockType.PAGE_INTRO,
+                Token.BlockType.EDITS,
+                Token.BlockType.QUOTE -> true
+                else -> false
+            }
+            is Token.BlockStart -> when (token.type) {
+                Token.BlockType.ASIDE,
+                Token.BlockType.SRC,
+                Token.BlockType.PAGE_INTRO,
+                Token.BlockType.EDITS,
+                Token.BlockType.QUOTE -> true
+                else -> false
+            }
+            else -> false
+        }
     }
 
     var accumulator = mutableListOf<Token>()
@@ -367,19 +385,27 @@ val parseAsideBlock: Parser<OrgBlock.OrgAsideBlock> = seq(
     )
 }
 
-// TODO: Parse more chunks
 val parseEditsBlock: Parser<OrgBlock.OrgEditsBlock> = seq(
     matchToken { it is Token.BlockStart && it.type == Token.BlockType.EDITS },
-    collectUntil { it is Token.BlockEnd && it.type == Token.BlockType.EDITS },
+    matchLineBreak,
+    oneOrMore(seq(
+        oneOf(
+            // ::parseCommentLine,
+            parseHorizontalRule,
+            parseSourceBlock,
+            parseQuoteBlock,
+            parseUnorderedList,
+            parseOrderedList,
+            parseParagraph
+        ),
+        zeroOrMore(matchLineBreak)
+    )),
     matchToken { it is Token.BlockEnd && it.type == Token.BlockType.EDITS }
-).map { (start, tokens, end) ->
-    val allTokens = collectTokens(Triple(start, tokens, end))
+).map { (start, lb, chunks, end) ->
+    val allTokens = collectTokens(Tuple4(start, lb, chunks, end))
 
     OrgBlock.OrgEditsBlock(
-        body = listOf(OrgChunk.OrgParagraph(
-            items = tokens.drop(1).dropLast(1).map { tok -> OrgInlineElem.Text(tok.text, tokens = listOf(tok)) },
-            tokens = allTokens
-        )),
+        body = chunks.map { it.first as OrgChunk },
         tokens = allTokens
     )
 }

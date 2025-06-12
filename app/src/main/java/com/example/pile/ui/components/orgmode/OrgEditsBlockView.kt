@@ -24,8 +24,7 @@ fun OrgEditsBlockView(
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 10.dp),
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -41,7 +40,7 @@ fun OrgEditsBlockView(
             )
         }
         for (chunk in editsBlock.body) {
-            OrgChunkView(chunk, modifier = Modifier.padding(15.dp))
+            OrgChunkView(chunk)
         }
     }
 }
