@@ -43,8 +43,7 @@ fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier
                             imageVector = FontAwesomeIcons.Solid.Circle,
                             contentDescription = "List start icon",
                             modifier = Modifier
-                                .align(Alignment.CenterVertically)
-                                .padding(end = 5.dp)
+                                .padding(end = 5.dp, top = 7.dp)
                                 .size(8.dp),
                             tint = MaterialTheme.colorScheme.outlineVariant,
                         )
@@ -59,8 +58,7 @@ fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier
                             imageVector = icon,
                             contentDescription = "Checked icon",
                             modifier = Modifier
-                                .align(Alignment.CenterVertically)
-                                .padding(horizontal = 5.dp)
+                                .padding(start = 5.dp, end = 5.dp)
                                 .size(25.dp),
                             tint = if (item.checkbox == null) {
                                 MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
