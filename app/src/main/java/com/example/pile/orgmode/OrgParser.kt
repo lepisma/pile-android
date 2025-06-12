@@ -295,41 +295,6 @@ val parseParagraph: Parser<OrgChunk.OrgParagraph> = Parser { tokens, pos ->
     }
 }
 
-// TODO: Parse more chunks
-val parsePageIntroBlock: Parser<OrgBlock.OrgPageIntroBlock> = seq(
-    matchToken { it is Token.BlockStart && it.type == Token.BlockType.PAGE_INTRO },
-    collectUntil { it is Token.BlockEnd && it.type == Token.BlockType.PAGE_INTRO },
-    matchToken { it is Token.BlockEnd && it.type == Token.BlockType.PAGE_INTRO }
-).map { (start, tokens, end) ->
-    val allTokens = collectTokens(Triple(start, tokens, end))
-
-    OrgBlock.OrgPageIntroBlock(
-        body = listOf(OrgChunk.OrgParagraph(
-            // Removing the linebreak around block delimiter tokens
-            items = tokens.drop(1).dropLast(1).map { tok -> OrgInlineElem.Text(tok.text, tokens = listOf(tok)) },
-            tokens = allTokens
-        )),
-        tokens = allTokens
-    )
-}
-
-// TODO: Parse more chunks
-val parseQuoteBlock: Parser<OrgBlock.OrgQuoteBlock> = seq(
-    matchToken { it is Token.BlockStart && it.type == Token.BlockType.QUOTE },
-    collectUntil { it is Token.BlockEnd && it.type == Token.BlockType.QUOTE },
-    matchToken { it is Token.BlockEnd && it.type == Token.BlockType.QUOTE }
-).map { (start, tokens, end) ->
-    val allTokens = collectTokens(Triple(start, tokens, end))
-
-    OrgBlock.OrgQuoteBlock(
-        body = listOf(OrgChunk.OrgParagraph(
-            items = tokens.drop(1).dropLast(1).map { tok -> OrgInlineElem.Text(tok.text, tokens = listOf(tok)) },
-            tokens = allTokens
-        )),
-        tokens = allTokens
-    )
-}
-
 val parseSourceBlock: Parser<OrgBlock.OrgSourceBlock> = seq(
     matchToken { it is Token.BlockStart && it.type == Token.BlockType.SRC },
     matchSpace,
@@ -352,6 +317,55 @@ val parseSourceBlock: Parser<OrgBlock.OrgSourceBlock> = seq(
 }
 
 // TODO: Parse more chunks
+val parseQuoteBlock: Parser<OrgBlock.OrgQuoteBlock> = seq(
+    matchToken { it is Token.BlockStart && it.type == Token.BlockType.QUOTE },
+    matchLineBreak,
+    oneOrMore(seq(
+        oneOf(
+            // ::parseCommentLine,
+            parseHorizontalRule,
+            parseSourceBlock,
+            parseUnorderedList,
+            parseOrderedList,
+            parseParagraph
+        ),
+        zeroOrMore(matchLineBreak)
+    )),
+    matchToken { it is Token.BlockEnd && it.type == Token.BlockType.QUOTE }
+).map { (start, lb, chunks, end) ->
+    val allTokens = collectTokens(Tuple4(start, lb, chunks, end))
+
+    OrgBlock.OrgQuoteBlock(
+        body = chunks.map { it.first as OrgChunk },
+        tokens = allTokens
+    )
+}
+
+val parsePageIntroBlock: Parser<OrgBlock.OrgPageIntroBlock> = seq(
+    matchToken { it is Token.BlockStart && it.type == Token.BlockType.PAGE_INTRO },
+    matchLineBreak,
+    oneOrMore(seq(
+        oneOf(
+            // ::parseCommentLine,
+            parseHorizontalRule,
+            parseSourceBlock,
+            parseQuoteBlock,
+            parseUnorderedList,
+            parseOrderedList,
+            parseParagraph
+        ),
+        zeroOrMore(matchLineBreak)
+    )),
+    matchToken { it is Token.BlockEnd && it.type == Token.BlockType.PAGE_INTRO }
+).map { (start, lb, chunks, end) ->
+    val allTokens = collectTokens(Tuple4(start, lb, chunks, end))
+
+    OrgBlock.OrgPageIntroBlock(
+        body = chunks.map { it.first as OrgChunk },
+        tokens = allTokens
+    )
+}
+
 val parseAsideBlock: Parser<OrgBlock.OrgAsideBlock> = seq(
     matchToken { it is Token.BlockStart && it.type == Token.BlockType.ASIDE },
     matchLineBreak,
