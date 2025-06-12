@@ -20,7 +20,6 @@ import com.example.pile.data.nodeFilesFromDirectory
 import com.example.pile.data.parseFileOrgNode
 import com.example.pile.data.writeFile
 import com.example.pile.orgmode.orgAttachDir
-import com.example.pile.orgmode.orgAttachmentPath
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -34,7 +33,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -201,33 +199,16 @@ class SharedViewModel(
         _searchQuery.value = query
     }
 
-    // Id for the current node, if being displayed
-    private val _currentNodeId: MutableStateFlow<String?> = MutableStateFlow(null)
-    fun setCurrentNodeId(id: String) {
-        _currentNodeId.value = id
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val currentNode: StateFlow<OrgNode?> = _currentNodeId
-        .mapLatest { id ->
-            if (id != null) {
-                withContext(Dispatchers.IO) {
-                    val nodeFromDb = nodeDao.getNodeById(id)
-                    if (nodeFromDb != null) {
-                        recoverNode(nodeFromDb)
-                    } else {
-                        null
-                    }
-                }
+    suspend fun getNode(nodeId: String): OrgNode? {
+        return withContext(Dispatchers.IO) {
+            val nodeFromDb = nodeDao.getNodeById(nodeId)
+            if (nodeFromDb != null) {
+                recoverNode(nodeFromDb)
             } else {
                 null
             }
         }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            null
-        )
+    }
 
     /**
      * Create new node in the filesystem AND the database with given metadata. On completion, run
@@ -404,11 +385,13 @@ class SharedViewModel(
         if (parentId != null) {
             throw NotImplementedError()
         }
-        if (currentNode.value != null) {
-            val attachDir = getAttachmentsDir(currentNode.value!!)
-            return orgAttachmentPath(attachDir!!, currentNode.value!!.id, fileName)
-        } else {
-            return null
-        }
+        return null
+        // TODO: Remove this dependency on currentNode private val
+//        if (currentNode.value != null) {
+//            val attachDir = getAttachmentsDir(currentNode.value!!)
+//            return orgAttachmentPath(attachDir!!, currentNode.value!!.id, fileName)
+//        } else {
+//            return null
+//        }
     }
 }

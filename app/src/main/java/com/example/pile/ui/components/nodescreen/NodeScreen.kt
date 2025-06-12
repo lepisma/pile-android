@@ -37,7 +37,6 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +49,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.pile.data.OrgNode
 import com.example.pile.data.readFile
 import com.example.pile.orgmode.parseTags
 import com.example.pile.ui.components.NodeEditField
@@ -141,13 +141,13 @@ fun NodeScreen(
     var isEditMode by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
-    val currentNode by viewModel.currentNode.collectAsState()
     val sheetState = rememberModalBottomSheetState()
+    var currentNode by remember { mutableStateOf<OrgNode?>(null) }
 
     val context = LocalContext.current
 
     LaunchedEffect(nodeId) {
-        viewModel.setCurrentNodeId(nodeId)
+        currentNode = viewModel.getNode(nodeId)
     }
 
     currentNode?.let { node ->
