@@ -56,11 +56,13 @@ fun OrgListItemView(item: OrgList.OrgListItem) {
         MaterialTheme.typography.bodyLarge
     }
 
-    for (chunk in item.content) {
-        if (chunk is OrgChunk.OrgParagraph) {
-            OrgParagraphView(chunk, style = style)
-        } else {
-            OrgChunkView(chunk)
+    Column {
+        for (chunk in item.content) {
+            if (chunk is OrgChunk.OrgParagraph) {
+                OrgParagraphView(chunk, style = style)
+            } else {
+                OrgChunkView(chunk)
+            }
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.example.pile.orgmode
 
+import android.util.Log
+
 val parseProperties: Parser<OrgProperties> = seq(
     ::matchToken { it is Token.DrawerStart },
     matchLineBreak,
@@ -142,47 +144,75 @@ val parseHorizontalRule: Parser<OrgChunk.OrgHorizontalLine> = matchToken {
     OrgChunk.OrgHorizontalLine(tokens = output.tokens)
 }
 
-// Without checkbox, and no nesting, and no multiline chunks
-// oneOrMore
-// parse indent (default 0), parse marker, parse space, parse line, parse eof or lb
-val parseUnorderedList : Parser<OrgList.OrgUnorderedList> = oneOrMore(seq(
-    // No indent matching, assuming things to be indented at 0
-    ::matchToken { it is Token.UnorderedListMarker },
-    matchSpace,
-    maybe(seq(matchToken { it is Token.CheckBox }, matchSpace)),
-    parseOrgLine,
-    oneOf(matchLineBreak, matchEOF)
-)).map { listItems ->
-    val markerTok = listItems.first().first
-    val markerStyle = when(((markerTok.tokens[0]) as Token.UnorderedListMarker).style) {
-        Token.UnorderedListMarkerStyle.DASH -> OrgUnorderedListMarker.DASH
-        Token.UnorderedListMarkerStyle.PLUS -> OrgUnorderedListMarker.PLUS
-    }
+// ul(i=0) = 1+
+//             matchindent(i=0), marker, space, (checkbox, space)?,
+//                                                oneof
+//                                                   1. paragraph(i=<+1>) ... other chunks, <...>
+//                                                   2. ul(i=<+1>)
+//                                                   3. ol(i=<+1>)
 
-    var items: MutableList<OrgList.OrgListItem> = mutableListOf()
-
-    for ((_, _, cb, line, _) in listItems) {
-        val checkbox = if (cb == null) {
-            null
-        } else {
-            when ((cb.first.tokens[0] as Token.CheckBox).state) {
-                Token.CheckBoxState.UNCHECKED -> OrgListCheckState.UNCHECKED
-                Token.CheckBoxState.CHECKED -> OrgListCheckState.CHECKED
-                Token.CheckBoxState.PARTIAL -> OrgListCheckState.PARTIAL
-            }
+fun unorderedList(indentLevel: Int = 0): Parser<OrgList.OrgUnorderedList> {
+    return oneOrMore(
+        seq(
+            // Unordered lists have a fixed indent mapping of x2
+            ::matchToken { it is Token.UnorderedListMarker && it.nIndent == indentLevel * 2 },
+            matchSpace,
+            maybe(seq(matchToken { it is Token.CheckBox }, matchSpace)),
+            oneOrMore(
+                seq(
+                    oneOf(
+                        lazy { unorderedList(indentLevel + 1) },
+                        parseOrderedList,
+                        parseParagraph
+                    ),
+                    zeroOrMore(matchLineBreak)
+                )
+            ),
+            maybe(matchEOF)
+        )
+    ).map { listItems ->
+        val markerTok = listItems.first().first
+        val markerStyle = when (((markerTok.tokens[0]) as Token.UnorderedListMarker).style) {
+            Token.UnorderedListMarkerStyle.DASH -> OrgUnorderedListMarker.DASH
+            Token.UnorderedListMarkerStyle.PLUS -> OrgUnorderedListMarker.PLUS
         }
-        items.add(OrgList.OrgListItem(
-            content = listOf(OrgChunk.OrgParagraph(items = line.items, tokens = line.tokens)),
-            checkbox = checkbox,
-            tokens = line.tokens
-        ))
-    }
 
-    OrgList.OrgUnorderedList(
-        markerStyle = markerStyle,
-        items = items,
-        tokens = collectTokens(listItems)
-    )
+        var items: MutableList<OrgList.OrgListItem> = mutableListOf()
+
+        for ((marker, _, cb, chunks, _) in listItems) {
+            Log.d("LIST PARSING", (marker.tokens[0] as Token.UnorderedListMarker).toString())
+
+            val checkbox = if (cb == null) {
+                null
+            } else {
+                when ((cb.first.tokens[0] as Token.CheckBox).state) {
+                    Token.CheckBoxState.UNCHECKED -> OrgListCheckState.UNCHECKED
+                    Token.CheckBoxState.CHECKED -> OrgListCheckState.CHECKED
+                    Token.CheckBoxState.PARTIAL -> OrgListCheckState.PARTIAL
+                }
+            }
+            items.add(
+                OrgList.OrgListItem(
+                    content = chunks.map { it.first as OrgChunk },
+                    checkbox = checkbox,
+                    tokens = collectTokens(chunks)
+                )
+            )
+        }
+
+        val list = OrgList.OrgUnorderedList(
+            markerStyle = markerStyle,
+            items = items,
+            tokens = collectTokens(listItems)
+        )
+
+        Log.d("LIST PARSING", "Final list is : ${list.items}")
+        list
+    }
+}
+
+fun parseUnorderedList(tokens: List<Token>, pos: Int): ParsingResult<OrgList.OrgUnorderedList> {
+    return unorderedList(0).invoke(tokens, pos)
 }
 
 val parseOrderedList : Parser<OrgList.OrgOrderedList> = oneOrMore(seq(
@@ -325,7 +355,7 @@ val parseQuoteBlock: Parser<OrgBlock.OrgQuoteBlock> = seq(
             // ::parseCommentLine,
             parseHorizontalRule,
             parseSourceBlock,
-            parseUnorderedList,
+            ::parseUnorderedList,
             parseOrderedList,
             parseParagraph
         ),
@@ -350,7 +380,7 @@ val parsePageIntroBlock: Parser<OrgBlock.OrgPageIntroBlock> = seq(
             parseHorizontalRule,
             parseSourceBlock,
             parseQuoteBlock,
-            parseUnorderedList,
+            ::parseUnorderedList,
             parseOrderedList,
             parseParagraph
         ),
@@ -383,7 +413,7 @@ val parseAsideBlock: Parser<OrgBlock.OrgAsideBlock> = seq(
             // ::parseVerseBlock,
             // ::parseLaTeXBlock
             // ::parseVideoBlock,
-            parseUnorderedList,
+            ::parseUnorderedList,
             parseOrderedList,
             parseParagraph
         ),
@@ -408,7 +438,7 @@ val parseEditsBlock: Parser<OrgBlock.OrgEditsBlock> = seq(
             parseHorizontalRule,
             parseSourceBlock,
             parseQuoteBlock,
-            parseUnorderedList,
+            ::parseUnorderedList,
             parseOrderedList,
             parseParagraph
         ),
@@ -441,7 +471,7 @@ val parseChunk: Parser<OrgChunk> = seq(
         parseEditsBlock,
         parseAsideBlock,
         // ::parseVideoBlock,
-        parseUnorderedList,
+        ::parseUnorderedList,
         parseOrderedList,
         parseParagraph
     ),

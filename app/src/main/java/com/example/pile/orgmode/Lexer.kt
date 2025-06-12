@@ -608,12 +608,29 @@ class OrgLexer(private val input: String) {
 
     private fun consumeSpace() {
         scannedPos = currentPos + 1
+
+        // If nIndent is same as line start to currentPos, then we are still in the indent region
+        // and can safely increase indent with 1 for every space
+        if (nIndent + 1 == (currentPos - currentLineBegPos)) {
+            nIndent++
+        }
+
         tokens.add(Token.Space(range = Pair(currentPos, scannedPos)))
         currentPos = scannedPos
     }
 
     private fun consumeTab() {
         scannedPos = currentPos + 1
+
+        // If nIndent is same as line start to currentPos, then we are still in the indent region
+        // and can safely increase indent with 1 for every space
+
+        // Note that, when mixed, tab and spaces amount to different indentation but for simplicity
+        // to begin with, we will make them all be the same.
+        if (nIndent + 1 == (currentPos - currentLineBegPos)) {
+            nIndent++
+        }
+
         tokens.add(Token.Tab(range = Pair(currentPos, scannedPos)))
         currentPos = scannedPos
     }
@@ -1517,7 +1534,8 @@ class OrgLexer(private val input: String) {
                     }
                 }
                 '-' -> {
-                    if (atLineStart) {
+                    // TODO: HR can't be under indentation
+                    if (atLineStart  || (nIndent + 1 == (currentPos - currentLineBegPos))) {
                         // Horizontal rule or list marker
                         if (lookahead(Regex("\\-\\-\\-\\-\\-")) != null) {
                             scannedPos = currentPos + 5
@@ -1538,7 +1556,7 @@ class OrgLexer(private val input: String) {
                     }
                 }
                 '+' -> {
-                    if (atLineStart) {
+                    if (atLineStart || (nIndent + 1 == (currentPos - currentLineBegPos))) {
                         if (lookahead(Regex("\\+ ")) != null) {
                             scannedPos = currentPos + 1
                             tokens.add(Token.UnorderedListMarker(

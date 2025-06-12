@@ -51,6 +51,29 @@ fun <T, R> ParsingResult<T>.map(transform: (T) -> R): ParsingResult<R> {
     }
 }
 
+
+fun <T> lazy(parserProvider: () -> Parser<T>): Parser<T> = object : Parser<T> {
+    @Volatile
+    private var _actualParser: Parser<T>? = null
+
+    private val actualParser: Parser<T>
+        get() {
+            if (_actualParser == null) {
+                synchronized(this) {
+                    if (_actualParser == null) {
+                        _actualParser = parserProvider()
+                    }
+                }
+            }
+            return _actualParser!!
+        }
+
+
+    override fun invoke(tokens: List<Token>, pos: Int): ParsingResult<T> {
+        return actualParser.invoke(tokens, pos)
+    }
+}
+
 /**
  * Sequence given parsers and execute them one by one. If any parse fails, stop immediately and
  * return the failed result.
