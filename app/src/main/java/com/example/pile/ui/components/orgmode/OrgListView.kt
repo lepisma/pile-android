@@ -8,7 +8,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextDecoration
@@ -44,7 +43,7 @@ fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier
                             imageVector = FontAwesomeIcons.Solid.Circle,
                             contentDescription = "List start icon",
                             modifier = Modifier
-                                .padding(end = 5.dp, top = 7.dp)
+                                .padding(end = 7.dp, top = 5.dp)
                                 .size(8.dp),
                             tint = MaterialTheme.colorScheme.outlineVariant,
                         )
@@ -60,7 +59,7 @@ fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier
                             contentDescription = "Checked icon",
                             modifier = Modifier
                                 .padding(start = 5.dp, end = 5.dp)
-                                .size(25.dp),
+                                .size(20.dp),
                             tint = if (item.checkbox == null) {
                                 MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                             } else {
@@ -81,7 +80,6 @@ fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier
                     for (paragraph in item.content.filter { it is OrgChunk.OrgParagraph }) {
                         OrgParagraphView(
                             paragraph as OrgChunk.OrgParagraph,
-                            modifier = Modifier.align(Alignment.Top),
                             style = style
                         )
                     }
@@ -125,7 +123,7 @@ fun OrgListView(orglist: OrgList.OrgOrderedList, modifier: Modifier = Modifier) 
                             contentDescription = "Checked icon",
                             modifier = Modifier
                                 .padding(start = 5.dp, end = 5.dp)
-                                .size(25.dp),
+                                .size(20.dp),
                             tint = if (item.checkbox == null) {
                                 MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                             } else {
@@ -146,7 +144,6 @@ fun OrgListView(orglist: OrgList.OrgOrderedList, modifier: Modifier = Modifier) 
                     for (paragraph in item.content.filter { it is OrgChunk.OrgParagraph }) {
                         OrgParagraphView(
                             paragraph as OrgChunk.OrgParagraph,
-                            modifier = Modifier.align(Alignment.Top),
                             style = style
                         )
                     }
