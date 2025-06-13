@@ -24,7 +24,7 @@ fun OrgSectionHeadingView(heading: OrgHeading, modifier: Modifier = Modifier) {
             .filter { it is OrgInlineElem.Text }
             .joinToString("") { (it as OrgInlineElem.Text).text },
         style = style,
-        modifier = modifier.padding(top = 20.dp, bottom = 10.dp)
+        modifier = modifier.padding(top = 20.dp, bottom = 5.dp)
     )
 }
 
