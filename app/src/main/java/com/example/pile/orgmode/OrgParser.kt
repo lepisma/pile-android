@@ -144,12 +144,24 @@ val parseHorizontalRule: Parser<OrgChunk.OrgHorizontalLine> = matchToken {
     OrgChunk.OrgHorizontalLine(tokens = output.tokens)
 }
 
-// ul(i=0) = 1+
-//             matchindent(i=0), marker, space, (checkbox, space)?,
-//                                                oneof
-//                                                   1. paragraph(i=<+1>) ... other chunks, <...>
-//                                                   2. ul(i=<+1>)
-//                                                   3. ol(i=<+1>)
+/**
+ * This starts after the checkbox, if present, in each list item.
+ */
+fun parseListItemChunks(indentLevel: Int): Parser<List<OrgChunk>> {
+    return oneOrMore(
+        seq(
+            oneOf(
+                lazy { unorderedList(indentLevel + 1) },
+                lazy { orderedList(indentLevel + 1) },
+                // Match n (indentlevel) spaces
+                parseParagraph
+            ),
+            zeroOrMore(matchLineBreak)
+        )
+    ).map { items ->
+        items.map { it.first as OrgChunk }
+    }
+}
 
 fun unorderedList(indentLevel: Int = 0): Parser<OrgList.OrgUnorderedList> {
     return oneOrMore(
@@ -158,19 +170,7 @@ fun unorderedList(indentLevel: Int = 0): Parser<OrgList.OrgUnorderedList> {
             ::matchToken { it is Token.UnorderedListMarker && it.nIndent == indentLevel * 2 },
             matchSpace,
             maybe(seq(matchToken { it is Token.CheckBox }, matchSpace)),
-            // Maybe take out list content as a separate parser. This will also help me in ordered
-            // list parsing.
-            oneOrMore(
-                seq(
-                    oneOf(
-                        lazy { unorderedList(indentLevel + 1) },
-                        lazy { orderedList(indentLevel + 1) },
-                        // I need paragraph to also be parsed in an indented manner
-                        parseParagraph
-                    ),
-                    zeroOrMore(matchLineBreak)
-                )
-            )
+            parseListItemChunks(indentLevel)
         )
     ).map { listItems ->
         val markerTok = listItems.first().first
@@ -195,7 +195,7 @@ fun unorderedList(indentLevel: Int = 0): Parser<OrgList.OrgUnorderedList> {
             }
             items.add(
                 OrgList.OrgListItem(
-                    content = chunks.map { it.first as OrgChunk },
+                    content = chunks,
                     checkbox = checkbox,
                     tokens = collectTokens(chunks)
                 )
@@ -224,17 +224,7 @@ fun orderedList(indentLevel: Int = 0): Parser<OrgList.OrgOrderedList> {
             ::matchToken { it is Token.OrderedListMarker && it.nIndent >= indentLevel * 2 },
             matchSpace,
             maybe(seq(matchToken { it is Token.CheckBox }, matchSpace)),
-            oneOrMore(
-                seq(
-                    oneOf(
-                        lazy { unorderedList(indentLevel + 1) },
-                        lazy { orderedList(indentLevel + 1) },
-                        // I need paragraph to also be parsed in an indented manner
-                        parseParagraph
-                    ),
-                    zeroOrMore(matchLineBreak)
-                )
-            )
+            parseListItemChunks(indentLevel)
         )
     ).map { listItems ->
         val markerTok = listItems.first().first
@@ -259,7 +249,7 @@ fun orderedList(indentLevel: Int = 0): Parser<OrgList.OrgOrderedList> {
             }
             items.add(
                 OrgList.OrgListItem(
-                    content = chunks.map { it.first as OrgChunk },
+                    content = chunks,
                     checkbox = checkbox,
                     tokens = collectTokens(chunks)
                 )
