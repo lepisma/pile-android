@@ -35,7 +35,7 @@ fun CheckBoxIcon(checkboxState: OrgListCheckState?) {
         imageVector = icon,
         contentDescription = "Checked icon",
         modifier = Modifier
-            .padding(start = 5.dp, end = 5.dp)
+            .padding(end = 5.dp)
             .size(20.dp),
         tint = if (checkboxState == null) {
             MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
@@ -113,13 +113,15 @@ fun OrgListView(orglist: OrgList.OrgOrderedList, modifier: Modifier = Modifier) 
         for ((idx, item) in orglist.items.withIndex()) {
             Row(
                 modifier = Modifier
-                    .padding(vertical = 5.dp)
+                    .padding(vertical = 5.dp),
             ) {
                 if (item is OrgList.OrgListItem) {
                     Text(
-                        text = "${idx + 1}. ".padStart(4),
+                        text = "${idx + 1}.".padStart(2),
+                        style = MaterialTheme.typography.bodyLarge,
                         fontFamily = FontFamily.Monospace,
-                        color = MaterialTheme.colorScheme.outline
+                        color = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.padding(end = 5.dp)
                     )
 
                     if (hasCheckbox) {
