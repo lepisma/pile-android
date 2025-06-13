@@ -1,7 +1,5 @@
 package com.example.pile.orgmode
 
-import android.util.Log
-
 val parseProperties: Parser<OrgProperties> = seq(
     ::matchToken { it is Token.DrawerStart },
     matchLineBreak,
@@ -175,8 +173,8 @@ fun parseListItemChunks(indentLevel: Int): Parser<List<OrgChunk>> {
 fun unorderedList(indentLevel: Int = 0): Parser<OrgList.OrgUnorderedList> {
     return oneOrMore(
         seq(
-            // Unordered lists have a fixed indent mapping of x2
-            ::matchToken { it is Token.UnorderedListMarker && it.nIndent == indentLevel * 2 },
+            // Unordered lists have indentation similar to ordered lists
+            ::matchToken { it is Token.UnorderedListMarker && it.nIndent >= indentLevel * 2 },
             matchSpace,
             maybe(seq(matchToken { it is Token.CheckBox }, matchSpace)),
             parseListItemChunks(indentLevel)
@@ -191,8 +189,6 @@ fun unorderedList(indentLevel: Int = 0): Parser<OrgList.OrgUnorderedList> {
         var items: MutableList<OrgList.OrgListItem> = mutableListOf()
 
         for ((marker, _, cb, chunks) in listItems) {
-            Log.d("LIST(UL) PARSING", (marker.tokens[0] as Token.UnorderedListMarker).toString())
-
             val checkbox = if (cb == null) {
                 null
             } else {
@@ -245,8 +241,6 @@ fun orderedList(indentLevel: Int = 0): Parser<OrgList.OrgOrderedList> {
         var items: MutableList<OrgList.OrgListItem> = mutableListOf()
 
         for ((marker, _, cb, chunks) in listItems) {
-            Log.d("LIST(OL) PARSING", (marker.tokens[0] as Token.OrderedListMarker).toString())
-
             val checkbox = if (cb == null) {
                 null
             } else {
