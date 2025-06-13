@@ -764,6 +764,37 @@ fun matchToken(matchFn: (Token) -> Boolean): Parser<OrgToken> {
 }
 
 /**
+ * Repeatedly match the parser from min to max (inclusive) count
+ */
+fun <T> repeat(min: Int, max: Int?, parser: Parser<T>): Parser<List<T>> {
+    return Parser<List<T>> { tokens, pos ->
+        var currentPos = pos
+        val results = mutableListOf<T>()
+
+        val upperLimit = max ?: Int.MAX_VALUE
+
+        while (results.size <= upperLimit) {
+            val result = parser.invoke(tokens, currentPos)
+            if (result is ParsingResult.Success) {
+                results.add(result.output)
+                currentPos = result.nextPos
+            } else {
+                break
+            }
+        }
+
+        if (results.size < min) {
+            return@Parser parsingError("Unable to find more than $min repetitions at ${tokens[currentPos]}")
+        }
+
+        ParsingResult.Success<List<T>>(
+            output = results.toList(),
+            nextPos = currentPos
+        )
+    }
+}
+
+/**
  * Collect all tokens from current till any one of them matches the given function.
  */
 fun collectUntil(matchFn: (Token) -> Boolean): Parser<List<Token>> {

@@ -148,18 +148,27 @@ val parseHorizontalRule: Parser<OrgChunk.OrgHorizontalLine> = matchToken {
  * This starts after the checkbox, if present, in each list item.
  */
 fun parseListItemChunks(indentLevel: Int): Parser<List<OrgChunk>> {
-    return oneOrMore(
-        seq(
-            oneOf(
-                lazy { unorderedList(indentLevel + 1) },
-                lazy { orderedList(indentLevel + 1) },
-                // Match n (indentlevel) spaces
-                parseParagraph
-            ),
-            zeroOrMore(matchLineBreak)
+    return seq(
+        // First paragraph match would be without any indent since we start right at the
+        // beginning of the paragraph
+        parseParagraph,
+        zeroOrMore(matchLineBreak),
+        zeroOrMore(
+            seq(
+                oneOf(
+                    lazy { unorderedList(indentLevel + 1) },
+                    lazy { orderedList(indentLevel + 1) },
+                    seq(
+                        // match > (indentLevel + 1) * 2 spaces
+                        repeat(min = (indentLevel + 1) * 2, max = null, matchSpace),
+                        parseParagraph
+                    ).map { (_, p) -> p }
+                ),
+                zeroOrMore(matchLineBreak)
+            )
         )
-    ).map { items ->
-        items.map { it.first as OrgChunk }
+    ).map { (firstChunk, _, restItems) ->
+        listOf(firstChunk) + restItems.map { it.first as OrgChunk }
     }
 }
 
