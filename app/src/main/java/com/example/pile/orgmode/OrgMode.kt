@@ -24,7 +24,8 @@ enum class OrgListType {
  * Any parsed org element which keeps tracks of the tokens used in parsing
  */
 sealed interface OrgElem {
-    val tokens: List<Token>
+    // We allow changing tokens here so that tree manipulation is easy
+    var tokens: List<Token>
 }
 
 /**
@@ -34,7 +35,7 @@ data class OrgDocument (
     val preamble: OrgPreamble,
     val preface: OrgPreface,
     val content: List<OrgSection>,
-    override val tokens: List<Token>
+    override var tokens: List<Token>
 ) : OrgElem
 
 /**
@@ -51,7 +52,7 @@ data class OrgPreamble(
     val options: OrgOptions? = null,
     val pile: OrgOptions? = null,
     val properties: OrgProperties? = null,
-    override val tokens: List<Token>
+    override var tokens: List<Token>
 ) : OrgElem
 
 /**
@@ -59,7 +60,7 @@ data class OrgPreamble(
  */
 data class OrgOptions(
     val map: Map<String, String>,
-    override val tokens: List<Token>
+    override var tokens: List<Token>
 ) : OrgElem
 
 /**
@@ -67,7 +68,7 @@ data class OrgOptions(
  */
 data class OrgProperties(
     val map: Map<String, OrgLine>,
-    override val tokens: List<Token>
+    override var tokens: List<Token>
 ) : OrgElem
 
 /**
@@ -75,7 +76,7 @@ data class OrgProperties(
  */
 data class OrgTags(
     val tags: List<String>,
-    override val tokens: List<Token>
+    override var tokens: List<Token>
 ) : OrgElem
 
 /**
@@ -83,25 +84,25 @@ data class OrgTags(
  */
 data class OrgPreface(
     val body: List<OrgChunk>,
-    override val tokens: List<Token>
+    override var tokens: List<Token>
 ) : OrgElem
 
 /**
  * A chunk is a block of org mode text that can be of various types as listed here
  */
-sealed class OrgChunk {
+sealed class OrgChunk: OrgElem {
     data class OrgParagraph(
         val items: List<OrgInlineElem>,
-        override val tokens: List<Token>
+        override var tokens: List<Token>
     ) : OrgChunk(), OrgElem
 
     data class OrgCommentLine(
         val text: String,
-        override val tokens: List<Token>
+        override var tokens: List<Token>
     ) : OrgChunk(), OrgElem
 
     data class OrgHorizontalLine(
-        override val tokens: List<Token>
+        override var tokens: List<Token>
     ) : OrgChunk(), OrgElem
 
     data class OrgTable(
@@ -109,13 +110,13 @@ sealed class OrgChunk {
         val header: OrgTableRow?,
         val subtables: List<List<OrgTableRow>>,
         val formulaLine: String,
-        override val tokens: List<Token>
+        override var tokens: List<Token>
     ) : OrgChunk(), OrgElem
 }
 
 data class OrgTableRow(
     val cells: List<OrgLine>,
-    override val tokens: List<Token>
+    override var tokens: List<Token>
 ) : OrgElem
 
 /**
@@ -123,7 +124,7 @@ data class OrgTableRow(
  */
 data class OrgLine(
     val items: List<OrgInlineElem>,
-    override val tokens: List<Token>
+    override var tokens: List<Token>
 ) : OrgElem
 
 /**
@@ -131,14 +132,14 @@ data class OrgLine(
  */
 data class OrgParsingError(
     val message: String,
-    override val tokens: List<Token> = emptyList()
+    override var tokens: List<Token> = emptyList()
 ) : OrgElem
 
 /**
  * Represents a plain token parse
  */
 data class OrgToken(
-    override val tokens: List<Token>
+    override var tokens: List<Token>
 ) : OrgElem
 
 /**

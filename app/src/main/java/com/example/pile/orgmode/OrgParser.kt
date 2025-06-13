@@ -48,14 +48,14 @@ val parseOrgLine = collectUntil { it is Token.LineBreak || it is Token.EOF }
         )
     }
 
-val parseLine: Parser<String> = collectUntil { it is Token.LineBreak || it is Token.EOF }
-    .map { tokens -> tokens.joinToString("") { it.text } }
-
 val parseFileKeyword: Parser<Pair<OrgToken, OrgLine>> = seq(
     ::matchToken { it is Token.FileKeyword },
     matchSpaces,
     parseOrgLine
-).map { (k, _, line) -> Pair(k, line) }
+).map { (k, sp, line) ->
+    line.tokens = collectTokens(Pair(sp, line))
+    Pair(k, line)
+}
 
 fun orgLineToTags(line: OrgLine): OrgTags {
     val rawText = line.items
@@ -160,13 +160,21 @@ fun parseListItemChunks(indentLevel: Int): Parser<List<OrgChunk>> {
                         // match > (indentLevel + 1) * 2 spaces
                         repeat(min = (indentLevel + 1) * 2, max = null, matchSpace),
                         parseParagraph
-                    ).map { (_, p) -> p }
+                    ).map { (indent, p) ->
+                        p.tokens = collectTokens(Pair(indent, p))
+                        p
+                    }
                 ),
                 zeroOrMore(matchLineBreak)
             )
         )
-    ).map { (firstChunk, _, restItems) ->
-        listOf(firstChunk) + restItems.map { it.first as OrgChunk }
+    ).map { (firstChunk, lbs, restItems) ->
+        firstChunk.tokens = collectTokens(Pair(firstChunk, lbs))
+        listOf(firstChunk) + restItems.map {
+            val chunk = it.first as OrgChunk
+            chunk.tokens = collectTokens(it)
+            chunk
+        }
     }
 }
 
@@ -188,7 +196,7 @@ fun unorderedList(indentLevel: Int = 0): Parser<OrgList.OrgUnorderedList> {
 
         var items: MutableList<OrgList.OrgListItem> = mutableListOf()
 
-        for ((marker, _, cb, chunks) in listItems) {
+        for ((marker, sp, cb, chunks) in listItems) {
             val checkbox = if (cb == null) {
                 null
             } else {
@@ -202,7 +210,7 @@ fun unorderedList(indentLevel: Int = 0): Parser<OrgList.OrgUnorderedList> {
                 OrgList.OrgListItem(
                     content = chunks,
                     checkbox = checkbox,
-                    tokens = collectTokens(chunks)
+                    tokens = collectTokens(Tuple4(marker, sp, cb, chunks))
                 )
             )
         }
@@ -240,7 +248,7 @@ fun orderedList(indentLevel: Int = 0): Parser<OrgList.OrgOrderedList> {
 
         var items: MutableList<OrgList.OrgListItem> = mutableListOf()
 
-        for ((marker, _, cb, chunks) in listItems) {
+        for ((marker, sp, cb, chunks) in listItems) {
             val checkbox = if (cb == null) {
                 null
             } else {
@@ -254,7 +262,7 @@ fun orderedList(indentLevel: Int = 0): Parser<OrgList.OrgOrderedList> {
                 OrgList.OrgListItem(
                     content = chunks,
                     checkbox = checkbox,
-                    tokens = collectTokens(chunks)
+                    tokens = collectTokens(Tuple4(marker, sp, cb, chunks))
                 )
             )
         }
@@ -346,16 +354,19 @@ val parseParagraph: Parser<OrgChunk.OrgParagraph> = Parser { tokens, pos ->
 val parseSourceBlock: Parser<OrgBlock.OrgSourceBlock> = seq(
     matchToken { it is Token.BlockStart && it.type == Token.BlockType.SRC },
     matchSpace,
-    parseLine,
+    // This is provisional
+    parseOrgLine,
     matchLineBreak,
     collectUntil { it is Token.BlockEnd && it.type == Token.BlockType.SRC },
     matchToken { it is Token.BlockEnd && it.type == Token.BlockType.SRC }
 ).map { (start, sp, configLine, lb, tokens, end) ->
-    // TODO: Fix token collection for plain line
-    val allTokens = collectTokens(Tuple4(start, sp, lb, end))
+    val allTokens = collectTokens(Tuple4(start, sp, configLine, lb)) + tokens + collectTokens(end)
 
     OrgBlock.OrgSourceBlock(
-        language = configLine,
+        language = configLine
+            .items
+            .filter { it is OrgInlineElem.Text }
+            .joinToString("") { (it as OrgInlineElem.Text).text },
         switches = emptyList(),
         headerArgs = emptyList(),
         name = null,
@@ -364,7 +375,6 @@ val parseSourceBlock: Parser<OrgBlock.OrgSourceBlock> = seq(
     )
 }
 
-// TODO: Parse more chunks
 val parseQuoteBlock: Parser<OrgBlock.OrgQuoteBlock> = seq(
     matchToken { it is Token.BlockStart && it.type == Token.BlockType.QUOTE },
     matchLineBreak,
@@ -512,8 +522,8 @@ val parseChunk: Parser<OrgChunk> = seq(
     ),
     zeroOrMore(matchLineBreak)
 ).map { (chunk, lbs) ->
+    chunk.tokens = collectTokens(Pair(chunk, lbs))
     chunk as OrgChunk
-    // We are missing the tokens from lbs here
 }
 
 val parsePreface: Parser<OrgPreface> = zeroOrMore(parseChunk).map { output ->

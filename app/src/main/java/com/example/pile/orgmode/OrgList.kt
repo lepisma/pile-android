@@ -7,25 +7,25 @@ sealed class OrgList {
     data class OrgUnorderedList(
         val markerStyle: OrgUnorderedListMarker,
         val items: List<OrgList>,
-        override val tokens: List<Token>
+        override var tokens: List<Token>
     ) : OrgChunk(), OrgElem
 
     data class OrgOrderedList(
         val markerStyle: OrgOrderedListMarker,
         val items: List<OrgList>,
-        override val tokens: List<Token>
+        override var tokens: List<Token>
     ) : OrgChunk(), OrgElem
 
     data class OrgListItem(
         val content: List<OrgChunk>,
         val checkbox: OrgListCheckState?,
-        override val tokens: List<Token>
+        override var tokens: List<Token>
     ) : OrgList(), OrgElem
 
     data class OrgDescriptionListItem(
         val term: String,
         val description: OrgChunk.OrgParagraph,
-        override val tokens: List<Token>
+        override var tokens: List<Token>
     ) : OrgList(), OrgElem
 }
 
