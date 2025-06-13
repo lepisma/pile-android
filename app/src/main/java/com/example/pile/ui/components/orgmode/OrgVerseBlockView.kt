@@ -14,7 +14,7 @@ fun OrgVerseBlockView(
     modifier: Modifier = Modifier
 ) {
     Text(
-        text = verseBlock.body,
+        text = verseBlock.body.trim(),
         modifier = modifier
             .padding(horizontal = 10.dp),
         fontStyle = FontStyle.Italic
