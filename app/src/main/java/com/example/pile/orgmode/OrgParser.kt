@@ -158,17 +158,19 @@ fun unorderedList(indentLevel: Int = 0): Parser<OrgList.OrgUnorderedList> {
             ::matchToken { it is Token.UnorderedListMarker && it.nIndent == indentLevel * 2 },
             matchSpace,
             maybe(seq(matchToken { it is Token.CheckBox }, matchSpace)),
+            // Maybe take out list content as a separate parser. This will also help me in ordered
+            // list parsing.
             oneOrMore(
                 seq(
                     oneOf(
                         lazy { unorderedList(indentLevel + 1) },
                         parseOrderedList,
+                        // I need paragraph to also be parsed in an indented manner
                         parseParagraph
                     ),
                     zeroOrMore(matchLineBreak)
                 )
-            ),
-            maybe(matchEOF)
+            )
         )
     ).map { listItems ->
         val markerTok = listItems.first().first
@@ -179,7 +181,7 @@ fun unorderedList(indentLevel: Int = 0): Parser<OrgList.OrgUnorderedList> {
 
         var items: MutableList<OrgList.OrgListItem> = mutableListOf()
 
-        for ((marker, _, cb, chunks, _) in listItems) {
+        for ((marker, _, cb, chunks) in listItems) {
             Log.d("LIST PARSING", (marker.tokens[0] as Token.UnorderedListMarker).toString())
 
             val checkbox = if (cb == null) {
