@@ -823,111 +823,69 @@ val matchWord: Parser<String> = collectUntil { it is Token.EOF || it is Token.Sp
 }
 
 fun <T> collectTokens(result: T): List<Token> {
+    if (result == null) {
+        return emptyList()
+    }
+
     return when (result) {
         is List<*> -> result.map { collectTokens(it) }.flatten()
+        is Pair<*, *> -> collectTokens(result.first) +
+                collectTokens(result.second)
+        is Triple<*, *, *> -> collectTokens(result.first) +
+                collectTokens(result.second) +
+                collectTokens(result.third)
+        is Tuple4<*, *, *, *> -> collectTokens(result.first) +
+                collectTokens(result.second) +
+                collectTokens(result.third) +
+                collectTokens(result.fourth)
+        is Tuple5<*, *, *, *, *> -> collectTokens(result.first) +
+                collectTokens(result.second) +
+                collectTokens(result.third) +
+                collectTokens(result.fourth) +
+                collectTokens(result.fifth)
+        is Tuple6<*, *, *, *, *, *> -> collectTokens(result.first) +
+                collectTokens(result.second) +
+                collectTokens(result.third) +
+                collectTokens(result.fourth) +
+                collectTokens(result.fifth) +
+                collectTokens(result.sixth)
+        is Tuple7<*, *, *, *, *, *, *> -> collectTokens(result.first) +
+                collectTokens(result.second) +
+                collectTokens(result.third) +
+                collectTokens(result.fourth) +
+                collectTokens(result.fifth) +
+                collectTokens(result.sixth) +
+                collectTokens(result.seventh)
+        is Tuple8<*, *, *, *, *, *, *, *> -> collectTokens(result.first) +
+                collectTokens(result.second) +
+                collectTokens(result.third) +
+                collectTokens(result.fourth) +
+                collectTokens(result.fifth) +
+                collectTokens(result.sixth) +
+                collectTokens(result.seventh) +
+                collectTokens(result.eighth)
+        is Tuple9<*, *, *, *, *, *, *, *, *> -> collectTokens(result.first) +
+                collectTokens(result.second) +
+                collectTokens(result.third) +
+                collectTokens(result.fourth) +
+                collectTokens(result.fifth) +
+                collectTokens(result.sixth) +
+                collectTokens(result.seventh) +
+                collectTokens(result.eighth) +
+                collectTokens(result.ninth)
+        is Tuple10<*, *, *, *, *, *, *, *, *, *> -> collectTokens(result.first) +
+                collectTokens(result.second) +
+                collectTokens(result.third) +
+                collectTokens(result.fourth) +
+                collectTokens(result.fifth) +
+                collectTokens(result.sixth) +
+                collectTokens(result.seventh) +
+                collectTokens(result.eighth) +
+                collectTokens(result.ninth) +
+                collectTokens(result.tenth)
         is OrgElem -> result.tokens
         else -> {
-            println("Unable to collect tokens from $result")
-            emptyList()
+            throw Error("Unable to collect tokens from $result (type ${result::class.qualifiedName})")
         }
     }
-}
-
-fun <T1, T2> collectTokens(
-    result: Pair<T1, T2>
-): List<Token> {
-    return collectTokens(result.first) +
-            collectTokens(result.second)
-}
-
-fun <T1, T2, T3> collectTokens(
-    result: Triple<T1, T2, T3>
-): List<Token> {
-    return collectTokens(result.first) +
-            collectTokens(result.second) +
-            collectTokens(result.third)
-}
-
-fun <T1, T2, T3, T4> collectTokens(
-    result: Tuple4<T1, T2, T3, T4>
-): List<Token> {
-    return collectTokens(result.first) +
-            collectTokens(result.second) +
-            collectTokens(result.third) +
-            collectTokens(result.fourth)
-}
-
-fun <T1, T2, T3, T4, T5> collectTokens(
-    result: Tuple5<T1, T2, T3, T4, T5>
-): List<Token> {
-    return collectTokens(result.first) +
-            collectTokens(result.second) +
-            collectTokens(result.third) +
-            collectTokens(result.fourth) +
-            collectTokens(result.fifth)
-}
-
-fun <T1, T2, T3, T4, T5, T6> collectTokens(
-    result: Tuple6<T1, T2, T3, T4, T5, T6>
-): List<Token> {
-    return collectTokens(result.first) +
-            collectTokens(result.second) +
-            collectTokens(result.third) +
-            collectTokens(result.fourth) +
-            collectTokens(result.fifth) +
-            collectTokens(result.sixth)
-}
-
-fun <T1, T2, T3, T4, T5, T6, T7> collectTokens(
-    result: Tuple7<T1, T2, T3, T4, T5, T6, T7>
-): List<Token> {
-    return collectTokens(result.first) +
-            collectTokens(result.second) +
-            collectTokens(result.third) +
-            collectTokens(result.fourth) +
-            collectTokens(result.fifth) +
-            collectTokens(result.sixth) +
-            collectTokens(result.seventh)
-}
-
-fun <T1, T2, T3, T4, T5, T6, T7, T8> collectTokens(
-    result: Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>
-): List<Token> {
-    return collectTokens(result.first) +
-            collectTokens(result.second) +
-            collectTokens(result.third) +
-            collectTokens(result.fourth) +
-            collectTokens(result.fifth) +
-            collectTokens(result.sixth) +
-            collectTokens(result.seventh) +
-            collectTokens(result.eighth)
-}
-
-fun <T1, T2, T3, T4, T5, T6, T7, T8, T9> collectTokens(
-    result: Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>
-): List<Token> {
-    return collectTokens(result.first) +
-            collectTokens(result.second) +
-            collectTokens(result.third) +
-            collectTokens(result.fourth) +
-            collectTokens(result.fifth) +
-            collectTokens(result.sixth) +
-            collectTokens(result.seventh) +
-            collectTokens(result.eighth) +
-            collectTokens(result.ninth)
-}
-
-fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> collectTokens(
-    result: Tuple10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>
-): List<Token> {
-    return collectTokens(result.first) +
-            collectTokens(result.second) +
-            collectTokens(result.third) +
-            collectTokens(result.fourth) +
-            collectTokens(result.fifth) +
-            collectTokens(result.sixth) +
-            collectTokens(result.seventh) +
-            collectTokens(result.eighth) +
-            collectTokens(result.ninth) +
-            collectTokens(result.tenth)
 }

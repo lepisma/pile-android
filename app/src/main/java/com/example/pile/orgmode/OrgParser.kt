@@ -352,7 +352,7 @@ val parseSourceBlock: Parser<OrgBlock.OrgSourceBlock> = seq(
     matchToken { it is Token.BlockEnd && it.type == Token.BlockType.SRC }
 ).map { (start, sp, configLine, lb, tokens, end) ->
     // TODO: Fix token collection for plain line
-    val allTokens = collectTokens(Tuple5(start, sp, lb, tokens, end))
+    val allTokens = collectTokens(Tuple4(start, sp, lb, end))
 
     OrgBlock.OrgSourceBlock(
         language = configLine,
