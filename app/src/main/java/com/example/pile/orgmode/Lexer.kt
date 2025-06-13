@@ -1624,7 +1624,7 @@ class OrgLexer(private val input: String) {
                     }
                 }
                 '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
-                    if (atLineStart) {
+                    if (atLineStart || (nIndent + 1 == (currentPos - currentLineBegPos))) {
                         val match = lookahead(Regex("([0-9]+\\.|\\)) "))
                         if (match != null) {
                             // This is ordered list marker
