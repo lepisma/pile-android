@@ -20,6 +20,7 @@ fun OrgChunkView(chunk: OrgChunk, modifier: Modifier = Modifier) {
         is OrgBlock.OrgSourceBlock -> OrgSourceBlockView(chunk, modifier)
         is OrgBlock.OrgAsideBlock -> OrgAsideBlockView(chunk, modifier)
         is OrgChunk.OrgHorizontalLine -> OrgHorizontalLineView()
+        is OrgBlock.OrgVerseBlock -> OrgVerseBlockView(chunk)
         else -> { }
     }
 }

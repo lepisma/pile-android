@@ -296,7 +296,8 @@ val parseParagraph: Parser<OrgChunk.OrgParagraph> = Parser { tokens, pos ->
                 Token.BlockType.SRC,
                 Token.BlockType.PAGE_INTRO,
                 Token.BlockType.EDITS,
-                Token.BlockType.QUOTE -> true
+                Token.BlockType.QUOTE,
+                Token.BlockType.VERSE -> true
                 else -> false
             }
             is Token.BlockStart -> when (token.type) {
@@ -304,7 +305,8 @@ val parseParagraph: Parser<OrgChunk.OrgParagraph> = Parser { tokens, pos ->
                 Token.BlockType.SRC,
                 Token.BlockType.PAGE_INTRO,
                 Token.BlockType.EDITS,
-                Token.BlockType.QUOTE -> true
+                Token.BlockType.QUOTE,
+                Token.BlockType.VERSE -> true
                 else -> false
             }
             else -> false
@@ -418,6 +420,23 @@ val parsePageIntroBlock: Parser<OrgBlock.OrgPageIntroBlock> = seq(
     )
 }
 
+val parseVerseBlock: Parser<OrgBlock.OrgVerseBlock> = seq(
+    matchToken { it is Token.BlockStart && it.type == Token.BlockType.VERSE },
+    matchLineBreak,
+    oneOrMore(seq(
+        parseParagraph,
+        zeroOrMore(matchLineBreak)
+    ).map { it.first }),
+    matchToken { it is Token.BlockEnd && it.type == Token.BlockType.VERSE }
+).map { (start, lb, paragraphs, end) ->
+    val allTokens = collectTokens(Tuple4(start, lb, paragraphs, end))
+
+    OrgBlock.OrgVerseBlock(
+        body = paragraphs.joinToString("\n\n") { p -> p.tokens.joinToString("") { it.text } },
+        tokens = allTokens
+    )
+}
+
 val parseAsideBlock: Parser<OrgBlock.OrgAsideBlock> = seq(
     matchToken { it is Token.BlockStart && it.type == Token.BlockType.ASIDE },
     matchLineBreak,
@@ -432,7 +451,7 @@ val parseAsideBlock: Parser<OrgBlock.OrgAsideBlock> = seq(
             parseQuoteBlock,
             // ::parseCenterBlock,
             // ::parseHTMLBlock,
-            // ::parseVerseBlock,
+            parseVerseBlock,
             // ::parseLaTeXBlock
             // ::parseVideoBlock,
             ::parseUnorderedList,
@@ -487,7 +506,7 @@ val parseChunk: Parser<OrgChunk> = seq(
         parseQuoteBlock,
         // ::parseCenterBlock,
         // ::parseHTMLBlock,
-        // ::parseVerseBlock,
+        parseVerseBlock,
         // ::parseLaTeXBlock,
         parsePageIntroBlock,
         parseEditsBlock,
