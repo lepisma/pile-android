@@ -822,70 +822,85 @@ val matchWord: Parser<String> = collectUntil { it is Token.EOF || it is Token.Sp
     tokens.joinToString("") { tok -> tok.text }
 }
 
-fun <T> collectTokens(result: T): List<Token> {
-    if (result == null) {
-        return emptyList()
-    }
+fun <T> collectTokens(vararg results: T): List<Token> {
+    var tokens = mutableListOf<Token>()
 
-    return when (result) {
-        is List<*> -> result.map { collectTokens(it) }.flatten()
-        is Pair<*, *> -> collectTokens(result.first) +
-                collectTokens(result.second)
-        is Triple<*, *, *> -> collectTokens(result.first) +
-                collectTokens(result.second) +
-                collectTokens(result.third)
-        is Tuple4<*, *, *, *> -> collectTokens(result.first) +
-                collectTokens(result.second) +
-                collectTokens(result.third) +
-                collectTokens(result.fourth)
-        is Tuple5<*, *, *, *, *> -> collectTokens(result.first) +
-                collectTokens(result.second) +
-                collectTokens(result.third) +
-                collectTokens(result.fourth) +
-                collectTokens(result.fifth)
-        is Tuple6<*, *, *, *, *, *> -> collectTokens(result.first) +
-                collectTokens(result.second) +
-                collectTokens(result.third) +
-                collectTokens(result.fourth) +
-                collectTokens(result.fifth) +
-                collectTokens(result.sixth)
-        is Tuple7<*, *, *, *, *, *, *> -> collectTokens(result.first) +
-                collectTokens(result.second) +
-                collectTokens(result.third) +
-                collectTokens(result.fourth) +
-                collectTokens(result.fifth) +
-                collectTokens(result.sixth) +
-                collectTokens(result.seventh)
-        is Tuple8<*, *, *, *, *, *, *, *> -> collectTokens(result.first) +
-                collectTokens(result.second) +
-                collectTokens(result.third) +
-                collectTokens(result.fourth) +
-                collectTokens(result.fifth) +
-                collectTokens(result.sixth) +
-                collectTokens(result.seventh) +
-                collectTokens(result.eighth)
-        is Tuple9<*, *, *, *, *, *, *, *, *> -> collectTokens(result.first) +
-                collectTokens(result.second) +
-                collectTokens(result.third) +
-                collectTokens(result.fourth) +
-                collectTokens(result.fifth) +
-                collectTokens(result.sixth) +
-                collectTokens(result.seventh) +
-                collectTokens(result.eighth) +
-                collectTokens(result.ninth)
-        is Tuple10<*, *, *, *, *, *, *, *, *, *> -> collectTokens(result.first) +
-                collectTokens(result.second) +
-                collectTokens(result.third) +
-                collectTokens(result.fourth) +
-                collectTokens(result.fifth) +
-                collectTokens(result.sixth) +
-                collectTokens(result.seventh) +
-                collectTokens(result.eighth) +
-                collectTokens(result.ninth) +
-                collectTokens(result.tenth)
-        is OrgElem -> result.tokens
-        else -> {
-            throw Error("Unable to collect tokens from $result (type ${result::class.qualifiedName})")
+    for (result in results) {
+        if (result == null) {
+            continue
+        }
+
+        tokens += when (result) {
+            is List<*> -> result.map { collectTokens(it) }.flatten()
+            is Pair<*, *> -> collectTokens(result.first) +
+                    collectTokens(result.second)
+
+            is Triple<*, *, *> -> collectTokens(result.first) +
+                    collectTokens(result.second) +
+                    collectTokens(result.third)
+
+            is Tuple4<*, *, *, *> -> collectTokens(result.first) +
+                    collectTokens(result.second) +
+                    collectTokens(result.third) +
+                    collectTokens(result.fourth)
+
+            is Tuple5<*, *, *, *, *> -> collectTokens(result.first) +
+                    collectTokens(result.second) +
+                    collectTokens(result.third) +
+                    collectTokens(result.fourth) +
+                    collectTokens(result.fifth)
+
+            is Tuple6<*, *, *, *, *, *> -> collectTokens(result.first) +
+                    collectTokens(result.second) +
+                    collectTokens(result.third) +
+                    collectTokens(result.fourth) +
+                    collectTokens(result.fifth) +
+                    collectTokens(result.sixth)
+
+            is Tuple7<*, *, *, *, *, *, *> -> collectTokens(result.first) +
+                    collectTokens(result.second) +
+                    collectTokens(result.third) +
+                    collectTokens(result.fourth) +
+                    collectTokens(result.fifth) +
+                    collectTokens(result.sixth) +
+                    collectTokens(result.seventh)
+
+            is Tuple8<*, *, *, *, *, *, *, *> -> collectTokens(result.first) +
+                    collectTokens(result.second) +
+                    collectTokens(result.third) +
+                    collectTokens(result.fourth) +
+                    collectTokens(result.fifth) +
+                    collectTokens(result.sixth) +
+                    collectTokens(result.seventh) +
+                    collectTokens(result.eighth)
+
+            is Tuple9<*, *, *, *, *, *, *, *, *> -> collectTokens(result.first) +
+                    collectTokens(result.second) +
+                    collectTokens(result.third) +
+                    collectTokens(result.fourth) +
+                    collectTokens(result.fifth) +
+                    collectTokens(result.sixth) +
+                    collectTokens(result.seventh) +
+                    collectTokens(result.eighth) +
+                    collectTokens(result.ninth)
+
+            is Tuple10<*, *, *, *, *, *, *, *, *, *> -> collectTokens(result.first) +
+                    collectTokens(result.second) +
+                    collectTokens(result.third) +
+                    collectTokens(result.fourth) +
+                    collectTokens(result.fifth) +
+                    collectTokens(result.sixth) +
+                    collectTokens(result.seventh) +
+                    collectTokens(result.eighth) +
+                    collectTokens(result.ninth) +
+                    collectTokens(result.tenth)
+
+            is OrgElem -> result.tokens
+            else -> {
+                throw Error("Unable to collect tokens from $result (type ${result::class.qualifiedName})")
+            }
         }
     }
+
+    return tokens
 }

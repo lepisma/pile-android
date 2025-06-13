@@ -32,7 +32,7 @@ val parseProperties: Parser<OrgProperties> = seq(
 
     OrgProperties(
         map = map,
-        tokens = collectTokens(Tuple4(ds, lb, propLines, de))
+        tokens = collectTokens(ds, lb, propLines, de)
     )
 }
 
@@ -53,7 +53,7 @@ val parseFileKeyword: Parser<Pair<OrgToken, OrgLine>> = seq(
     matchSpaces,
     parseOrgLine
 ).map { (k, sp, line) ->
-    line.tokens = collectTokens(Pair(sp, line))
+    line.tokens = collectTokens(sp, line)
     Pair(k, line)
 }
 
@@ -101,7 +101,7 @@ val parsePreamble: Parser<OrgPreamble> = seq(
     OrgPreamble(
         title = title ?: OrgLine(emptyList(), tokens = emptyList()),
         tags = tags,
-        tokens = collectTokens(Tuple4(props, lbs, keywordLines, lbsEnd)),
+        tokens = collectTokens(props, lbs, keywordLines, lbsEnd),
         properties = props
     )
 }
@@ -132,7 +132,7 @@ val parseHeading: Parser<OrgHeading> = seq(
     OrgHeading(
         level = level,
         title = title,
-        tokens = collectTokens(Tuple4(level, sp, title, lbs))
+        tokens = collectTokens(level, sp, title, lbs)
     )
 }
 
@@ -161,7 +161,7 @@ fun parseListItemChunks(indentLevel: Int): Parser<List<OrgChunk>> {
                         repeat(min = (indentLevel + 1) * 2, max = null, matchSpace),
                         parseParagraph
                     ).map { (indent, p) ->
-                        p.tokens = collectTokens(Pair(indent, p))
+                        p.tokens = collectTokens(indent, p)
                         p
                     }
                 ),
@@ -169,7 +169,7 @@ fun parseListItemChunks(indentLevel: Int): Parser<List<OrgChunk>> {
             )
         )
     ).map { (firstChunk, lbs, restItems) ->
-        firstChunk.tokens = collectTokens(Pair(firstChunk, lbs))
+        firstChunk.tokens = collectTokens(firstChunk, lbs)
         listOf(firstChunk) + restItems.map {
             val chunk = it.first as OrgChunk
             chunk.tokens = collectTokens(it)
@@ -210,7 +210,7 @@ fun unorderedList(indentLevel: Int = 0): Parser<OrgList.OrgUnorderedList> {
                 OrgList.OrgListItem(
                     content = chunks,
                     checkbox = checkbox,
-                    tokens = collectTokens(Tuple4(marker, sp, cb, chunks))
+                    tokens = collectTokens(marker, sp, cb, chunks)
                 )
             )
         }
@@ -262,7 +262,7 @@ fun orderedList(indentLevel: Int = 0): Parser<OrgList.OrgOrderedList> {
                 OrgList.OrgListItem(
                     content = chunks,
                     checkbox = checkbox,
-                    tokens = collectTokens(Tuple4(marker, sp, cb, chunks))
+                    tokens = collectTokens(marker, sp, cb, chunks)
                 )
             )
         }
@@ -360,7 +360,7 @@ val parseSourceBlock: Parser<OrgBlock.OrgSourceBlock> = seq(
     collectUntil { it is Token.BlockEnd && it.type == Token.BlockType.SRC },
     matchToken { it is Token.BlockEnd && it.type == Token.BlockType.SRC }
 ).map { (start, sp, configLine, lb, tokens, end) ->
-    val allTokens = collectTokens(Tuple4(start, sp, configLine, lb)) + tokens + collectTokens(end)
+    val allTokens = collectTokens(start, sp, configLine, lb) + tokens + collectTokens(end)
 
     OrgBlock.OrgSourceBlock(
         language = configLine
@@ -391,7 +391,7 @@ val parseQuoteBlock: Parser<OrgBlock.OrgQuoteBlock> = seq(
     )),
     matchToken { it is Token.BlockEnd && it.type == Token.BlockType.QUOTE }
 ).map { (start, lb, chunks, end) ->
-    val allTokens = collectTokens(Tuple4(start, lb, chunks, end))
+    val allTokens = collectTokens(start, lb, chunks, end)
 
     OrgBlock.OrgQuoteBlock(
         body = chunks.map { it.first as OrgChunk },
@@ -416,7 +416,7 @@ val parsePageIntroBlock: Parser<OrgBlock.OrgPageIntroBlock> = seq(
     )),
     matchToken { it is Token.BlockEnd && it.type == Token.BlockType.PAGE_INTRO }
 ).map { (start, lb, chunks, end) ->
-    val allTokens = collectTokens(Tuple4(start, lb, chunks, end))
+    val allTokens = collectTokens(start, lb, chunks, end)
 
     OrgBlock.OrgPageIntroBlock(
         body = chunks.map { it.first as OrgChunk },
@@ -433,7 +433,7 @@ val parseVerseBlock: Parser<OrgBlock.OrgVerseBlock> = seq(
     ).map { it.first }),
     matchToken { it is Token.BlockEnd && it.type == Token.BlockType.VERSE }
 ).map { (start, lb, paragraphs, end) ->
-    val allTokens = collectTokens(Tuple4(start, lb, paragraphs, end))
+    val allTokens = collectTokens(start, lb, paragraphs, end)
 
     OrgBlock.OrgVerseBlock(
         body = paragraphs.joinToString("\n\n") { p -> p.tokens.joinToString("") { it.text } },
@@ -466,7 +466,7 @@ val parseAsideBlock: Parser<OrgBlock.OrgAsideBlock> = seq(
     )),
     matchToken { it is Token.BlockEnd && it.type == Token.BlockType.ASIDE }
 ).map { (start, lb, chunks, end) ->
-    val allTokens = collectTokens(Tuple4(start, lb, chunks, end))
+    val allTokens = collectTokens(start, lb, chunks, end)
 
     OrgBlock.OrgAsideBlock(
         body = chunks.map { it.first as OrgChunk },
@@ -491,7 +491,7 @@ val parseEditsBlock: Parser<OrgBlock.OrgEditsBlock> = seq(
     )),
     matchToken { it is Token.BlockEnd && it.type == Token.BlockType.EDITS }
 ).map { (start, lb, chunks, end) ->
-    val allTokens = collectTokens(Tuple4(start, lb, chunks, end))
+    val allTokens = collectTokens(start, lb, chunks, end)
 
     OrgBlock.OrgEditsBlock(
         body = chunks.map { it.first as OrgChunk },
@@ -522,7 +522,7 @@ val parseChunk: Parser<OrgChunk> = seq(
     ),
     zeroOrMore(matchLineBreak)
 ).map { (chunk, lbs) ->
-    chunk.tokens = collectTokens(Pair(chunk, lbs))
+    chunk.tokens = collectTokens(chunk, lbs)
     chunk as OrgChunk
 }
 
@@ -540,7 +540,7 @@ val parseSection: Parser<OrgSection> = seq(
     OrgSection(
         heading = heading,
         body = chunks,
-        tokens = collectTokens(Pair(heading, chunks))
+        tokens = collectTokens(heading, chunks)
     )
 }
 
@@ -555,7 +555,7 @@ val parseDocument: Parser<OrgDocument> = seq(
         preamble = preamble,
         preface = preface,
         content = sections,
-        tokens = collectTokens(Tuple5(sof, preamble, preface, sections, eof))
+        tokens = collectTokens(sof, preamble, preface, sections, eof)
     )
 }
 
