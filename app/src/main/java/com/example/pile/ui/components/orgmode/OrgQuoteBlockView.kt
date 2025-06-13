@@ -20,7 +20,6 @@ fun OrgQuoteBlockView(
 
     Column(
         modifier = modifier
-            .padding(bottom = 20.dp)
             .drawBehind {
                 drawRect(
                     color = lineColor,

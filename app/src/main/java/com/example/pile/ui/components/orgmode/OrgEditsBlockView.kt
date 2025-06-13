@@ -20,7 +20,6 @@ fun OrgEditsBlockView(
 ) {
     Column(
         modifier = modifier
-            .padding(bottom = 20.dp)
     ) {
         Row(
             modifier = Modifier

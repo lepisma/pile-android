@@ -21,7 +21,6 @@ fun OrgSourceBlockView(
 ) {
     OutlinedCard(
         modifier = modifier
-            .padding(bottom = 20.dp)
             .fillMaxWidth(),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {

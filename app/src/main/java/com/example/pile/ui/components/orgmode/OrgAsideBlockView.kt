@@ -22,7 +22,6 @@ fun OrgAsideBlockView(
             defaultElevation = 6.dp
         ),
         modifier = modifier
-            .padding(bottom = 20.dp)
             .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outline), CardDefaults.elevatedShape)
     ) {
         for (chunk in asideBlock.body) {

@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.pile.orgmode.OrgBlock
-import com.example.pile.orgmode.OrgChunk
 
 @Composable
 fun OrgPageIntroView(
@@ -19,7 +18,6 @@ fun OrgPageIntroView(
             defaultElevation = 6.dp
         ),
         modifier = modifier
-            .padding(bottom = 20.dp)
     ) {
         for (chunk in pageIntroBlock.body) {
             OrgChunkView(chunk, modifier = Modifier.padding(15.dp))

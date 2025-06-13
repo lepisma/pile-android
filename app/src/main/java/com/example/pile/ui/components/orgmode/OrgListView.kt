@@ -74,7 +74,6 @@ fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier
 
     Column(
         modifier = modifier
-            .padding(vertical = 10.dp)
     ) {
         for (item in orglist.items) {
             Row(
@@ -108,7 +107,6 @@ fun OrgListView(orglist: OrgList.OrgOrderedList, modifier: Modifier = Modifier) 
 
     Column(
         modifier = modifier
-            .padding(vertical = 10.dp)
     ) {
         for ((idx, item) in orglist.items.withIndex()) {
             Row(
