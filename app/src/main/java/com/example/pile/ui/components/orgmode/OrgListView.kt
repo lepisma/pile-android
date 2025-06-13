@@ -18,25 +18,26 @@ import com.example.pile.orgmode.OrgListCheckState
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Regular
 import compose.icons.fontawesomeicons.Solid
-import compose.icons.fontawesomeicons.regular.Circle
-import compose.icons.fontawesomeicons.regular.DotCircle
-import compose.icons.fontawesomeicons.solid.CheckCircle
+import compose.icons.fontawesomeicons.regular.Square
+import compose.icons.fontawesomeicons.solid.CheckSquare
 import compose.icons.fontawesomeicons.solid.Circle
+import compose.icons.fontawesomeicons.solid.MinusSquare
+import compose.icons.fontawesomeicons.solid.Square
 
 @Composable
 fun CheckBoxIcon(checkboxState: OrgListCheckState?) {
     val icon = when (checkboxState) {
-        null -> FontAwesomeIcons.Solid.Circle
-        OrgListCheckState.CHECKED -> FontAwesomeIcons.Solid.CheckCircle
-        OrgListCheckState.PARTIAL -> FontAwesomeIcons.Regular.DotCircle
-        OrgListCheckState.UNCHECKED -> FontAwesomeIcons.Regular.Circle
+        null -> FontAwesomeIcons.Solid.Square
+        OrgListCheckState.CHECKED -> FontAwesomeIcons.Solid.CheckSquare
+        OrgListCheckState.PARTIAL -> FontAwesomeIcons.Solid.MinusSquare
+        OrgListCheckState.UNCHECKED -> FontAwesomeIcons.Regular.Square
     }
     Icon(
         imageVector = icon,
         contentDescription = "Checked icon",
         modifier = Modifier
             .padding(end = 5.dp)
-            .size(20.dp),
+            .size(17.dp),
         tint = if (checkboxState == null) {
             MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
         } else {
