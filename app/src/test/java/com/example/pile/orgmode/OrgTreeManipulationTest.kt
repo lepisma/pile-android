@@ -2,11 +2,12 @@ package com.example.pile.orgmode
 
 import org.junit.Test
 
-val orgParserTestText = """:PROPERTIES:
+val orgTreeManipulationTestText = """:PROPERTIES:
 :ID:      21e2c8f6-8dbb-4002-bcf5-a15203516114
 :END:
 #+TITLE: Org Test
-#+TAGS: testing, banana
+#+PILE: pinned:t
+#+TOC: headlines 2
 
 jello world
 
@@ -305,33 +306,15 @@ erat.
 #+END_edits
 """
 
-class OrgParserTest {
-    val tokens = OrgLexer(orgParserTestText).tokenize()
+class OrgTreeManipulationTest {
+    val tokens = OrgLexer(orgTreeManipulationTestText).tokenize()
+    val document = parse(tokens)
 
     /**
-     * Test that parsing happens without failure
+     * Test that title change works as intended
      */
     @Test
-    fun testParse_Success() {
-        val document = parse(tokens)
-
-        assert(document != null)
-    }
-
-    /**
-     * Test that parsing preserves all tokens in the right order
-     */
-    @Test
-    fun testParse_TokenMapping() {
-        val document = parse(tokens)
-
-        assert(unparse(document!!) == tokens)
-    }
-
-    @Test
-    fun testParse_TextRecovery() {
-        val reconstructedText = inverseLex(unparse(parse(OrgLexer(orgParserTestText).tokenize())!!))
-
-        assert(reconstructedText == orgParserTestText)
+    fun testEdit_Title() {
+        // document.preamble.title.items.map {  }
     }
 }

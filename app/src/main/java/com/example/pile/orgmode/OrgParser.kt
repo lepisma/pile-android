@@ -570,3 +570,10 @@ fun parse(tokens: List<Token>): OrgDocument? {
         null
     }
 }
+
+/**
+ * Convert a document back to the list to tokens
+ */
+fun unparse(document: OrgDocument): List<Token> {
+    return document.tokens
+}
