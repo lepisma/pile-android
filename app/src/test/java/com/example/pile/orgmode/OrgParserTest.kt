@@ -306,12 +306,25 @@ erat.
 """
 
 class OrgParserTest {
+    val tokens = OrgLexer(orgParserTestText).tokenize()
+
+    /**
+     * Test that parsing happens without failure
+     */
     @Test
-    fun testParse_Basic() {
-        val tokens = OrgLexer(orgParserTestText).tokenize()
+    fun testParse_Success() {
         val document = parse(tokens)
-        println(document)
 
         assert(document != null)
+    }
+
+    /**
+     * Test that parsing preserves all tokens in the right order
+     */
+    @Test
+    fun testParse_TokenMapping() {
+        val document = parse(tokens)
+
+        assert(document!!.tokens == tokens)
     }
 }
