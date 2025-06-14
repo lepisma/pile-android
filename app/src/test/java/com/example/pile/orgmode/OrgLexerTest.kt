@@ -312,134 +312,135 @@ erat.
 """
 
 class OrgLexerTest {
- @Test
- fun testTokenize_Inversion() {
-  val lexer = OrgLexer(orgTestText)
-  val tokens = lexer.tokenize()
 
-  assertEquals(inverseLex(tokens), orgTestText)
- }
+    @Test
+    fun testTokenize_Inversion() {
+        val lexer = OrgLexer(orgTestText)
+        val tokens = lexer.tokenize()
 
- @Test
- fun testTokenize_Errors() {
-  val lexer = OrgLexer(orgTestText)
-  val tokens = lexer.tokenize()
+        assertEquals(inverseLex(tokens), orgTestText)
+    }
 
-  assert(tokens.filterIsInstance<Token.Error>().isEmpty())
- }
+    @Test
+    fun testTokenize_Errors() {
+        val lexer = OrgLexer(orgTestText)
+        val tokens = lexer.tokenize()
+
+        assert(tokens.filterIsInstance<Token.Error>().isEmpty())
+    }
 }
 
 @RunWith(Parameterized::class)
 class OrgDTParserTest(
- private val inputString: String,
- private val stamp: Token.DatetimeStamp?
+    private val inputString: String,
+    private val stamp: Token.DatetimeStamp?
 ) {
- private val parser = OrgDTParser()
+    private val parser = OrgDTParser()
 
- companion object {
-  @JvmStatic
-  @Parameterized.Parameters(name = "{index}: parse(\"{0}\")")
-  fun data(): Collection<Array<Any?>> {
-   return listOf(
-    arrayOf("<2023-10-27 Fri>", Token.DatetimeStamp(
-     text = "<2023-10-27 Fri>",
-     range = Pair(0, 16),
-     date = LocalDate.of(2023, 10, 27),
-     showWeekDay = true,
-     time = null,
-     isActive = true,
-     repeater = null
-    )),
-    arrayOf("[2024-01-15 Mon]", Token.DatetimeStamp(
-     text = "[2024-01-15 Mon]",
-     range = Pair(0, 16),
-     date = LocalDate.of(2024, 1, 15),
-     showWeekDay = true,
-     time = null,
-     isActive = false,
-     repeater = null
-    )),
-    arrayOf("<2023-11-01 Wed 09:00>", Token.DatetimeStamp(
-     text = "<2023-11-01 Wed 09:00>",
-     range = Pair(0, 22),
-     date = LocalDate.of(2023, 11, 1),
-     showWeekDay = true,
-     time = Pair(LocalTime.of(9, 0), null),
-     isActive = true,
-     repeater = null
-    )),
-    arrayOf("[2025-03-08 Sat 14:30]", Token.DatetimeStamp(
-     text = "[2025-03-08 Sat 14:30]",
-     range = Pair(0, 22),
-     date = LocalDate.of(2025, 3, 8),
-     showWeekDay = true,
-     time = Pair(LocalTime.of(14, 30), null),
-     isActive = false,
-     repeater = null
-    )),
-    arrayOf("<2023-12-25 10:00-11:00>", Token.DatetimeStamp(
-     text = "<2023-12-25 10:00-11:00>",
-     range = Pair(0, 24),
-     date = LocalDate.of(2023, 12, 25),
-     showWeekDay = false,
-     time = Pair(LocalTime.of(10, 0), LocalTime.of(11, 0)),
-     isActive = true,
-     repeater = null
-    )),
-    arrayOf("<2023-10-27 Fri +1d>", Token.DatetimeStamp(
-     text = "<2023-10-27 Fri +1d>",
-     range = Pair(0, 20),
-     date = LocalDate.of(2023, 10, 27),
-     showWeekDay = true,
-     time = null,
-     isActive = true,
-     repeater = "+1d"
-    )),
-    arrayOf("<2023-10-27 Fri 10:30 .1w>", Token.DatetimeStamp(
-     text = "<2023-10-27 Fri 10:30 .1w>",
-     range = Pair(0, 26),
-     date = LocalDate.of(2023, 10, 27),
-     showWeekDay = true,
-     time = Pair(LocalTime.of(10, 30), null),
-     isActive = true,
-     repeater = ".1w"
-    )),
-    arrayOf("<2023-10-27 10:20>", Token.DatetimeStamp(
-     text = "<2023-10-27 10:20>",
-     range = Pair(0, 18),
-     date = LocalDate.of(2023, 10, 27),
-     showWeekDay = false,
-     time = Pair(LocalTime.of(10, 20), null),
-     isActive = true,
-     repeater = null
-    )),
-    arrayOf("<2023-10-26>", Token.DatetimeStamp(
-     text = "<2023-10-26>",
-     range = Pair(0, 12),
-     date = LocalDate.of(2023, 10, 26),
-     showWeekDay = false,
-     time = null,
-     isActive = true,
-     repeater = null
-    )),
-    arrayOf("[2023-10-27 Fri 10:00]", Token.DatetimeStamp(
-     text = "[2023-10-27 Fri 10:00]",
-     range = Pair(0, 22),
-     date = LocalDate.of(2023, 10, 27),
-     showWeekDay = true,
-     time = Pair(LocalTime.of(10, 0), null),
-     isActive = false,
-     repeater = null
-    )),
-    arrayOf("This is not a datetime", null),
-    arrayOf("<2023-13-01 Mon>", null)
-   )
-  }
- }
+    companion object {
+        @JvmStatic
+        @Parameterized.Parameters(name = "{index}: parse(\"{0}\")")
+        fun data(): Collection<Array<Any?>> {
+            return listOf(
+                arrayOf("<2023-10-27 Fri>", Token.DatetimeStamp(
+                    text = "<2023-10-27 Fri>",
+                    range = Pair(0, 16),
+                    date = LocalDate.of(2023, 10, 27),
+                    showWeekDay = true,
+                    time = null,
+                    isActive = true,
+                    repeater = null
+                )),
+                arrayOf("[2024-01-15 Mon]", Token.DatetimeStamp(
+                    text = "[2024-01-15 Mon]",
+                    range = Pair(0, 16),
+                    date = LocalDate.of(2024, 1, 15),
+                    showWeekDay = true,
+                    time = null,
+                    isActive = false,
+                    repeater = null
+                )),
+                arrayOf("<2023-11-01 Wed 09:00>", Token.DatetimeStamp(
+                    text = "<2023-11-01 Wed 09:00>",
+                    range = Pair(0, 22),
+                    date = LocalDate.of(2023, 11, 1),
+                    showWeekDay = true,
+                    time = Pair(LocalTime.of(9, 0), null),
+                    isActive = true,
+                    repeater = null
+                )),
+                arrayOf("[2025-03-08 Sat 14:30]", Token.DatetimeStamp(
+                    text = "[2025-03-08 Sat 14:30]",
+                    range = Pair(0, 22),
+                    date = LocalDate.of(2025, 3, 8),
+                    showWeekDay = true,
+                    time = Pair(LocalTime.of(14, 30), null),
+                    isActive = false,
+                    repeater = null
+                )),
+                arrayOf("<2023-12-25 10:00-11:00>", Token.DatetimeStamp(
+                    text = "<2023-12-25 10:00-11:00>",
+                    range = Pair(0, 24),
+                    date = LocalDate.of(2023, 12, 25),
+                    showWeekDay = false,
+                    time = Pair(LocalTime.of(10, 0), LocalTime.of(11, 0)),
+                    isActive = true,
+                    repeater = null
+                )),
+                arrayOf("<2023-10-27 Fri +1d>", Token.DatetimeStamp(
+                    text = "<2023-10-27 Fri +1d>",
+                    range = Pair(0, 20),
+                    date = LocalDate.of(2023, 10, 27),
+                    showWeekDay = true,
+                    time = null,
+                    isActive = true,
+                    repeater = "+1d"
+                )),
+                arrayOf("<2023-10-27 Fri 10:30 .1w>", Token.DatetimeStamp(
+                    text = "<2023-10-27 Fri 10:30 .1w>",
+                    range = Pair(0, 26),
+                    date = LocalDate.of(2023, 10, 27),
+                    showWeekDay = true,
+                    time = Pair(LocalTime.of(10, 30), null),
+                    isActive = true,
+                    repeater = ".1w"
+                )),
+                arrayOf("<2023-10-27 10:20>", Token.DatetimeStamp(
+                    text = "<2023-10-27 10:20>",
+                    range = Pair(0, 18),
+                    date = LocalDate.of(2023, 10, 27),
+                    showWeekDay = false,
+                    time = Pair(LocalTime.of(10, 20), null),
+                    isActive = true,
+                    repeater = null
+                )),
+                arrayOf("<2023-10-26>", Token.DatetimeStamp(
+                    text = "<2023-10-26>",
+                    range = Pair(0, 12),
+                    date = LocalDate.of(2023, 10, 26),
+                    showWeekDay = false,
+                    time = null,
+                    isActive = true,
+                    repeater = null
+                )),
+                arrayOf("[2023-10-27 Fri 10:00]", Token.DatetimeStamp(
+                    text = "[2023-10-27 Fri 10:00]",
+                    range = Pair(0, 22),
+                    date = LocalDate.of(2023, 10, 27),
+                    showWeekDay = true,
+                    time = Pair(LocalTime.of(10, 0), null),
+                    isActive = false,
+                    repeater = null
+                )),
+                arrayOf("This is not a datetime", null),
+                arrayOf("<2023-13-01 Mon>", null)
+            )
+        }
+    }
 
- @Test
- fun testParseDatetimeStamp() {
-  val actualToken = parser.parse(inputString, 0)
-  assertEquals(stamp, actualToken)
- }
+    @Test
+    fun testParseDatetimeStamp() {
+        val actualToken = parser.parse(inputString, 0)
+        assertEquals(stamp, actualToken)
+    }
 }
