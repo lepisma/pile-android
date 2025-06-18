@@ -21,12 +21,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.example.pile.orgmode.OrgHeading
-import com.example.pile.orgmode.OrgInlineElem
-import com.example.pile.orgmode.OrgSection
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.ChevronUp
+import xyz.lepisma.orgmode.OrgHeading
+import xyz.lepisma.orgmode.OrgInlineElem
+import xyz.lepisma.orgmode.OrgSection
 
 @Composable
 fun OrgSectionHeadingView(heading: OrgHeading, isCollapsed: Boolean?, modifier: Modifier = Modifier) {

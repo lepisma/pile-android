@@ -12,9 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import com.example.pile.orgmode.OrgChunk
-import com.example.pile.orgmode.OrgList
-import com.example.pile.orgmode.OrgListCheckState
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Regular
 import compose.icons.fontawesomeicons.Solid
@@ -23,6 +20,9 @@ import compose.icons.fontawesomeicons.solid.CheckSquare
 import compose.icons.fontawesomeicons.solid.Circle
 import compose.icons.fontawesomeicons.solid.MinusSquare
 import compose.icons.fontawesomeicons.solid.Square
+import xyz.lepisma.orgmode.OrgChunk
+import xyz.lepisma.orgmode.OrgList
+import xyz.lepisma.orgmode.OrgListCheckState
 
 @Composable
 fun CheckBoxIcon(checkboxState: OrgListCheckState?) {

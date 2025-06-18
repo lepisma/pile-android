@@ -26,12 +26,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.pile.orgmode.OrgDocument
-import com.example.pile.orgmode.OrgLexer
-import com.example.pile.orgmode.parse
 import com.example.pile.viewmodel.SharedViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import xyz.lepisma.orgmode.OrgDocument
+import xyz.lepisma.orgmode.OrgLexer
+import xyz.lepisma.orgmode.parse
 
 @Composable
 fun ShimmerBox(modifier: Modifier) {

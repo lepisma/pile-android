@@ -6,7 +6,7 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.pile.orgmode.OrgBlock
+import xyz.lepisma.orgmode.OrgBlock
 
 @Composable
 fun OrgPageIntroView(

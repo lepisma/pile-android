@@ -2,10 +2,10 @@ package com.example.pile.ui.components.orgmode
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.example.pile.orgmode.OrgBlock
-import com.example.pile.orgmode.OrgChunk
-import com.example.pile.orgmode.OrgList
-import com.example.pile.orgmode.OrgSection
+import xyz.lepisma.orgmode.OrgBlock
+import xyz.lepisma.orgmode.OrgChunk
+import xyz.lepisma.orgmode.OrgList
+import xyz.lepisma.orgmode.OrgSection
 
 @Composable
 fun OrgChunkView(chunk: OrgChunk, modifier: Modifier = Modifier) {

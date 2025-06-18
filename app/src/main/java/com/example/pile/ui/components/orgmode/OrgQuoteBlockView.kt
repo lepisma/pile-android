@@ -9,7 +9,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.dp
-import com.example.pile.orgmode.OrgBlock
+import xyz.lepisma.orgmode.OrgBlock
 
 @Composable
 fun OrgQuoteBlockView(

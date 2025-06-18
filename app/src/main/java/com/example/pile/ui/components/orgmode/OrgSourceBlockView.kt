@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.pile.orgmode.OrgBlock
+import xyz.lepisma.orgmode.OrgBlock
 
 @Composable
 fun OrgSourceBlockView(

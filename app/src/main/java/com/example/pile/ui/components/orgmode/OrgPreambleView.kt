@@ -18,12 +18,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.pile.orgmode.OrgInlineElem
-import com.example.pile.orgmode.OrgLine
-import com.example.pile.orgmode.OrgPreamble
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.ExternalLinkAlt
+import xyz.lepisma.orgmode.OrgInlineElem
+import xyz.lepisma.orgmode.OrgLine
+import xyz.lepisma.orgmode.OrgPreamble
 
 fun orgLineToString(line: OrgLine): String {
     return line.items
@@ -47,7 +47,7 @@ fun OrgPreambleView(preamble: OrgPreamble, modifier: Modifier = Modifier) {
 
         if (preamble.properties?.map?.containsKey("ROAM_REFS") == true) {
             val localUriHandler = LocalUriHandler.current
-            val uri = orgLineToString(preamble.properties.map["ROAM_REFS"]!!)
+            val uri = orgLineToString(preamble.properties!!.map["ROAM_REFS"]!!)
             val style = MaterialTheme.typography.bodyLarge.copy(
                 textDecoration = TextDecoration.Underline
             )
