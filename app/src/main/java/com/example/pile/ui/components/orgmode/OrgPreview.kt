@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,6 +27,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.pile.ui.components.nodescreen.ContentDrawer
 import com.example.pile.viewmodel.SharedViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -93,17 +95,22 @@ fun OrgPreview(text: String, viewModel: SharedViewModel, openNodeById: (String) 
     }
 
     if (document != null) {
-        LazyColumn {
-            item {
-                OrgPreambleView(document!!.preamble)
-            }
+        // Navigation drawer with table of contents
+        ModalNavigationDrawer(
+            drawerContent = { ContentDrawer(document!!) }
+        ) {
+            LazyColumn {
+                item {
+                    OrgPreambleView(document!!.preamble)
+                }
 
-            items(document!!.preface.body) { chunk ->
-                OrgChunkView(chunk, modifier = Modifier.padding(vertical = 10.dp))
-            }
+                items(document!!.preface.body) { chunk ->
+                    OrgChunkView(chunk, modifier = Modifier.padding(vertical = 10.dp))
+                }
 
-            items(document!!.content) { section ->
-                OrgSectionView(section, modifier = Modifier.padding(vertical = 10.dp))
+                items(document!!.content) { section ->
+                    OrgSectionView(section, modifier = Modifier.padding(vertical = 10.dp))
+                }
             }
         }
     } else {
