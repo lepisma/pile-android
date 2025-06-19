@@ -30,7 +30,7 @@ import com.example.pile.viewmodel.SharedViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import xyz.lepisma.orgmode.OrgDocument
-import xyz.lepisma.orgmode.OrgLexer
+import xyz.lepisma.orgmode.lexer.OrgLexer
 import xyz.lepisma.orgmode.parse
 
 @Composable
