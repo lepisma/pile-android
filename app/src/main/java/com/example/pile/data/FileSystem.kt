@@ -203,6 +203,8 @@ fun writeFile(context: Context, file: DocumentFile, text: String) {
     }
 }
 
+// TODO: Use orgmode-kmp for this. This has to be fast and we only need preamble content, nothing
+//  beyond that
 fun parseFileOrgNode(context: Context, file: DocumentFile): OrgNode {
     val preamble = readOrgPreamble(context, file)
     val title = parseTitle(preamble)
