@@ -25,7 +25,7 @@ import xyz.lepisma.orgmode.OrgInlineElem
 import xyz.lepisma.orgmode.OrgLine
 import xyz.lepisma.orgmode.OrgPreamble
 
-fun orgLineToString(line: OrgLine): String {
+private fun orgLineToString(line: OrgLine): String {
     return line.items
         .filter { it is OrgInlineElem.Text }
         .joinToString("") { (it as OrgInlineElem.Text).text }

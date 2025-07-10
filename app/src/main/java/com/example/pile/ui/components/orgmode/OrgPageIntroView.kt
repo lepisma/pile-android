@@ -11,7 +11,8 @@ import xyz.lepisma.orgmode.OrgBlock
 @Composable
 fun OrgPageIntroView(
     pageIntroBlock: OrgBlock.OrgPageIntroBlock,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    openNodeById: (String) -> Unit
 ) {
     ElevatedCard(
         elevation = CardDefaults.cardElevation(
@@ -20,7 +21,7 @@ fun OrgPageIntroView(
         modifier = modifier
     ) {
         for (chunk in pageIntroBlock.body) {
-            OrgChunkView(chunk, modifier = Modifier.padding(15.dp))
+            OrgChunkView(chunk, modifier = Modifier.padding(15.dp), openNodeById = openNodeById)
         }
     }
 }

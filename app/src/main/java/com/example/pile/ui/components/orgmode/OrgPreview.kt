@@ -105,11 +105,11 @@ fun OrgPreview(text: String, viewModel: SharedViewModel, openNodeById: (String) 
                 }
 
                 items(document!!.preface.body) { chunk ->
-                    OrgChunkView(chunk, modifier = Modifier.padding(vertical = 10.dp))
+                    OrgChunkView(chunk, modifier = Modifier.padding(vertical = 10.dp), openNodeById = openNodeById)
                 }
 
                 items(document!!.content) { section ->
-                    OrgSectionView(section, modifier = Modifier.padding(vertical = 10.dp))
+                    OrgSectionView(section, modifier = Modifier.padding(vertical = 10.dp), openNodeById = openNodeById)
                 }
             }
         }

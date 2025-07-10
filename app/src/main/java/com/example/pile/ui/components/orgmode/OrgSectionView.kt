@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,11 +24,15 @@ import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.ChevronUp
 import xyz.lepisma.orgmode.OrgHeading
-import xyz.lepisma.orgmode.OrgInlineElem
 import xyz.lepisma.orgmode.OrgSection
 
 @Composable
-fun OrgSectionHeadingView(heading: OrgHeading, isCollapsed: Boolean?, modifier: Modifier = Modifier) {
+fun OrgSectionHeadingView(
+    heading: OrgHeading,
+    isCollapsed: Boolean?,
+    modifier: Modifier = Modifier,
+    openNodeById: (String) -> Unit
+) {
     val style = when (heading.level.level) {
         1 -> MaterialTheme.typography.displayMedium
         2 -> MaterialTheme.typography.headlineLarge
@@ -41,12 +44,11 @@ fun OrgSectionHeadingView(heading: OrgHeading, isCollapsed: Boolean?, modifier: 
         modifier = modifier.padding(top = 20.dp, bottom = 5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = heading.title.items
-                .filter { it is OrgInlineElem.Text }
-                .joinToString("") { (it as OrgInlineElem.Text).text },
+        OrgInlineElemsView(
+            heading.title.items,
+            modifier = Modifier.weight(1f),
             style = style,
-            modifier = Modifier.weight(1f)
+            openNodeById = openNodeById
         )
 
         if (isCollapsed != null) {
@@ -66,14 +68,15 @@ fun OrgSectionHeadingView(heading: OrgHeading, isCollapsed: Boolean?, modifier: 
 }
 
 @Composable
-fun OrgSectionView(section: OrgSection, modifier: Modifier = Modifier) {
+fun OrgSectionView(section: OrgSection, modifier: Modifier = Modifier, openNodeById: (String) -> Unit) {
     var isCollapsed by remember { mutableStateOf(true) }
 
     OrgSectionHeadingView(
         section.heading,
         isCollapsed = if (section.body.isNotEmpty()) { isCollapsed } else { null },
         modifier = Modifier
-            .clickable { isCollapsed = !isCollapsed }
+            .clickable { isCollapsed = !isCollapsed },
+        openNodeById = openNodeById
     )
 
     AnimatedVisibility(
@@ -83,7 +86,7 @@ fun OrgSectionView(section: OrgSection, modifier: Modifier = Modifier) {
     ) {
         Column {
             for (chunk in section.body) {
-                OrgChunkView(chunk, modifier)
+                OrgChunkView(chunk, modifier, openNodeById = openNodeById)
             }
         }
     }

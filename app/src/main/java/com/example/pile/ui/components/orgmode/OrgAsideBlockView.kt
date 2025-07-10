@@ -15,7 +15,8 @@ import xyz.lepisma.orgmode.OrgBlock
 @Composable
 fun OrgAsideBlockView(
     asideBlock: OrgBlock.OrgAsideBlock,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    openNodeById: (String) -> Unit
 ) {
     ElevatedCard(
         elevation = CardDefaults.cardElevation(
@@ -25,7 +26,7 @@ fun OrgAsideBlockView(
             .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outline), CardDefaults.elevatedShape)
     ) {
         for (chunk in asideBlock.body) {
-            OrgChunkView(chunk, modifier = Modifier.padding(15.dp))
+            OrgChunkView(chunk, modifier = Modifier.padding(15.dp), openNodeById)
         }
     }
 }

@@ -16,7 +16,8 @@ import xyz.lepisma.orgmode.OrgBlock
 @Composable
 fun OrgEditsBlockView(
     editsBlock: OrgBlock.OrgEditsBlock,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    openNodeById: (String) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -39,7 +40,7 @@ fun OrgEditsBlockView(
             )
         }
         for (chunk in editsBlock.body) {
-            OrgChunkView(chunk)
+            OrgChunkView(chunk, openNodeById = openNodeById)
         }
     }
 }

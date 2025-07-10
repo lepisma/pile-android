@@ -47,7 +47,7 @@ fun CheckBoxIcon(checkboxState: OrgListCheckState?) {
 }
 
 @Composable
-fun OrgListItemView(item: OrgList.OrgListItem) {
+fun OrgListItemView(item: OrgList.OrgListItem, openNodeById: (String) -> Unit) {
     val style = if (item.checkbox == OrgListCheckState.CHECKED) {
         MaterialTheme.typography.bodyLarge.copy(
             textDecoration = TextDecoration.LineThrough,
@@ -60,16 +60,16 @@ fun OrgListItemView(item: OrgList.OrgListItem) {
     Column {
         for (chunk in item.content) {
             if (chunk is OrgChunk.OrgParagraph) {
-                OrgParagraphView(chunk, style = style)
+                OrgParagraphView(chunk, style = style, openNodeById = openNodeById)
             } else {
-                OrgChunkView(chunk)
+                OrgChunkView(chunk, openNodeById = openNodeById)
             }
         }
     }
 }
 
 @Composable
-fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier) {
+fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier, openNodeById: (String) -> Unit) {
     // If any item has checkbox, we don't show bullets (for unordered list only)
     val hasCheckbox = orglist.items.count { it is OrgList.OrgListItem && it.checkbox != null } > 0
 
@@ -95,7 +95,7 @@ fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier
                         CheckBoxIcon(item.checkbox)
                     }
 
-                    OrgListItemView(item)
+                    OrgListItemView(item, openNodeById)
                 }
             }
         }
@@ -103,7 +103,7 @@ fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier
 }
 
 @Composable
-fun OrgListView(orglist: OrgList.OrgOrderedList, modifier: Modifier = Modifier) {
+fun OrgListView(orglist: OrgList.OrgOrderedList, modifier: Modifier = Modifier, openNodeById: (String) -> Unit) {
     val hasCheckbox = orglist.items.count { it is OrgList.OrgListItem && it.checkbox != null } > 0
 
     Column(
@@ -127,7 +127,7 @@ fun OrgListView(orglist: OrgList.OrgOrderedList, modifier: Modifier = Modifier) 
                         CheckBoxIcon(item.checkbox)
                     }
 
-                    OrgListItemView(item)
+                    OrgListItemView(item, openNodeById)
                 }
             }
         }

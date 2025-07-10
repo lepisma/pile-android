@@ -14,7 +14,8 @@ import xyz.lepisma.orgmode.OrgBlock
 @Composable
 fun OrgQuoteBlockView(
     quoteBlock: OrgBlock.OrgQuoteBlock,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    openNodeById: (String) -> Unit
 ) {
     val lineColor = MaterialTheme.colorScheme.secondary
 
@@ -31,7 +32,8 @@ fun OrgQuoteBlockView(
         for (chunk in quoteBlock.body) {
             OrgChunkView(
                 chunk,
-                modifier = Modifier.padding(start = 20.dp, end = 10.dp, top = 10.dp, bottom = 10.dp)
+                modifier = Modifier.padding(start = 20.dp, end = 10.dp, top = 10.dp, bottom = 10.dp),
+                openNodeById = openNodeById
             )
         }
     }
