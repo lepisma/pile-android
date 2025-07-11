@@ -19,7 +19,7 @@ import xyz.lepisma.orgmode.OrgInlineElem
 /**
  * Trim elements so that the plain text items at both ends that match whitespaces are removed
  */
-private fun trimOrgInlineElems(elements: List<OrgInlineElem>): List<OrgInlineElem> {
+fun trimOrgInlineElems(elements: List<OrgInlineElem>): List<OrgInlineElem> {
     fun isWhitespace(elem: OrgInlineElem): Boolean {
         // Note that there could be marked-up text that could also be whitespace. For example:
         // "/hell world   /" which has trailing whitespace inside emphasis marker. For now we don't
