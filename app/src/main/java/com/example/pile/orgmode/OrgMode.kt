@@ -129,33 +129,6 @@ fun parseOrgRef(preamble: String): String? {
     return match?.groups?.get(1)?.value?.trim()
 }
 
-fun unfillText(text: String): String {
-    val lines = text.lines()
-    val pattern = Regex("^(#|:|\\||[+-]|\\d+\\.)")
-
-    val processedLines = mutableListOf<String>()
-    var buffer = ""
-
-    for (i in lines.indices) {
-        val currentLine = lines[i]
-        if (pattern.containsMatchIn(currentLine) || currentLine.isBlank()) {
-            if (buffer.isNotEmpty()) {
-                processedLines.add(buffer)
-                buffer = ""
-            }
-            processedLines.add(currentLine)
-        } else {
-            buffer += if (buffer.isEmpty()) currentLine else " $currentLine"
-        }
-    }
-
-    if (buffer.isNotEmpty()) {
-        processedLines.add(buffer)
-    }
-
-    return processedLines.joinToString("\n")
-}
-
 /**
  * Regex pattern for lines that are considered part of the Org-mode preamble.
  * This includes lines starting with '#', lines starting with ':', and blank lines,
@@ -163,12 +136,6 @@ fun unfillText(text: String): String {
  * This ensures the preamble stops before any #+begin block or regular content.
  */
 private val PREAMBLE_LINE_REGEX = Regex("^(?!#\\+begin)(#.*|:.*|\\s*)$")
-
-fun dropPreamble(text: String): String {
-    val lines = text.lines()
-
-    return lines.dropWhile { it.matches(PREAMBLE_LINE_REGEX) }.joinToString("\n")
-}
 
 fun readOrgPreamble(context: Context, file: DocumentFile): String {
     val contentResolver = context.contentResolver

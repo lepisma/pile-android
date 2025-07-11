@@ -271,8 +271,12 @@ class SharedViewModel(
                                 // snapshot stored in database. Let's update it.
                                 val docFile = DocumentFile.fromSingleUri(applicationContext, file.uri)
                                 val node = parseFileOrgNode(applicationContext, docFile!!)
-                                nodeDao.updateNode(node)
-                                updateCount += 1
+                                if (node != null) {
+                                    nodeDao.updateNode(node)
+                                    updateCount += 1
+                                } else {
+                                    notify("Error in parsing $docFile")
+                                }
                             }
 
                             nodesToDelete.remove(fileInfo.fileString)
@@ -280,8 +284,12 @@ class SharedViewModel(
                             // At this point, we need to do a full parse and insert node in the database
                             val docFile = DocumentFile.fromSingleUri(applicationContext, file.uri)
                             val node = parseFileOrgNode(applicationContext, docFile!!)
-                            nodeDao.insert(node)
-                            insertCount += 1
+                            if (node != null) {
+                                nodeDao.insert(node)
+                                insertCount += 1
+                            } else {
+                                notify("Error in parsing $docFile")
+                            }
                         }
                     }
 

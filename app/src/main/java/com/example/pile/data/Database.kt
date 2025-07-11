@@ -304,10 +304,14 @@ class Migration_5_6(
 
                 try {
                     val node = parseFileOrgNode(applicationContext, file!!)
-                    database.execSQL(
-                        "UPDATE nodes SET nodeType = ?, ref = ? WHERE id = ?",
-                        arrayOf(node.nodeType.toString(), node.ref, nodeId)
+                    if (node != null) {
+                        database.execSQL(
+                            "UPDATE nodes SET nodeType = ?, ref = ? WHERE id = ?",
+                            arrayOf(node.nodeType.toString(), node.ref, nodeId)
                         )
+                    } else {
+                        throw Exception("Error parsing the org node")
+                    }
                 } catch (e: Exception) {
                     println("Error parsing node from ${fileString}: ${e.message}")
                 }
