@@ -1,6 +1,8 @@
 package com.example.pile.ui.components.orgmode
 
 import android.content.Intent
+import android.util.Log
+import android.webkit.MimeTypeMap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -91,12 +93,14 @@ private fun OrgFileAttachmentView(file: DocumentFile, link: OrgInlineElem.Link) 
             .padding(8.dp)
             .clickable {
                 val intent = Intent(Intent.ACTION_VIEW).apply {
-                    data = file.uri
+                    setDataAndType(file.uri, getMimeType(file.uri.toString()))
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
 
                 if (intent.resolveActivity(context.packageManager) != null) {
                     context.startActivity(intent)
+                } else {
+                    Log.e("ATTACHMENT", "Unable to open file ${file.uri} (mime: ${getMimeType(file.uri.toString())})")
                 }
             },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -125,6 +129,15 @@ private fun OrgFileAttachmentView(file: DocumentFile, link: OrgInlineElem.Link) 
             )
         }
     }
+}
+
+private fun getMimeType(url: String): String? {
+    var type: String? = null
+    val extension = MimeTypeMap.getFileExtensionFromUrl(url)
+    if (extension != null) {
+        type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+    }
+    return type
 }
 
 private fun isImageFile(fileName: String): Boolean {
