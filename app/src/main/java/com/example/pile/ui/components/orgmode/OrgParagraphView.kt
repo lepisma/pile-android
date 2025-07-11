@@ -4,6 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
+import com.example.pile.viewmodel.SharedViewModel
 import xyz.lepisma.orgmode.OrgChunk
 import xyz.lepisma.orgmode.OrgInlineElem
 
@@ -13,7 +14,8 @@ fun OrgParagraphView(
     paragraph: OrgChunk.OrgParagraph,
     modifier: Modifier = Modifier,
     style: TextStyle = MaterialTheme.typography.bodyLarge,
-    openNodeById: (String) -> Unit
+    openNodeById: (String) -> Unit,
+    viewModel: SharedViewModel
 ) {
     val trimmedElems = trimOrgInlineElems(paragraph.items)
 
@@ -21,7 +23,7 @@ fun OrgParagraphView(
     if (trimmedElems.size == 1 &&
         trimmedElems.first() is OrgInlineElem.Link &&
         (trimmedElems.first() as OrgInlineElem.Link).type == "attachment") {
-        OrgAttachmentView(trimmedElems.first() as OrgInlineElem.Link)
+        OrgAttachmentView(trimmedElems.first() as OrgInlineElem.Link, viewModel = viewModel)
     } else {
         OrgInlineElemsView(
             trimmedElems,

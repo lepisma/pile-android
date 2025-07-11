@@ -17,7 +17,7 @@ import xyz.lepisma.orgmode.OrgBlock
 @Composable
 fun OrgSourceBlockView(
     orgSourceBlock: OrgBlock.OrgSourceBlock,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     OutlinedCard(
         modifier = modifier

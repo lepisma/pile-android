@@ -6,13 +6,15 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.pile.viewmodel.SharedViewModel
 import xyz.lepisma.orgmode.OrgBlock
 
 @Composable
 fun OrgPageIntroView(
     pageIntroBlock: OrgBlock.OrgPageIntroBlock,
     modifier: Modifier = Modifier,
-    openNodeById: (String) -> Unit
+    openNodeById: (String) -> Unit,
+    viewModel: SharedViewModel
 ) {
     ElevatedCard(
         elevation = CardDefaults.cardElevation(
@@ -21,7 +23,7 @@ fun OrgPageIntroView(
         modifier = modifier
     ) {
         for (chunk in pageIntroBlock.body) {
-            OrgChunkView(chunk, modifier = Modifier.padding(15.dp), openNodeById = openNodeById)
+            OrgChunkView(chunk, modifier = Modifier.padding(15.dp), openNodeById = openNodeById, viewModel = viewModel)
         }
     }
 }

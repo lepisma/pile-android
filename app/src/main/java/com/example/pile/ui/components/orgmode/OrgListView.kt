@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.example.pile.viewmodel.SharedViewModel
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Regular
 import compose.icons.fontawesomeicons.Solid
@@ -47,7 +48,7 @@ fun CheckBoxIcon(checkboxState: OrgListCheckState?) {
 }
 
 @Composable
-fun OrgListItemView(item: OrgList.OrgListItem, openNodeById: (String) -> Unit) {
+fun OrgListItemView(item: OrgList.OrgListItem, openNodeById: (String) -> Unit, viewModel: SharedViewModel) {
     val style = if (item.checkbox == OrgListCheckState.CHECKED) {
         MaterialTheme.typography.bodyLarge.copy(
             textDecoration = TextDecoration.LineThrough,
@@ -60,16 +61,16 @@ fun OrgListItemView(item: OrgList.OrgListItem, openNodeById: (String) -> Unit) {
     Column {
         for (chunk in item.content) {
             if (chunk is OrgChunk.OrgParagraph) {
-                OrgParagraphView(chunk, style = style, openNodeById = openNodeById)
+                OrgParagraphView(chunk, style = style, openNodeById = openNodeById, viewModel = viewModel)
             } else {
-                OrgChunkView(chunk, openNodeById = openNodeById)
+                OrgChunkView(chunk, openNodeById = openNodeById, viewModel = viewModel)
             }
         }
     }
 }
 
 @Composable
-fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier, openNodeById: (String) -> Unit) {
+fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier, openNodeById: (String) -> Unit, viewModel: SharedViewModel) {
     // If any item has checkbox, we don't show bullets (for unordered list only)
     val hasCheckbox = orglist.items.count { it is OrgList.OrgListItem && it.checkbox != null } > 0
 
@@ -95,7 +96,7 @@ fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier
                         CheckBoxIcon(item.checkbox)
                     }
 
-                    OrgListItemView(item, openNodeById)
+                    OrgListItemView(item, openNodeById, viewModel = viewModel)
                 }
             }
         }
@@ -103,7 +104,7 @@ fun OrgListView(orglist: OrgList.OrgUnorderedList, modifier: Modifier = Modifier
 }
 
 @Composable
-fun OrgListView(orglist: OrgList.OrgOrderedList, modifier: Modifier = Modifier, openNodeById: (String) -> Unit) {
+fun OrgListView(orglist: OrgList.OrgOrderedList, modifier: Modifier = Modifier, openNodeById: (String) -> Unit, viewModel: SharedViewModel) {
     val hasCheckbox = orglist.items.count { it is OrgList.OrgListItem && it.checkbox != null } > 0
 
     Column(
@@ -127,7 +128,7 @@ fun OrgListView(orglist: OrgList.OrgOrderedList, modifier: Modifier = Modifier, 
                         CheckBoxIcon(item.checkbox)
                     }
 
-                    OrgListItemView(item, openNodeById)
+                    OrgListItemView(item, openNodeById, viewModel = viewModel)
                 }
             }
         }

@@ -101,15 +101,28 @@ fun OrgPreview(text: String, viewModel: SharedViewModel, openNodeById: (String) 
         ) {
             LazyColumn {
                 item {
-                    OrgPreambleView(document!!.preamble)
+                    OrgPreambleView(
+                        document!!.preamble,
+                        viewModel = viewModel
+                    )
                 }
 
                 items(document!!.preface.body) { chunk ->
-                    OrgChunkView(chunk, modifier = Modifier.padding(vertical = 10.dp), openNodeById = openNodeById)
+                    OrgChunkView(
+                        chunk,
+                        modifier = Modifier.padding(vertical = 10.dp),
+                        openNodeById = openNodeById,
+                        viewModel = viewModel
+                    )
                 }
 
                 items(document!!.content) { section ->
-                    OrgSectionView(section, modifier = Modifier.padding(vertical = 10.dp), openNodeById = openNodeById)
+                    OrgSectionView(
+                        section,
+                        modifier = Modifier.padding(vertical = 10.dp),
+                        openNodeById = openNodeById,
+                        viewModel = viewModel
+                    )
                 }
             }
         }

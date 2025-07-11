@@ -9,13 +9,15 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.dp
+import com.example.pile.viewmodel.SharedViewModel
 import xyz.lepisma.orgmode.OrgBlock
 
 @Composable
 fun OrgQuoteBlockView(
     quoteBlock: OrgBlock.OrgQuoteBlock,
     modifier: Modifier = Modifier,
-    openNodeById: (String) -> Unit
+    openNodeById: (String) -> Unit,
+    viewModel: SharedViewModel
 ) {
     val lineColor = MaterialTheme.colorScheme.secondary
 
@@ -33,7 +35,8 @@ fun OrgQuoteBlockView(
             OrgChunkView(
                 chunk,
                 modifier = Modifier.padding(start = 20.dp, end = 10.dp, top = 10.dp, bottom = 10.dp),
-                openNodeById = openNodeById
+                openNodeById = openNodeById,
+                viewModel = viewModel
             )
         }
     }

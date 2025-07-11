@@ -10,13 +10,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.pile.viewmodel.SharedViewModel
 import xyz.lepisma.orgmode.OrgBlock
 
 @Composable
 fun OrgAsideBlockView(
     asideBlock: OrgBlock.OrgAsideBlock,
     modifier: Modifier = Modifier,
-    openNodeById: (String) -> Unit
+    openNodeById: (String) -> Unit,
+    viewModel: SharedViewModel
 ) {
     ElevatedCard(
         elevation = CardDefaults.cardElevation(
@@ -26,7 +28,7 @@ fun OrgAsideBlockView(
             .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outline), CardDefaults.elevatedShape)
     ) {
         for (chunk in asideBlock.body) {
-            OrgChunkView(chunk, modifier = Modifier.padding(15.dp), openNodeById)
+            OrgChunkView(chunk, modifier = Modifier.padding(15.dp), openNodeById, viewModel = viewModel)
         }
     }
 }

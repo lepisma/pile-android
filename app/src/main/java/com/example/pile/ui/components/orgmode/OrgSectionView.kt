@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import com.example.pile.viewmodel.SharedViewModel
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.ChevronUp
@@ -68,7 +69,7 @@ fun OrgSectionHeadingView(
 }
 
 @Composable
-fun OrgSectionView(section: OrgSection, modifier: Modifier = Modifier, openNodeById: (String) -> Unit) {
+fun OrgSectionView(section: OrgSection, modifier: Modifier = Modifier, openNodeById: (String) -> Unit, viewModel: SharedViewModel) {
     var isCollapsed by remember { mutableStateOf(true) }
 
     OrgSectionHeadingView(
@@ -86,7 +87,7 @@ fun OrgSectionView(section: OrgSection, modifier: Modifier = Modifier, openNodeB
     ) {
         Column {
             for (chunk in section.body) {
-                OrgChunkView(chunk, modifier, openNodeById = openNodeById)
+                OrgChunkView(chunk, modifier, openNodeById = openNodeById, viewModel = viewModel)
             }
         }
     }

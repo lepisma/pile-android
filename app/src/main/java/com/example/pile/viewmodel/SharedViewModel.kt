@@ -19,6 +19,8 @@ import com.example.pile.data.createNewNode
 import com.example.pile.data.nodeFilesFromDirectory
 import com.example.pile.data.parseFileOrgNode
 import com.example.pile.data.writeFile
+import com.example.pile.orgmode.orgAttachDir
+import com.example.pile.orgmode.orgAttachmentPath
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -55,8 +57,14 @@ class SharedViewModel(
     private val _rootUri: MutableStateFlow<Uri?> = MutableStateFlow(null)
     val rootUri: StateFlow<Uri?> = _rootUri.asStateFlow()
 
+    private val _currentNodeId: MutableStateFlow<String?> = MutableStateFlow(null)
+
     fun setRootUri(uri: Uri) {
         _rootUri.value = uri
+    }
+
+    fun setCurrentNodeId(id: String?) {
+        _currentNodeId.value = id
     }
 
     // Helper function to manage loading state
@@ -366,6 +374,21 @@ class SharedViewModel(
 
             viewModelScope.launch(Dispatchers.IO) {
                 updateNodeTags(newNode.id, tags = newNode.tags)
+            }
+        }
+    }
+
+    /**
+     * Return file that maps to the given fileName and the context
+     */
+    suspend fun getAttachment(attachmentName: String): DocumentFile? {
+        return _currentNodeId.value?.let { nodeId ->
+            _rootUri.value?.let { rootUri ->
+                getNode(nodeId)?.let { currentNode ->
+                    orgAttachDir(applicationContext, rootUri, currentNode)?.let { attachmentDir ->
+                        orgAttachmentPath(attachmentDir, nodeId, attachmentName)
+                    }
+                }
             }
         }
     }

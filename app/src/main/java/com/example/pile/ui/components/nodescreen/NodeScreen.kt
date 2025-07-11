@@ -148,6 +148,7 @@ fun NodeScreen(
 
     LaunchedEffect(nodeId) {
         currentNode = viewModel.getNode(nodeId)
+        viewModel.setCurrentNodeId(currentNode?.id)
     }
 
     currentNode?.let { node ->

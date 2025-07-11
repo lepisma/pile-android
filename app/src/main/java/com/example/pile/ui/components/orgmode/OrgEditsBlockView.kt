@@ -11,13 +11,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.pile.viewmodel.SharedViewModel
 import xyz.lepisma.orgmode.OrgBlock
 
 @Composable
 fun OrgEditsBlockView(
     editsBlock: OrgBlock.OrgEditsBlock,
     modifier: Modifier = Modifier,
-    openNodeById: (String) -> Unit
+    openNodeById: (String) -> Unit,
+    viewModel: SharedViewModel
 ) {
     Column(
         modifier = modifier
@@ -40,7 +42,7 @@ fun OrgEditsBlockView(
             )
         }
         for (chunk in editsBlock.body) {
-            OrgChunkView(chunk, openNodeById = openNodeById)
+            OrgChunkView(chunk, openNodeById = openNodeById, viewModel = viewModel)
         }
     }
 }

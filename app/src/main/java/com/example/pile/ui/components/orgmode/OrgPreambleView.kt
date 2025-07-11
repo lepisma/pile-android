@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.pile.viewmodel.SharedViewModel
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.ExternalLinkAlt
@@ -32,7 +33,7 @@ private fun orgLineToString(line: OrgLine): String {
 }
 
 @Composable
-fun OrgPreambleView(preamble: OrgPreamble, modifier: Modifier = Modifier) {
+fun OrgPreambleView(preamble: OrgPreamble, modifier: Modifier = Modifier, viewModel: SharedViewModel) {
     var rawTitle = orgLineToString(preamble.title)
 
     Column (
