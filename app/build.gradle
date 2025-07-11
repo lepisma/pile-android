@@ -49,7 +49,7 @@ android {
 }
 
 dependencies {
-    implementation 'xyz.lepisma.orgmode:library:0.3.0'
+    implementation 'xyz.lepisma:orgmode:0.3.0'
     implementation 'androidx.room:room-runtime:2.7.1'
     implementation 'org.jsoup:jsoup:1.17.2'
     implementation 'androidx.compose.material3:material3-android:1.3.2'
