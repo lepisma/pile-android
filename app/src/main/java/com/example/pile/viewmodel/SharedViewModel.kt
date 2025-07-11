@@ -19,7 +19,6 @@ import com.example.pile.data.createNewNode
 import com.example.pile.data.nodeFilesFromDirectory
 import com.example.pile.data.parseFileOrgNode
 import com.example.pile.data.writeFile
-import com.example.pile.orgmode.orgAttachDir
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -319,7 +318,6 @@ class SharedViewModel(
 
     private fun write(file: DocumentFile, text: String) {
         writeFile(applicationContext, file, text)
-        // notify("File Saved")
     }
 
     fun togglePinned(node: OrgNode) {
@@ -370,36 +368,5 @@ class SharedViewModel(
                 updateNodeTags(newNode.id, tags = newNode.tags)
             }
         }
-    }
-
-    private suspend fun getAttachmentsDir(node: OrgNode): DocumentFile? {
-        return _rootUri.value?.let {
-            withContext(Dispatchers.IO) {
-                orgAttachDir(
-                    context = applicationContext,
-                    rootUri = it,
-                    node = node
-                )
-            }
-        }
-    }
-
-    /**
-     * Use current node and given filename to produce a full path to the attachment.
-     *
-     * In case you want to provide an ID that's not node's, pass parentId
-     */
-    suspend fun getAttachmentFile(fileName: String, parentId: String? = null): DocumentFile? {
-        if (parentId != null) {
-            throw NotImplementedError()
-        }
-        return null
-        // TODO: Remove this dependency on currentNode private val
-//        if (currentNode.value != null) {
-//            val attachDir = getAttachmentsDir(currentNode.value!!)
-//            return orgAttachmentPath(attachDir!!, currentNode.value!!.id, fileName)
-//        } else {
-//            return null
-//        }
     }
 }
