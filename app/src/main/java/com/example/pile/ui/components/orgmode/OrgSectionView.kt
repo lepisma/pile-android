@@ -70,7 +70,7 @@ fun OrgSectionHeadingView(
 
 @Composable
 fun OrgSectionView(section: OrgSection, modifier: Modifier = Modifier, openNodeById: (String) -> Unit, viewModel: SharedViewModel) {
-    var isCollapsed by remember { mutableStateOf(true) }
+    var isCollapsed by remember { mutableStateOf(false) }
 
     OrgSectionHeadingView(
         section.heading,
