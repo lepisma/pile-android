@@ -20,7 +20,7 @@ import xyz.lepisma.orgmode.OrgInlineElem
  * Trim elements so that the plain text items at both ends that match whitespaces are removed
  */
 private fun trimOrgInlineElems(elements: List<OrgInlineElem>): List<OrgInlineElem> {
-    fun isWhiteSpace(elem: OrgInlineElem): Boolean {
+    fun isWhitespace(elem: OrgInlineElem): Boolean {
         // Note that there could be marked-up text that could also be whitespace. For example:
         // "/hell world   /" which has trailing whitespace inside emphasis marker. For now we don't
         // consider that.
@@ -28,17 +28,18 @@ private fun trimOrgInlineElems(elements: List<OrgInlineElem>): List<OrgInlineEle
     }
 
     return elements
-        .dropWhile { isWhiteSpace(it) }
-        .dropLastWhile { isWhiteSpace(it) }
+        .dropWhile { isWhitespace(it) }
+        .dropLastWhile { isWhitespace(it) }
 }
 
 private fun buildOrgInlineString(
     elements: List<OrgInlineElem>,
     uriHandler: UriHandler,
-    openNodeById: (String) -> Unit
+    openNodeById: (String) -> Unit,
+    trimWhitespaces: Boolean = true
 ): AnnotatedString {
     return buildAnnotatedString {
-        trimOrgInlineElems(elements).forEachIndexed { i, elem ->
+        (if (trimWhitespaces) { trimOrgInlineElems(elements) } else { elements }).forEachIndexed { i, elem ->
             when (elem) {
                 is OrgInlineElem.Text -> append(elem.text)
                 is OrgInlineElem.Link -> {
@@ -90,11 +91,17 @@ fun OrgInlineElemsView(
     elements: List<OrgInlineElem>,
     modifier: Modifier = Modifier,
     style: TextStyle = MaterialTheme.typography.bodyLarge,
-    openNodeById: (String) -> Unit
+    openNodeById: (String) -> Unit,
+    trimWhitespaces: Boolean = true
 ) {
     val localUriHandler = LocalUriHandler.current
     Text(
-        text = buildOrgInlineString(elements, localUriHandler, openNodeById),
+        text = buildOrgInlineString(
+            elements,
+            uriHandler = localUriHandler,
+            openNodeById = openNodeById,
+            trimWhitespaces = trimWhitespaces
+        ),
         modifier = modifier,
         style = style
     )
