@@ -16,15 +16,29 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import xyz.lepisma.orgmode.OrgInlineElem
 
+/**
+ * Trim elements so that the plain text items at both ends that match whitespaces are removed
+ */
+private fun trimOrgInlineElems(elements: List<OrgInlineElem>): List<OrgInlineElem> {
+    fun isWhiteSpace(elem: OrgInlineElem): Boolean {
+        // Note that there could be marked-up text that could also be whitespace. For example:
+        // "/hell world   /" which has trailing whitespace inside emphasis marker. For now we don't
+        // consider that.
+        return elem is OrgInlineElem.Text && elem.text.trim().isBlank()
+    }
+
+    return elements
+        .dropWhile { isWhiteSpace(it) }
+        .dropLastWhile { isWhiteSpace(it) }
+}
+
 private fun buildOrgInlineString(
     elements: List<OrgInlineElem>,
     uriHandler: UriHandler,
     openNodeById: (String) -> Unit
 ): AnnotatedString {
     return buildAnnotatedString {
-        elements.forEachIndexed { i, elem ->
-            // TODO: Skip last line break
-
+        trimOrgInlineElems(elements).forEachIndexed { i, elem ->
             when (elem) {
                 is OrgInlineElem.Text -> append(elem.text)
                 is OrgInlineElem.Link -> {
