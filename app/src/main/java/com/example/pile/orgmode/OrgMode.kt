@@ -171,6 +171,24 @@ fun orgAttachmentPath(attachDir: DocumentFile, id: String, fileName: String): Do
 }
 
 /**
+ * Return all attachment files present for given node by looking up the data directory. This doesn't
+ * rely on the references that are kept in the node itself, which might be stale.
+ */
+fun orgGetAllAttachments(context: Context, rootUri: Uri, node: OrgNode): List<DocumentFile> {
+    val attachDir = orgAttachDir(context, rootUri, node)
+    if (attachDir == null) {
+        return emptyList()
+    }
+
+    val nodeAttachDir = attachDir.findFile(node.id.substring(0, 2))?.findFile(node.id.substring(2))
+    if (nodeAttachDir == null) {
+        return emptyList()
+    }
+
+    return nodeAttachDir.listFiles().toList().filter { it.isFile }
+}
+
+/**
  * Return the attachment directory of given node, creating it if needed.
  *
  * This is based on the default org-attach setting where a sibling `./data/` dir is used for
