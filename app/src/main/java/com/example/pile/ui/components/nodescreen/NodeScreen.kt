@@ -197,6 +197,7 @@ fun NodeScreen(
                 } else {
                     // Delete the file since there was some issue in writing to it
                     photoFile?.delete()
+                    photoFile = null
                 }
             }
         )
