@@ -2,7 +2,10 @@ package com.example.pile.ui.components.nodescreen
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,6 +43,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
@@ -49,6 +53,8 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.documentfile.provider.DocumentFile
 import com.example.pile.data.OrgNode
 import com.example.pile.data.readFile
 import com.example.pile.orgmode.parseTags
@@ -61,6 +67,7 @@ import com.example.pile.ui.theme.PileTheme
 import com.example.pile.viewmodel.SharedViewModel
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
+import compose.icons.fontawesomeicons.solid.Camera
 import compose.icons.fontawesomeicons.solid.Glasses
 import compose.icons.fontawesomeicons.solid.Link
 import compose.icons.fontawesomeicons.solid.ProjectDiagram
@@ -143,6 +150,7 @@ fun NodeScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     var currentNode by remember { mutableStateOf<OrgNode?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
     val context = LocalContext.current
 
@@ -162,6 +170,54 @@ fun NodeScreen(
                 )
             )
         }
+
+        suspend fun generateNewPhotoFile(): DocumentFile? {
+            val timestamp = System.currentTimeMillis()
+            val fileName = "photo_$timestamp.png"
+            return viewModel.getAttachmentDir()?.createFile("image/png", fileName)
+        }
+
+        // DocumentFile where an incoming photo from camera will be stored
+        var photoFile: DocumentFile? by remember { mutableStateOf(null) }
+
+        val takePictureLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.TakePicture(),
+            onResult = { success ->
+                if (success) {
+                    photoFile?.let { file ->
+                        coroutineScope.launch {
+                            currentTextFieldValue = insertText(
+                                currentTextFieldValue,
+                                "[[attachment:${file.name}]]"
+                            )
+
+                            photoFile = null
+                        }
+                    }
+                } else {
+                    // Delete the file since there was some issue in writing to it
+                    photoFile?.delete()
+                }
+            }
+        )
+
+        val camPermissionLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission(),
+            onResult = { isGranted: Boolean ->
+                if (isGranted) {
+                    coroutineScope.launch {
+                        val file = generateNewPhotoFile()
+                        if (file != null) {
+                            takePictureLauncher.launch(file.uri)
+                            // Save the file since it will be picked up later for processing
+                            photoFile = file
+                        }
+                    }
+                } else {
+                    // TODO: Handle the case where the user denies the permission
+                }
+            }
+        )
 
         var lastSavedText by remember(node.id) { mutableStateOf(fileContent) }
 
@@ -310,6 +366,32 @@ fun NodeScreen(
                                 Icon(
                                     Icons.Filled.DateRange,
                                     contentDescription = "Add current datetime"
+                                )
+                            }
+                            IconButton(enabled = true, onClick = {
+                                when (PackageManager.PERMISSION_GRANTED) {
+                                    ContextCompat.checkSelfPermission(
+                                        context, android.Manifest.permission.CAMERA
+                                    ) -> {
+                                        coroutineScope.launch {
+                                            val file = generateNewPhotoFile()
+                                            if (file != null) {
+                                                takePictureLauncher.launch(file.uri)
+                                                // Save the file since it will be picked up later
+                                                // for processing
+                                                photoFile = file
+                                            }
+                                        }
+                                    }
+                                    else -> {
+                                        camPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+                                    }
+                                }
+                            }) {
+                                Icon(
+                                    FontAwesomeIcons.Solid.Camera,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                    contentDescription = "Insert camera shot"
                                 )
                             }
                             StructuredNavigationButton { dir, level ->

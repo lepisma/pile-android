@@ -158,43 +158,35 @@ fun readOrgPreamble(context: Context, file: DocumentFile): String {
 }
 
 /**
- * Return exact path to the attachment by the name of `fileName` under the entry with id `id`
- *
- * The path is made up of nested directories by breaking up id in two pieces (first 2 chars and rest
- * of the chars).
- */
-fun orgAttachmentPath(attachDir: DocumentFile, id: String, fileName: String): DocumentFile? {
-    return attachDir
-        .findFile(id.substring(0, 2))
-        ?.findFile(id.substring(2))
-        ?.findFile(fileName)
-}
-
-/**
  * Return all attachment files present for given node by looking up the data directory. This doesn't
  * rely on the references that are kept in the node itself, which might be stale.
  */
 fun orgGetAllAttachments(context: Context, rootUri: Uri, node: OrgNode): List<DocumentFile> {
-    val attachDir = orgAttachDir(context, rootUri, node)
-    if (attachDir == null) {
-        return emptyList()
-    }
-
-    val nodeAttachDir = attachDir.findFile(node.id.substring(0, 2))?.findFile(node.id.substring(2))
-    if (nodeAttachDir == null) {
-        return emptyList()
-    }
-
+    val nodeAttachDir = orgNodeAttachDir(context, rootUri, node) ?: return emptyList()
     return nodeAttachDir.listFiles().toList().filter { it.isFile }
 }
 
 /**
- * Return the attachment directory of given node, creating it if needed.
+ * Return the directory where all attachments of the given node are kept. Create if it does not
+ * exist.
+ */
+fun orgNodeAttachDir(context: Context, rootUri: Uri, node: OrgNode): DocumentFile? {
+    val rootDataDir = orgAttachDir(context, rootUri, node) ?: return null
+
+    // Org attachments are kept under two level of directories using the node id
+    val firstDirName = node.id.substring(0, 2)
+    val firstDir = rootDataDir.findFile(firstDirName) ?: rootDataDir.createDirectory(firstDirName) ?: return null
+    val secondDirName = node.id.substring(2)
+    return firstDir.findFile(secondDirName) ?: firstDir.createDirectory(secondDirName)
+}
+
+/**
+ * Return the attachment directory for the given node type, creating it if needed.
  *
  * This is based on the default org-attach setting where a sibling `./data/` dir is used for
  * storing attachments.
  */
-fun orgAttachDir(context: Context, rootUri: Uri, node: OrgNode): DocumentFile? {
+private fun orgAttachDir(context: Context, rootUri: Uri, node: OrgNode): DocumentFile? {
     val dirName = "data"
 
     val rootDir = DocumentFile.fromTreeUri(context, rootUri)

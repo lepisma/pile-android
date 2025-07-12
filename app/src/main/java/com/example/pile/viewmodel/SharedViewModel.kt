@@ -19,8 +19,7 @@ import com.example.pile.data.createNewNode
 import com.example.pile.data.nodeFilesFromDirectory
 import com.example.pile.data.parseFileOrgNode
 import com.example.pile.data.writeFile
-import com.example.pile.orgmode.orgAttachDir
-import com.example.pile.orgmode.orgAttachmentPath
+import com.example.pile.orgmode.orgNodeAttachDir
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -385,9 +384,36 @@ class SharedViewModel(
         return _currentNodeId.value?.let { nodeId ->
             _rootUri.value?.let { rootUri ->
                 getNode(nodeId)?.let { currentNode ->
-                    orgAttachDir(applicationContext, rootUri, currentNode)?.let { attachmentDir ->
-                        orgAttachmentPath(attachmentDir, nodeId, attachmentName)
+                    orgNodeAttachDir(applicationContext, rootUri, currentNode)?.let { attachmentDir ->
+                        attachmentDir.findFile(attachmentName)
                     }
+                }
+            }
+        }
+    }
+
+    /**
+     * Return directory where attachments are kept for current node
+     */
+    suspend fun getAttachmentDir(): DocumentFile? {
+        return _currentNodeId.value?.let { nodeId ->
+            _rootUri.value?.let { rootUri ->
+                getNode(nodeId)?.let { currentNode ->
+                    orgNodeAttachDir(applicationContext, rootUri, currentNode)
+                }
+            }
+        }
+    }
+
+    /**
+     * Add given data as attachment with given name. If successful, return the DocumentFile.
+     */
+    suspend fun addAttachment(attachmentName: String, mimeType: String, data: ByteArray): DocumentFile? {
+        return getAttachmentDir()?.let { attachmentDir ->
+            attachmentDir.createFile(mimeType, attachmentName)?.also { file ->
+                applicationContext.contentResolver.openOutputStream(file.uri)?.use { outputStream ->
+                    outputStream.write(data)
+                    file
                 }
             }
         }
