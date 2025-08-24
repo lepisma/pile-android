@@ -1,3 +1,7 @@
+#+begin_quote
+Development for this project has moved to sourcehut [[https://git.sr.ht/~lepisma/pile-android][here]]. This repository is now in a read-only state.
+#+end_quote
+
 #+BEGIN_HTML
 <div style="display: flex; justify-content: space-between;">
   <img src="icons/icon.png" width="10%" />
